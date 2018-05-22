@@ -73,10 +73,6 @@ class AmpPanel(wx.Panel):
         self.server_record = self.mx_database.get_record(server_record_name)
         self.remote_record_name = self.amp.get_field("remote_record_name")
 
-        print(self.amp.get_gain())
-        print("server_record_name = {}".format(server_record_name))
-        print("remote_record_name = {}".format(self.remote_record_name))
-
         top_sizer = self._create_layout()
 
         self.SetSizer(top_sizer)

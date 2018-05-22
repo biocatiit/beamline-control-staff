@@ -50,7 +50,9 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, *args, **kwargs)
 
         self.controls = collections.OrderedDict()
-        self.ctrl_type = ('Amplifier', 'Motor')
+        self.ctrl_types = {'Amplifier'  : ac.AmpPanel,
+                        'Motor'         : mc.MotorPanel,
+                        }
 
         self._start_mxdatabase()
         self._load_controls()
@@ -148,7 +150,8 @@ class MainFrame(wx.Frame):
         self.add_ctrl()
 
     def add_ctrl(self):
-        add_dlg = AddCtrlDialog()
+        add_dlg = AddCtrlDialog(parent=self, title='Create new control set',
+            style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
         if add_dlg.ShowModal() == wx.ID_OK:
             ctrl_data = add_dlg.ctrl_data
 
@@ -197,10 +200,6 @@ class CtrlsPanel(wx.Panel):
 class CtrlsFrame(wx.Frame):
     def __init__(self, ctrls, mx_db, *args, **kwargs):
         wx.Frame.__init__(self, title=ctrls[0]['title'], *args, **kwargs)
-        print(ctrls)
-        self.ctrl_types = {'amp'    : ac.AmpPanel,
-                        'motor'     : mc.MotorPanel,
-                        }
 
         self._create_layout(ctrls, mx_db)
 
@@ -210,6 +209,7 @@ class CtrlsFrame(wx.Frame):
     def _create_layout(self, ctrls, mx_db):
         settings = ctrls[0]
         ctrls = ctrls[1:]
+        main_window = self.GetParent()
 
         grid_sizer = wx.FlexGridSizer(rows=settings['rows'], cols=settings['cols'],
             hgap=2, vgap=2)
@@ -218,7 +218,7 @@ class CtrlsFrame(wx.Frame):
             grid_sizer.AddGrowableCol(i)
 
         for ctrl_name, ctrl_type in ctrls:
-            ctrl_panel = self.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
+            ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Control'.format(ctrl_name)))
             box_sizer.Add(ctrl_panel)
             grid_sizer.Add(box_sizer, flag=wx.EXPAND)
@@ -227,7 +227,7 @@ class CtrlsFrame(wx.Frame):
 
 class AddCtrlDialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
-        wx.Dialog.__init__(self, None, *args, **kwargs)
+        wx.Dialog.__init__(self, *args, **kwargs)
 
         self._create_layout()
 
@@ -263,14 +263,18 @@ class AddCtrlDialog(wx.Dialog):
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(info_grid)
-        top_sizer.Add(self.list_ctrl, flag=wx.EXPAND)
+        top_sizer.Add(self.list_ctrl, 1, flag=wx.EXPAND)
         top_sizer.Add(list_ctrl_btn_sizer, flag=wx.CENTER)
         top_sizer.Add(button_sizer)
+
+        self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
+        self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE_USEHEADER)
 
         self.SetSizer(top_sizer)
 
     def _on_add(self, evt):
         index = self.list_ctrl.InsertStringItem(sys.maxint, '')
+        main_frame = self.GetParent()
 
         item = self.list_ctrl.GetItem(index, 0)
         textctrl = wx.TextCtrl(self.list_ctrl)
@@ -279,16 +283,33 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.SetItem(item)
 
         item = self.list_ctrl.GetItem(index, 1)
-        textctrl = wx.TextCtrl(self.list_ctrl)
-        item.SetWindow(textctrl, expand=True)
+        choice_ctrl = wx.Choice(self.list_ctrl, choices=main_frame.ctrl_types.keys(),
+            style=wx.CB_SORT)
+        item.SetWindow(choice_ctrl, expand=True)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
 
+        self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
     def _on_ok(self, evt):
+        rows = int(self.rows.GetValue())
+        cols = int(self.cols.GetValue())
+
+        if self.group_ctrl.GetValue() == '' or self.title.GetValue() == '':
+            msg = ('The control(s) must have a group and name.')
+            wx.MessageBox(msg, 'Control group and name required')
+            return
+        if rows*cols < self.list_ctrl.GetItemCount():
+            msg = ('The value of rows*cols must be equal to or greater than the '
+                'number of controls added to the panel. Please increase the number of '
+                'rows and/or columns or remove controls.')
+            wx.MessageBox(msg, 'Error adding controls')
+            return
+
         self.ctrl_data = []
         self.ctrl_data.append({'title' :self.title.GetValue(),
-            'rows'  : int(self.rows.GetValue()),
-            'cols'  : int(self.cols.GetValue()),
+            'rows'  : rows,
+            'cols'  : cols,
             })
         for i in range(self.list_ctrl.GetItemCount()):
             ctrl_name = self.list_ctrl.GetItem(i, 0).GetWindow().GetValue()
@@ -299,6 +320,7 @@ class AddCtrlDialog(wx.Dialog):
         self.group = self.group_ctrl.GetValue()
 
         self.EndModal(wx.ID_OK)
+        return
 
 #This class goes with write header, and was lifted from:
 #https://stackoverflow.com/questions/27050108/convert-numpy-type-to-python/27050186#27050186
