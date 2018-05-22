@@ -19,6 +19,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object, range, map
 from io import open
@@ -178,7 +179,7 @@ class AmpFrame(wx.Frame):
         self.Raise()
 
         if timer:
-            self.mx_timer.Start(100)
+            self.mx_timer.Start(1000)
 
     def _create_layout(self, amps, shape):
         """
