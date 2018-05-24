@@ -63,13 +63,6 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
-
-
-
-
-
-
-
         self.mx_timer.Start(100)
 
     def _start_mxdatabase(self):
@@ -90,7 +83,7 @@ class MainFrame(wx.Frame):
         settings = 'sector_ctrl_settings.txt'
         if os.path.exists(settings):
             with open(settings, 'r') as f:
-                self.controls = json.load(f)
+                self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
 
     def _create_layout(self):
         self._mgr = aui.AuiManager()
@@ -101,18 +94,34 @@ class MainFrame(wx.Frame):
         ctrlnb_info = aui.AuiPaneInfo().Floatable(False).Center().CloseButton(False)
         ctrlnb_info.Gripper(False).PaneBorder(False).CaptionVisible(False)
 
-        for key in self.controls.keys():
-            ctrl_panel = CtrlsPanel(self.controls[key], self, parent=self._ctrl_nb, name=key)
-            self._ctrl_nb.AddPage(ctrl_panel, key)
+        for group in self.controls.keys():
+            ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self._ctrl_nb, name=group)
+            self._ctrl_nb.AddPage(ctrl_panel, group)
 
-
-        add_ctrl_btn = wx.Button(self, label='Add New Control(s)')
+        btn_panel = wx.Panel(self)
+        add_ctrl_btn = wx.Button(btn_panel, label='Add Persistent Control(s)')
         add_ctrl_btn.Bind(wx.EVT_BUTTON, self._on_addctrl)
-        add_ctrl_info = aui.AuiPaneInfo().Floatable(False).Bottom().CloseButton(False)
-        add_ctrl_info.Gripper(False).PaneBorder(False).CaptionVisible(False).Fixed()
+
+        show_ctrl_btn = wx.Button(btn_panel, label='Show Temporary Control(s)')
+        show_ctrl_btn.Bind(wx.EVT_BUTTON, self._on_showctrl)
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.AddStretchSpacer(1)
+        btn_sizer.Add(add_ctrl_btn,0)
+        btn_sizer.Add(show_ctrl_btn,0)
+        btn_sizer.AddStretchSpacer(1)
+        btn_panel.SetSizer(btn_sizer)
+        btn_panel.Layout()
+        btn_panel.Fit()
+
+        btn_sizer_info = aui.AuiPaneInfo().Floatable(False).Bottom().CloseButton(False)
+        btn_sizer_info.Gripper(False).PaneBorder(False).CaptionVisible(False).Fixed()
 
         self._mgr.AddPane(self._ctrl_nb, ctrlnb_info)
-        self._mgr.AddPane(add_ctrl_btn, add_ctrl_info)
+        self._mgr.AddPane(btn_panel, btn_sizer_info)
+
+        btn_panel.Layout()
+        btn_panel.Fit()
 
         self._mgr.Update()
 
@@ -126,6 +135,7 @@ class MainFrame(wx.Frame):
         self.mx_db.wait_for_messages(0.01)
 
     def _on_closewindow(self, evt):
+        self.mx_timer.Stop()
         perspective = self._mgr.SavePerspective()
         with open('sector_ctrl_layout.bak', 'w') as f:
             f.write(perspective)
@@ -142,29 +152,51 @@ class MainFrame(wx.Frame):
                 layout = f.read()
             self._mgr.LoadPerspective(layout)
 
-    def show_ctrls(self, group, ctrl):
-        ctrl_frame = CtrlsFrame(self.controls[group][ctrl], self.mx_db, parent=self)
+    def show_ctrls(self,ctrl_data):
+        self.mx_timer.Stop()
+        ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
+        self.mx_timer.Start()
 
     def _on_addctrl(self, evt):
         self.add_ctrl()
 
+    def _on_showctrl(self, evt):
+        add_dlg = AddCtrlDialog(parent=self, title='Define control set',
+            style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+        if add_dlg.ShowModal() == wx.ID_OK:
+            ctrl_data = add_dlg.ctrl_data
+            if len(ctrl_data)>1:
+                self.show_ctrls(ctrl_data)
+
     def add_ctrl(self):
-        add_dlg = AddCtrlDialog(parent=self, title='Create new control set',
+        add_dlg = AddCtrlDialog(parent=self, title='Define control set',
             style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
         if add_dlg.ShowModal() == wx.ID_OK:
             ctrl_data = add_dlg.ctrl_data
 
-            group = add_dlg.group
-            ctrl = ctrl_data[0]['title']
+            if len(ctrl_data)>1:
+                group = add_dlg.group
+                ctrl = ctrl_data[0]['title']
 
-            if group not in self.controls:
-                self.controls[group]={}
-            self.controls[group][ctrl] = ctrl_data
+                if group not in self.controls:
+                    self.controls[group]=collections.OrderedDict()
+                    self.controls[group][ctrl] = ctrl_data
+                    ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self._ctrl_nb, name=group)
+                    self._ctrl_nb.AddPage(ctrl_panel, group)
+                    self.Layout()
+                else:
+                    self.controls[group][ctrl] = ctrl_data
+                    ctrl_panel = self._ctrl_nb.FindWindowByName(group)
+                    ctrl_panel.add_ctrl(ctrl)
+                    ctrl_panel.Layout()
 
-            self.show_ctrls(group, ctrl)
+                self.show_ctrls(self.controls[group][ctrl])
 
         add_dlg.Destroy()
+
+    def start_timer(self):
+        self.mx_timer.Start()
 
 class CtrlsPanel(wx.Panel):
 
@@ -176,26 +208,39 @@ class CtrlsPanel(wx.Panel):
     def _create_layout(self, panel_data):
         nitems = len(panel_data.keys())
 
-        grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=4, hgap=4)
+        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=4, hgap=4)
 
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)
             button.Bind(wx.EVT_BUTTON, self._on_button)
-            grid_sizer.Add(button)
+            self.grid_sizer.Add(button)
 
         top_sizer = wx.BoxSizer()
 
-        top_sizer.Add(grid_sizer)
+        top_sizer.Add(self.grid_sizer)
 
         self.SetSizer(top_sizer)
 
     def _on_button(self, evt):
         button = evt.GetEventObject()
 
-        btn_name = button.GetName()
-        panel_name = self.GetName()
+        ctrl = button.GetName()
+        group = self.GetName()
 
-        self.main_frame.show_ctrls(panel_name, btn_name)
+        self.main_frame.show_ctrls(self.main_frame.controls[group][ctrl])
+
+    def add_ctrl(self, label):
+        rows = self.grid_sizer.GetRows()
+        cols = self.grid_sizer.GetCols()
+        nitems = self.grid_sizer.GetItemCount()
+
+        if nitems+1 > rows*cols:
+            self.grid_sizer.SetRows(rows+1)
+
+        button = wx.Button(self, label=label, name=label)
+        button.Bind(wx.EVT_BUTTON, self._on_button)
+        self.grid_sizer.Add(button)
+
 
 class CtrlsFrame(wx.Frame):
     def __init__(self, ctrls, mx_db, *args, **kwargs):
@@ -205,6 +250,8 @@ class CtrlsFrame(wx.Frame):
 
         self.Fit()
         self.Raise()
+
+        self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
     def _create_layout(self, ctrls, mx_db):
         settings = ctrls[0]
@@ -224,6 +271,13 @@ class CtrlsFrame(wx.Frame):
             grid_sizer.Add(box_sizer, flag=wx.EXPAND)
 
         self.SetSizer(grid_sizer)
+
+    def _on_closewindow(self, evt):
+        main_frame = self.GetParent()
+        main_frame.mx_timer.Stop()
+        wx.CallLater(1000, main_frame.start_timer)
+        self.Destroy()
+
 
 class AddCtrlDialog(wx.Dialog):
     def __init__(self, *args, **kwargs):
@@ -285,6 +339,12 @@ class AddCtrlDialog(wx.Dialog):
         item = self.list_ctrl.GetItem(index, 1)
         choice_ctrl = wx.Choice(self.list_ctrl, choices=main_frame.ctrl_types.keys(),
             style=wx.CB_SORT)
+
+        if index>0:
+            prev_item = self.list_ctrl.GetItem(index-1, 1)
+            prev_choice = prev_item.GetWindow().GetStringSelection()
+            choice_ctrl.SetStringSelection(prev_choice)
+
         item.SetWindow(choice_ctrl, expand=True)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
@@ -311,11 +371,24 @@ class AddCtrlDialog(wx.Dialog):
             'rows'  : rows,
             'cols'  : cols,
             })
+
+        main_frame = self.GetParent()
+        mx_db = main_frame.mx_db
+
         for i in range(self.list_ctrl.GetItemCount()):
             ctrl_name = self.list_ctrl.GetItem(i, 0).GetWindow().GetValue()
-            ctrl_type = self.list_ctrl.GetItem(i, 1).GetWindow().GetValue()
+            ctrl_type = self.list_ctrl.GetItem(i, 1).GetWindow().GetStringSelection()
 
-            self.ctrl_data.append((ctrl_name, ctrl_type))
+            try:
+                mx_db.get_record(ctrl_name)
+            except mp.Not_Found_Error:
+                msg = ('The control name "{}" is not an mx record. Please '
+                    'fix this.'.format(ctrl_name))
+                wx.MessageBox(msg, 'Error adding controls')
+                return
+
+            if ctrl_name != '':
+                self.ctrl_data.append((ctrl_name, ctrl_type))
 
         self.group = self.group_ctrl.GetValue()
 
