@@ -29,6 +29,8 @@ import traceback
 import os
 import json
 import collections
+import platform
+import copy
 
 import wx
 import wx.aui as aui
@@ -156,6 +158,7 @@ class MainFrame(wx.Frame):
     def show_ctrls(self,ctrl_data):
         print(ctrl_data)
         self.mx_timer.Stop()
+        time.sleep(100)
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
         self.mx_timer.Start()
@@ -200,12 +203,19 @@ class MainFrame(wx.Frame):
     def start_timer(self):
         self.mx_timer.Start()
 
+    def redo_layout(self):
+        for i in range(self._ctrl_nb.GetPageCount()):
+            if self._ctrl_nb.GetPageText(i) not in self.controls.keys():
+                self._ctrl_nb.DeletePage(i)
+
 class CtrlsPanel(wx.Panel):
 
     def __init__(self, panel_data, main_frame, *args, **kwargs):
         wx.Panel.__init__(self, *args, **kwargs)
         self.main_frame = main_frame
         self._create_layout(panel_data)
+
+        self.Bind(wx.EVT_RIGHT_UP, self._onRightMouseClick)
 
     def _create_layout(self, panel_data):
         nitems = len(panel_data.keys())
@@ -243,6 +253,61 @@ class CtrlsPanel(wx.Panel):
         button.Bind(wx.EVT_BUTTON, self._on_button)
         self.grid_sizer.Add(button)
 
+    def _onRightMouseClick(self, event):
+        if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
+            wx.CallAfter(self._showPopupMenu)
+        else:
+            self._showPopupMenu()
+
+    def _showPopupMenu(self):
+        menu = wx.Menu()
+
+        menu.Append(1, 'Remove/reorder controls')
+        menu.Append(2, 'Remove/reorder control groups')
+        self.Bind(wx.EVT_MENU, self._onPopupMenuChoice)
+        self.PopupMenu(menu)
+
+        menu.Destroy()
+
+    def _onPopupMenuChoice(self, evt):
+        choice = evt.GetId()
+
+        if choice == 1:
+            group = self.GetName()
+            dlg = RemoveCtrlDialog(self.main_frame.controls[group], parent=self,
+                title='Modify Control Sets', style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+            if dlg.ShowModal() == wx.ID_OK:
+                new_ctrls = dlg.keys
+
+                old_data = copy.deepcopy(self.main_frame.controls[group])
+
+                self.main_frame.controls[group] = collections.OrderedDict()
+
+                for ctrls in new_ctrls:
+                    self.main_frame.controls[group][ctrls] = old_data[ctrls]
+
+                for btn in self.grid_sizer.GetChildren():
+                    btn.GetWindow().Destroy()
+
+                self._create_layout(self.main_frame.controls[group])
+                self.Layout()
+
+            dlg.Destroy()
+        elif choice == 2:
+            group = self.GetName()
+            dlg = RemoveCtrlDialog(self.main_frame.controls, parent=self,
+                title='Modify Control Groups', style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+            if dlg.ShowModal() == wx.ID_OK:
+                new_groups = dlg.keys
+
+                old_data = copy.deepcopy(self.main_frame.controls)
+
+                self.main_frame.controls = collections.OrderedDict()
+
+                for group in new_groups:
+                    self.main_frame.controls[group] = old_data[group]
+                    wx.CallAfter(self.main_frame.redo_layout)
+            dlg.Destroy()
 
 class CtrlsFrame(wx.Frame):
     def __init__(self, ctrls, mx_db, *args, **kwargs):
@@ -267,6 +332,7 @@ class CtrlsFrame(wx.Frame):
             grid_sizer.AddGrowableCol(i)
 
         for ctrl_name, ctrl_type in ctrls:
+            print(ctrl_name)
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Control'.format(ctrl_name)))
             box_sizer.Add(ctrl_panel)
@@ -305,7 +371,6 @@ class AddCtrlDialog(wx.Dialog):
         info_grid.Add(wx.StaticText(self, label='Number of columns:'))
         info_grid.Add(self.cols)
 
-        # self.list_ctrl = ULC.UltimateListCtrl(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
         self.list_ctrl = ControlList(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
         self.list_ctrl.InsertColumn(0, 'MX Record Name')
         self.list_ctrl.InsertColumn(1, 'Control Type')
@@ -355,7 +420,6 @@ class AddCtrlDialog(wx.Dialog):
             prev_choice = prev_item.GetWindow().GetStringSelection()
             choice_ctrl.SetStringSelection(prev_choice)
 
-        # item.SetWindow(choice_ctrl, expand=True)
         item.SetWindow(choice_ctrl)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
@@ -417,9 +481,117 @@ class AddCtrlDialog(wx.Dialog):
             if ctrl_name != '':
                 self.ctrl_data.append((ctrl_name, ctrl_type))
 
-
         self.EndModal(wx.ID_OK)
         return
+
+class RemoveCtrlDialog(wx.Dialog):
+    def __init__(self, params, *args, **kwargs):
+        wx.Dialog.__init__(self, *args, **kwargs)
+        self._params = params
+        self._create_layout()
+
+    def _create_layout(self):
+
+        self.list_ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
+        self.list_ctrl.InsertColumn(0, 'Control')
+
+        for param in self._params.keys():
+            self.list_ctrl.InsertStringItem(sys.maxint, param)
+
+        up_btn = wx.Button(self, label='Up')
+        up_btn.Bind(wx.EVT_BUTTON, self._on_up)
+
+        down_btn = wx.Button(self, label='Down')
+        down_btn.Bind(wx.EVT_BUTTON, self._on_down)
+
+        remove_btn = wx.Button(self, label='Remove')
+        remove_btn.Bind(wx.EVT_BUTTON, self._on_remove)
+
+        list_ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        list_ctrl_btn_sizer.Add(up_btn)
+        list_ctrl_btn_sizer.Add(down_btn)
+        list_ctrl_btn_sizer.Add(remove_btn)
+
+        button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
+        self.Bind(wx.EVT_BUTTON, self._on_ok, id=wx.ID_OK)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(self.list_ctrl, 1, flag=wx.EXPAND)
+        top_sizer.Add(list_ctrl_btn_sizer, flag=wx.CENTER)
+        top_sizer.Add(button_sizer, flag=wx.RIGHT)
+
+        self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
+
+        self.SetSizer(top_sizer)
+
+    def _on_remove(self, evt):
+        selected = self.list_ctrl.GetFirstSelected()
+
+        while selected != -1:
+            self.list_ctrl.DeleteItem(selected)
+            selected = self.list_ctrl.GetFirstSelected()
+
+    def _on_up(self, evt):
+        selected_items = []
+        selected = self.list_ctrl.GetFirstSelected()
+
+        while selected != -1:
+            selected_items.append(selected)
+            if selected > 0:
+                data = self.list_ctrl.GetItemText(selected)
+                self.list_ctrl.DeleteItem(selected)
+                self.list_ctrl.InsertStringItem(selected-1, data)
+                selected = self.list_ctrl.GetFirstSelected()
+            else:
+                self.list_ctrl.Select(0, False)
+                selected = self.list_ctrl.GetFirstSelected()
+
+        for idx in selected_items:
+            if idx>0:
+                self.list_ctrl.Select(idx-1, True)
+            else:
+                self.list_ctrl.Select(0, True)
+
+    def _on_down(self, evt):
+        selected_items = []
+        selected = self.list_ctrl.GetFirstSelected()
+
+        while selected != -1:
+            selected_items.append(selected)
+            self.list_ctrl.Select(selected, False)
+            selected = self.list_ctrl.GetFirstSelected()
+
+        nitems = self.list_ctrl.GetItemCount()
+
+        if selected_items[-1] == nitems-1:
+            last_data = self.list_ctrl.GetItemText(nitems-1)
+
+        for idx in selected_items[::-1]:
+            data = self.list_ctrl.GetItemText(idx)
+            self.list_ctrl.DeleteItem(idx)
+            self.list_ctrl.InsertStringItem(idx+1, data)
+
+        if selected_items[-1] == nitems-1:
+            item = self.list_ctrl.FindItem(-1, last_data)
+            self.list_ctrl.DeleteItem(item)
+            self.list_ctrl.InsertStringItem(nitems, last_data)
+
+
+        for idx in selected_items:
+            if idx<nitems-1:
+                self.list_ctrl.Select(idx+1, True)
+            else:
+                self.list_ctrl.Select(nitems-1, True)
+
+    def _on_ok(self, evt):
+        nitems = self.list_ctrl.GetItemCount()
+        self.keys = [self.list_ctrl.GetItemText(i) for i in range(nitems)]
+        if self.GetTitle() == 'Modify Control Groups':
+            msg = ('Note: you will have to restart the program for any changes '
+                'in group ordering to take effect (you can also drag the tabs '
+                'to reorder them).')
+            wx.MessageBox(msg, 'Tab order changes on restart')
+        self.EndModal(wx.ID_OK)
 
 class ControlList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
     def __init__(self, *args, **kwargs):
