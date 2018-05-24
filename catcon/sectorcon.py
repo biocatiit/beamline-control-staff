@@ -33,6 +33,7 @@ import collections
 import wx
 import wx.aui as aui
 from wx.lib.agw import ultimatelistctrl as ULC
+import wx.lib.mixins.listctrl  as  listmix
 import numpy as np
 
 import utils
@@ -153,6 +154,7 @@ class MainFrame(wx.Frame):
             self._mgr.LoadPerspective(layout)
 
     def show_ctrls(self,ctrl_data):
+        print(ctrl_data)
         self.mx_timer.Stop()
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
@@ -162,7 +164,7 @@ class MainFrame(wx.Frame):
         self.add_ctrl()
 
     def _on_showctrl(self, evt):
-        add_dlg = AddCtrlDialog(parent=self, title='Define control set',
+        add_dlg = AddCtrlDialog(set_group=False, parent=self, title='Define control set',
             style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
         if add_dlg.ShowModal() == wx.ID_OK:
             ctrl_data = add_dlg.ctrl_data
@@ -280,20 +282,22 @@ class CtrlsFrame(wx.Frame):
 
 
 class AddCtrlDialog(wx.Dialog):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, set_group=True, *args, **kwargs):
         wx.Dialog.__init__(self, *args, **kwargs)
-
+        self._set_group = set_group
         self._create_layout()
 
     def _create_layout(self):
         info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=2, hgap=2)
-        self.group_ctrl = wx.TextCtrl(self)
+        if self._set_group:
+            self.group_ctrl = wx.TextCtrl(self)
         self.title = wx.TextCtrl(self)
         self.rows = wx.TextCtrl(self, value='1')
         self.cols = wx.TextCtrl(self, value='1')
 
-        info_grid.Add(wx.StaticText(self, label='Control(s) Group:'))
-        info_grid.Add(self.group_ctrl)
+        if self._set_group:
+            info_grid.Add(wx.StaticText(self, label='Control(s) Group:'))
+            info_grid.Add(self.group_ctrl)
         info_grid.Add(wx.StaticText(self, label='Control(s) Name:'))
         info_grid.Add(self.title)
         info_grid.Add(wx.StaticText(self, label='Number of rows:'))
@@ -301,16 +305,22 @@ class AddCtrlDialog(wx.Dialog):
         info_grid.Add(wx.StaticText(self, label='Number of columns:'))
         info_grid.Add(self.cols)
 
-        self.list_ctrl = ULC.UltimateListCtrl(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
+        # self.list_ctrl = ULC.UltimateListCtrl(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
+        self.list_ctrl = ControlList(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
         self.list_ctrl.InsertColumn(0, 'MX Record Name')
         self.list_ctrl.InsertColumn(1, 'Control Type')
+        self.list_ctrl.InsertColumn(2, '')
         self.list_ctrl.SetUserLineHeight(25)
 
-        add_btn = wx.Button(self, label='Add Control')
+        add_btn = wx.Button(self, label='Add control')
         add_btn.Bind(wx.EVT_BUTTON, self._on_add)
+
+        remove_btn = wx.Button(self, label='Remove control')
+        remove_btn.Bind(wx.EVT_BUTTON, self._on_remove)
 
         list_ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         list_ctrl_btn_sizer.Add(add_btn)
+        list_ctrl_btn_sizer.Add(remove_btn)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         self.Bind(wx.EVT_BUTTON, self._on_ok, id=wx.ID_OK)
@@ -345,17 +355,34 @@ class AddCtrlDialog(wx.Dialog):
             prev_choice = prev_item.GetWindow().GetStringSelection()
             choice_ctrl.SetStringSelection(prev_choice)
 
-        item.SetWindow(choice_ctrl, expand=True)
+        # item.SetWindow(choice_ctrl, expand=True)
+        item.SetWindow(choice_ctrl)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
 
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
+        self.Layout()
+
+    def _on_remove(self, evt):
+        selected = self.list_ctrl.GetFirstSelected()
+
+        while selected != -1:
+            self.list_ctrl.DeleteItem(selected)
+            selected = self.list_ctrl.GetFirstSelected()
+
+        self.list_ctrl.DoLayout()
+
     def _on_ok(self, evt):
         rows = int(self.rows.GetValue())
         cols = int(self.cols.GetValue())
 
-        if self.group_ctrl.GetValue() == '' or self.title.GetValue() == '':
+        if self._set_group:
+            self.group = self.group_ctrl.GetValue()
+        else:
+            self.group = None
+
+        if self.group == '' or self.title.GetValue() == '':
             msg = ('The control(s) must have a group and name.')
             wx.MessageBox(msg, 'Control group and name required')
             return
@@ -390,10 +417,14 @@ class AddCtrlDialog(wx.Dialog):
             if ctrl_name != '':
                 self.ctrl_data.append((ctrl_name, ctrl_type))
 
-        self.group = self.group_ctrl.GetValue()
 
         self.EndModal(wx.ID_OK)
         return
+
+class ControlList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, *args, **kwargs):
+        ULC.UltimateListCtrl.__init__(self, *args, **kwargs)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
 
 #This class goes with write header, and was lifted from:
 #https://stackoverflow.com/questions/27050108/convert-numpy-type-to-python/27050186#27050186
@@ -440,6 +471,8 @@ def setup_thread_excepthook():
 class MyApp(wx.App):
 
     def OnInit(self):
+
+        # sys.excepthook = self.ExceptionHook
 
         frame = MainFrame(title='BioCAT Staff Controls', name='MainFrame')
         frame.Show()
