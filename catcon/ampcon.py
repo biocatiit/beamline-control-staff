@@ -84,9 +84,14 @@ class AmpPanel(wx.Panel):
         :returns: wx Sizer for the panel.
         :rtype: wx.Sizer
         """
+
+        #Don't know how to get possible amplifications from mx, if it even knows. So this instead.
+        amp_choices = ['1e+2', '1e+3', '1e+04', '1e+05', '1e+06', '1e+07',
+            '1e+08', '1e+09', '1e+10']
+
         gain_name = "{}.gain".format(self.remote_record_name)
         gain = mpwx.Choice(self, self.server_record, gain_name,
-            choices=['1e+04', '1e+05', '1e+06'], function=self._Choice_update)
+            choices=amp_choices, function=self._Choice_update)
 
         offset_name = "{}.offset".format(self.remote_record_name)
         offset = mpwx.ValueEntry(self, self.server_record, offset_name)
