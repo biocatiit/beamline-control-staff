@@ -56,6 +56,7 @@ class MainFrame(wx.Frame):
         self.ctrl_types = {'Amplifier'  : ac.AmpPanel,
                         'Motor'         : mc.MotorPanel,
                         }
+        self.ctrl_panels = {}
 
         self._start_mxdatabase()
         self._load_controls()
@@ -99,6 +100,7 @@ class MainFrame(wx.Frame):
 
         for group in self.controls.keys():
             ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self._ctrl_nb, name=group)
+            self.ctrl_panels[group] = ctrl_panel
             self._ctrl_nb.AddPage(ctrl_panel, group)
 
         btn_panel = wx.Panel(self)
@@ -158,7 +160,6 @@ class MainFrame(wx.Frame):
     def show_ctrls(self,ctrl_data):
         print(ctrl_data)
         self.mx_timer.Stop()
-        time.sleep(100)
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
         self.mx_timer.Start()
@@ -188,15 +189,14 @@ class MainFrame(wx.Frame):
                     self.controls[group]=collections.OrderedDict()
                     self.controls[group][ctrl] = ctrl_data
                     ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self._ctrl_nb, name=group)
+                    self.ctrl_panels[group] = ctrl_panel
                     self._ctrl_nb.AddPage(ctrl_panel, group)
                     self.Layout()
                 else:
                     self.controls[group][ctrl] = ctrl_data
-                    ctrl_panel = self._ctrl_nb.FindWindowByName(group)
+                    ctrl_panel = self.ctrl_panels[group]
                     ctrl_panel.add_ctrl(ctrl)
                     ctrl_panel.Layout()
-
-                self.show_ctrls(self.controls[group][ctrl])
 
         add_dlg.Destroy()
 
@@ -225,6 +225,7 @@ class CtrlsPanel(wx.Panel):
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)
             button.Bind(wx.EVT_BUTTON, self._on_button)
+            button.Bind(wx.EVT_RIGHT_UP, self._onBtnRightMouseClick)
             self.grid_sizer.Add(button)
 
         top_sizer = wx.BoxSizer()
@@ -251,6 +252,7 @@ class CtrlsPanel(wx.Panel):
 
         button = wx.Button(self, label=label, name=label)
         button.Bind(wx.EVT_BUTTON, self._on_button)
+        button.Bind(wx.EVT_RIGHT_UP, self._onBtnRightMouseClick)
         self.grid_sizer.Add(button)
 
     def _onRightMouseClick(self, event):
@@ -262,7 +264,7 @@ class CtrlsPanel(wx.Panel):
     def _showPopupMenu(self):
         menu = wx.Menu()
 
-        menu.Append(1, 'Remove/reorder controls')
+        menu.Append(1, 'Remove/reorder control sets')
         menu.Append(2, 'Remove/reorder control groups')
         self.Bind(wx.EVT_MENU, self._onPopupMenuChoice)
         self.PopupMenu(menu)
@@ -308,6 +310,109 @@ class CtrlsPanel(wx.Panel):
                     self.main_frame.controls[group] = old_data[group]
                     wx.CallAfter(self.main_frame.redo_layout)
             dlg.Destroy()
+
+    def _onBtnRightMouseClick(self, evt):
+        if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
+            wx.CallAfter(self._showBtnPopupMenu, evt.GetEventObject())
+        else:
+            self._showBtnPopupMenu(evt.GetEventObject())
+
+    def _showBtnPopupMenu(self, btn):
+        menu = wx.Menu()
+
+        menu.Append(1, 'Modify controls')
+        menu.Bind(wx.EVT_MENU, self._onBtnPopupMenuChoice)
+        btn.PopupMenu(menu)
+
+        menu.Destroy()
+
+    def _onBtnPopupMenuChoice(self, evt):
+        button = evt.GetEventObject().GetInvokingWindow()
+
+        ctrl = button.GetName()
+        group = self.GetName()
+
+        add_dlg = AddCtrlDialog(parent=self.main_frame, title='Define control set',
+            style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+        add_dlg.populate_ctrls(self.main_frame.controls[group][ctrl], group)
+
+        if add_dlg.ShowModal() == wx.ID_OK:
+            ctrl_data = add_dlg.ctrl_data
+            new_group = add_dlg.group
+            new_ctrl = ctrl_data[0]['title']
+            print(new_group)
+            print(new_ctrl)
+            print(ctrl_data)
+            if new_group not in self.main_frame.controls:
+                self.main_frame.controls[new_group]=collections.OrderedDict()
+                self.main_frame.controls[new_group][new_ctrl] = ctrl_data
+                ctrl_panel = CtrlsPanel(self.main_frame.controls[new_group], self.main_frame,
+                    parent=self.main_frame._ctrl_nb, name=new_group)
+                self.main_frame.ctrl_panels[group] = ctrl_panel
+                self.main_frame._ctrl_nb.AddPage(ctrl_panel, new_group)
+                button.Destroy()
+                self.Layout()
+                self.main_frame.Layout()
+                del self.main_frame.controls[group][ctrl]
+            else:
+                if new_group != group:
+                    if new_ctrl in self.main_frame.controls[new_group]:
+                        result = self._showDupWarning(new_group, new_ctrl)
+                        if not result:
+                            return
+                        self.main_frame.controls[new_group][new_ctrl] = ctrl_data
+                    else:
+                        self.main_frame.controls[new_group][new_ctrl] = ctrl_data
+                        ctrl_panel = self.main_frame.ctrl_panels[new_group]
+                        print(ctrl_panel)
+                        ctrl_panel.add_ctrl(new_ctrl)
+                        ctrl_panel.Layout()
+
+                    button.Destroy()
+                    self.Layout()
+                    del self.main_frame.controls[group][ctrl]
+                else:
+                    if new_ctrl != ctrl:
+                        if new_ctrl in self.main_frame.controls[new_group]:
+                            result = self._showDupWarning(new_group, new_ctrl)
+                            if not result:
+                                return
+
+                            self.main_frame.controls[new_group][new_ctrl] = ctrl_data
+                            button.Destroy()
+                            self.Layout()
+                            del self.main_frame.controls[group][ctrl]
+                        else:
+                            button.SetLabel(new_ctrl)
+                            button.SetName(new_ctrl)
+                            self.Layout()
+                            old_ctrls = self.main_frame.controls[new_group]
+                            new_ctrls = collections.OrderedDict()
+
+                            for key in old_ctrls:
+                                if key == ctrl:
+                                    new_ctrls[new_ctrl] = ctrl_data
+                                else:
+                                    new_ctrls[key] = old_ctrls[key]
+
+                            self.main_frame.controls[new_group] = new_ctrls
+
+        return
+
+    def _showDupWarning(self, group, ctrl):
+        msg = ('Warning: Control group {} already has a control set named '
+            '{}. This will be overwritten if you continue. Proceed and '
+            'overwrite?'.format(group, ctrl))
+
+        dlg = wx.MessageDialog(self, msg, 'Proceed and overwrite?',
+            style=wx.YES_NO|wx.YES_DEFAULT|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP|wx.CENTER)
+
+        result = dlg.ShowModal()
+
+        if result == wx.ID_YES:
+            return True
+        else:
+            return False
 
 class CtrlsFrame(wx.Frame):
     def __init__(self, ctrls, mx_db, *args, **kwargs):
@@ -402,6 +507,9 @@ class AddCtrlDialog(wx.Dialog):
         self.SetSizer(top_sizer)
 
     def _on_add(self, evt):
+        self._add()
+
+    def _add(self):
         index = self.list_ctrl.InsertStringItem(sys.maxint, '')
         main_frame = self.GetParent()
 
@@ -427,6 +535,8 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
         self.Layout()
+
+        return index
 
     def _on_remove(self, evt):
         selected = self.list_ctrl.GetFirstSelected()
@@ -483,6 +593,23 @@ class AddCtrlDialog(wx.Dialog):
 
         self.EndModal(wx.ID_OK)
         return
+
+    def populate_ctrls(self, ctrl_data, group):
+        info = ctrl_data[0]
+        ctrls = ctrl_data[1:]
+
+        self.group_ctrl.SetValue(group)
+        self.title.SetValue(info['title'])
+        self.rows.SetValue(str(info['rows']))
+        self.cols.SetValue(str(info['cols']))
+
+        for ctrl in ctrls:
+            index = self._add()
+            name_ctrl = self.list_ctrl.GetItem(index, 0).GetWindow()
+            type_ctrl = self.list_ctrl.GetItem(index, 1).GetWindow()
+
+            name_ctrl.SetValue(ctrl[0])
+            type_ctrl.SetStringSelection(ctrl[1])
 
 class RemoveCtrlDialog(wx.Dialog):
     def __init__(self, params, *args, **kwargs):
