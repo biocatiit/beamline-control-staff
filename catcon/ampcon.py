@@ -99,23 +99,23 @@ class AmpPanel(wx.Panel):
         timec_name = "{}.time_constant".format(self.remote_record_name)
         timec = mpwx.ValueEntry(self, self.server_record, timec_name)
 
-        control_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=2, hgap=2)
-        control_grid.Add(wx.StaticText(self, label='Amplifier name:'))
+        control_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
+        control_grid.Add(wx.StaticText(self, label='Amplifier name:'), flag=wx.ALIGN_CENTER_VERTICAL)
         control_grid.Add(wx.StaticText(self, label=self.amp.get_field('name')),
-            flag=wx.EXPAND)
-        control_grid.Add(wx.StaticText(self, label='Gain:'))
-        control_grid.Add(gain, flag=wx.EXPAND)
-        control_grid.Add(wx.StaticText(self, label='Offset:'))
-        control_grid.Add(offset, flag=wx.EXPAND)
-        control_grid.Add(wx.StaticText(self, label='Time constant:'))
-        control_grid.Add(timec, flag=wx.EXPAND)
+            flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Gain:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(gain, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Offset:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(offset, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Time constant:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(timec, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         control_grid.AddGrowableCol(1)
 
         control_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer.Add(control_grid, 1, flag=wx.EXPAND)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(control_sizer, flag=wx.EXPAND)
+        top_sizer.Add(control_sizer, 1, flag=wx.EXPAND)
 
         return top_sizer
 

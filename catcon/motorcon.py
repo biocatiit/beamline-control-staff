@@ -85,6 +85,7 @@ class MotorPanel(wx.Panel):
         """
 
         mtr_type = self.motor.get_field('mx_type')
+        print(mtr_type)
 
         if mtr_type == 'network_motor':
             server_record_name = self.motor.get_field("server_record")
@@ -94,14 +95,15 @@ class MotorPanel(wx.Panel):
             pos = mpwx.Value(self, server_record, pos_name)
         elif mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
+            print(pv)
             pos = mpwxca.Value(self, pv)
 
-        status_grid = wx.GridBagSizer(vgap=2, hgap=2)
+        status_grid = wx.GridBagSizer(vgap=5, hgap=5)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
         status_grid.Add(wx.StaticText(self, label=self.motor.name), (0,1), span=(1,2), flag=wx.EXPAND)
         status_grid.Add(wx.StaticText(self, label='Current position:'), (1,0))
         status_grid.Add(pos, (1,1), flag=wx.EXPAND)
-        status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2))
+        status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2), flag=wx.ALIGN_RIGHT)
         status_grid.AddGrowableCol(1)
 
         status_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
@@ -116,39 +118,49 @@ class MotorPanel(wx.Panel):
         set_btn = wx.Button(self, label='Set to')
         set_btn.Bind(wx.EVT_BUTTON, self._on_setto)
 
+        mv_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mv_btn_sizer.Add(move_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
+        mv_btn_sizer.Add(set_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
+
         tp_btn = wx.Button(self, label='Step +')
         tm_btn = wx.Button(self, label='Step -')
         tp_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
         tm_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
 
+        step_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        step_btn_sizer.Add(tp_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
+        step_btn_sizer.Add(tm_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
+
         stop_btn = wx.Button(self, label='Stop')
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
 
-        control_grid = wx.GridBagSizer(vgap=2,hgap=2)
-        control_grid.Add(wx.StaticText(self, label='Position ({}):'.format(self.motor.get_field('units'))),
-            (0,0))
-        control_grid.Add(self.pos_ctrl, (0,1), flag=wx.EXPAND)
-        control_grid.Add(move_btn, (1,0),flag=wx.ALIGN_RIGHT)
-        control_grid.Add(set_btn, (1,1), flag=wx.ALIGN_LEFT)
-        control_grid.Add(wx.StaticLine(self), (2,0), span=(1,2), border=10,
-            flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(wx.StaticText(self, label='Relative step ({}):'.format(self.motor.get_field('units'))),
-            (3,0))
-        control_grid.Add(self.mrel_ctrl, (3,1), flag=wx.EXPAND)
-        control_grid.Add(tm_btn, (4,0), flag=wx.ALIGN_RIGHT)
-        control_grid.Add(tp_btn, (4,1), flag=wx.ALIGN_LEFT)
+        line1 = wx.BoxSizer()
+        line1.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
 
-        control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
-            wx.VERTICAL)
-        control_sizer.Add(control_grid, 1, flag=wx.EXPAND)
-        control_grid.Add(wx.StaticLine(self), (5,0), span=(1,2), border=10,
-            flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+        line2 = wx.BoxSizer()
+        line2.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+
+        control_grid = wx.GridBagSizer(vgap=5,hgap=5)
+        control_grid.Add(wx.StaticText(self, label='Position ({}):'.format(self.motor.get_field('units'))),
+            (0,0),flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(self.pos_ctrl, (0,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(mv_btn_sizer, (1,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(line1, (2,0), span=(1,2), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(wx.StaticText(self, label='Relative step ({}):'.format(self.motor.get_field('units'))),
+            (3,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(self.mrel_ctrl, (3,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(step_btn_sizer, (4,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(line2, (5,0), span=(1,2), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
         control_grid.Add(stop_btn, (6,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
 
+        control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
+            wx.VERTICAL)
+        control_sizer.Add(control_grid, 1,border=5, flag=wx.EXPAND|wx.BOTTOM)
+
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(status_sizer, flag=wx.EXPAND)
-        top_sizer.Add(control_sizer, flag=wx.EXPAND)
+        top_sizer.Add(status_sizer, border=5, flag=wx.EXPAND)
+        top_sizer.Add(control_sizer, border=5, flag=wx.EXPAND|wx.TOP)
 
         return top_sizer
 

@@ -69,6 +69,10 @@ class MainFrame(wx.Frame):
 
         self.mx_timer.Start(100)
 
+        self.SetSizeHints((440,300))
+        self.Layout()
+        self.Fit()
+
     def _start_mxdatabase(self):
         try:
             # First try to get the name from an environment variable.
@@ -112,8 +116,8 @@ class MainFrame(wx.Frame):
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddStretchSpacer(1)
-        btn_sizer.Add(add_ctrl_btn,0)
-        btn_sizer.Add(show_ctrl_btn,0)
+        btn_sizer.Add(add_ctrl_btn,0, border=5, flag=wx.ALL)
+        btn_sizer.Add(show_ctrl_btn,0, border=5, flag=wx.ALL)
         btn_sizer.AddStretchSpacer(1)
         btn_panel.SetSizer(btn_sizer)
         btn_panel.Layout()
@@ -241,7 +245,7 @@ class CtrlsPanel(wx.Panel):
     def _create_layout(self, panel_data):
         nitems = len(panel_data.keys())
 
-        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=4, hgap=4)
+        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=5, hgap=5)
 
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)
@@ -251,7 +255,7 @@ class CtrlsPanel(wx.Panel):
 
         top_sizer = wx.BoxSizer()
 
-        top_sizer.Add(self.grid_sizer)
+        top_sizer.Add(self.grid_sizer, border=5, flag=wx.ALL)
 
         self.SetSizer(top_sizer)
 
@@ -456,7 +460,7 @@ class CtrlsFrame(wx.Frame):
         main_window = self.GetParent()
 
         grid_sizer = wx.FlexGridSizer(rows=settings['rows'], cols=settings['cols'],
-            hgap=2, vgap=2)
+            hgap=5, vgap=5)
 
         for i in range(settings['cols']):
             grid_sizer.AddGrowableCol(i)
@@ -465,8 +469,8 @@ class CtrlsFrame(wx.Frame):
             print(ctrl_name)
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Control'.format(ctrl_name)))
-            box_sizer.Add(ctrl_panel)
-            grid_sizer.Add(box_sizer, flag=wx.EXPAND)
+            box_sizer.Add(ctrl_panel, 1, border=2, flag=wx.ALL|wx.EXPAND)
+            grid_sizer.Add(box_sizer, border=2, flag=wx.EXPAND|wx.ALL)
 
         self.SetSizer(grid_sizer)
 
@@ -483,8 +487,11 @@ class AddCtrlDialog(wx.Dialog):
         self._set_group = set_group
         self._create_layout()
 
+        self.Layout()
+        self.Fit()
+
     def _create_layout(self):
-        info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=2, hgap=2)
+        info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         if self._set_group:
             self.group_ctrl = wx.TextCtrl(self)
         self.title = wx.TextCtrl(self)
@@ -506,6 +513,7 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.InsertColumn(1, 'Control Type')
         self.list_ctrl.InsertColumn(2, '')
         self.list_ctrl.SetUserLineHeight(30)
+        self.list_ctrl.SetMinSize((370,250))
 
         add_btn = wx.Button(self, label='Add control')
         add_btn.Bind(wx.EVT_BUTTON, self._on_add)
@@ -515,16 +523,17 @@ class AddCtrlDialog(wx.Dialog):
 
         list_ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         list_ctrl_btn_sizer.Add(add_btn)
-        list_ctrl_btn_sizer.Add(remove_btn)
+        list_ctrl_btn_sizer.Add(remove_btn, border=5, flag=wx.LEFT)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         self.Bind(wx.EVT_BUTTON, self._on_ok, id=wx.ID_OK)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(info_grid)
-        top_sizer.Add(self.list_ctrl, 1, flag=wx.EXPAND)
-        top_sizer.Add(list_ctrl_btn_sizer, flag=wx.CENTER)
-        top_sizer.Add(button_sizer)
+        top_sizer.Add(info_grid, border=5, flag=wx.LEFT|wx.RIGHT|wx.TOP)
+        top_sizer.Add(self.list_ctrl, 1, border=5, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP)
+        top_sizer.Add(list_ctrl_btn_sizer, border=5, flag=wx.ALL|wx.CENTER)
+        top_sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
+        top_sizer.Add(button_sizer, border=5, flag=wx.ALL)
 
         self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE_USEHEADER)
