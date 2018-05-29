@@ -98,9 +98,14 @@ class MotorPanel(wx.Panel):
             print(pv)
             pos = mpwxca.Value(self, pv)
 
+        if mtr_type == 'network_motor':
+            mname = wx.StaticText(self, label=self.motor.name)
+        elif mtr_type == 'epics_motor':
+            mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
+
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
-        status_grid.Add(wx.StaticText(self, label=self.motor.name), (0,1), span=(1,2), flag=wx.EXPAND)
+        status_grid.Add(mname, (0,1), span=(1,2), flag=wx.EXPAND)
         status_grid.Add(wx.StaticText(self, label='Current position:'), (1,0))
         status_grid.Add(pos, (1,1), flag=wx.EXPAND)
         status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2), flag=wx.ALIGN_RIGHT)
@@ -122,14 +127,14 @@ class MotorPanel(wx.Panel):
         mv_btn_sizer.Add(move_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
         mv_btn_sizer.Add(set_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
 
-        tp_btn = wx.Button(self, label='Step +')
-        tm_btn = wx.Button(self, label='Step -')
+        tp_btn = wx.Button(self, label='Step + >')
+        tm_btn = wx.Button(self, label='< Step -')
         tp_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
         tm_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
 
         step_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        step_btn_sizer.Add(tp_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
-        step_btn_sizer.Add(tm_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        step_btn_sizer.Add(tm_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
+        step_btn_sizer.Add(tp_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
 
         stop_btn = wx.Button(self, label='Stop')
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
