@@ -32,6 +32,7 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpWx as mpwx
+import MpWxCa as mpwxca
 
 
 class MotorPanel(wx.Panel):
@@ -64,13 +65,12 @@ class MotorPanel(wx.Panel):
         :param str panel_name: Name for the panel.
         """
         wx.Panel.__init__(self, parent, panel_id, name=panel_name)
-
+        print(motor_name)
+        print(mx_database.get_record(motor_name))
         self.mx_database = mx_database
         self.motor_name = motor_name
         self.motor = self.mx_database.get_record(self.motor_name)
-        server_record_name = self.motor.get_field("server_record")
-        self.server_record = self.mx_database.get_record(server_record_name)
-        self.remote_record_name = self.motor.get_field("remote_record_name")
+
 
         top_sizer = self._create_layout()
 
@@ -83,9 +83,18 @@ class MotorPanel(wx.Panel):
         :returns: wx Sizer for the panel.
         :rtype: wx.Sizer
         """
-        pos_name = "{}.position".format(self.remote_record_name)
-        pos = mpwx.Value(self, self.server_record, pos_name)
 
+        mtr_type = self.motor.get_field('mx_type')
+
+        if mtr_type == 'network_motor':
+            server_record_name = self.motor.get_field("server_record")
+            server_record = self.mx_database.get_record(server_record_name)
+            remote_record_name = self.motor.get_field("remote_record_name")
+            pos_name = "{}.position".format(remote_record_name)
+            pos = mpwx.Value(self, server_record, pos_name)
+        elif mtr_type == 'epics_motor':
+            pv = self.motor.get_field('epics_record_name')
+            pos = mpwxca.Value(self, pv)
 
         status_grid = wx.GridBagSizer(vgap=2, hgap=2)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
