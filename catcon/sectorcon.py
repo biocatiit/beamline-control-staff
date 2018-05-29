@@ -69,7 +69,10 @@ class MainFrame(wx.Frame):
 
         self.mx_timer.Start(100)
 
-        self.SetSizeHints((440,300))
+        if int(wx.__version__.split('.')[0]) > 3:
+            self.SetSizeHints((440,300))
+        else:
+            self.SetSizeHints(440,300)
         self.Layout()
         self.Fit()
 
@@ -361,7 +364,7 @@ class CtrlsPanel(wx.Panel):
         ctrl = button.GetName()
         group = self.GetName()
 
-        add_dlg = AddCtrlDialog(parent=self.main_frame, title='Define control set',
+        add_dlg = AddCtrlDialog(parent=self.main_frame, title='Modify control set',
             style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
         add_dlg.populate_ctrls(self.main_frame.controls[group][ctrl], group)
 
@@ -556,6 +559,7 @@ class AddCtrlDialog(wx.Dialog):
         item = self.list_ctrl.GetItem(index, 1)
         choice_ctrl = wx.Choice(self.list_ctrl, choices=main_frame.ctrl_types.keys(),
             style=wx.CB_SORT)
+        choice_ctrl.SetStringSelection('Motor')
 
         if index>0:
             prev_item = self.list_ctrl.GetItem(index-1, 1)
