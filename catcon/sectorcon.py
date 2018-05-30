@@ -41,7 +41,6 @@ import numpy as np
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
-import MpWx as mpwx
 
 import motorcon as mc
 import ampcon as ac
@@ -91,7 +90,14 @@ class MainFrame(wx.Frame):
         self.mx_db.set_plot_enable(2)
 
     def _load_controls(self):
-        settings = 'sector_ctrl_settings.txt'
+        standard_paths = wx.StandardPaths.Get()
+        savedir = standard_paths.GetUserLocalDataDir()
+        sname = '{}_sector_ctrl_settings.txt'.format(platform.node().replace('.','_'))
+        settings = os.path.join(savedir, sname)
+
+        if not os.path.exists(savedir):
+            os.mkdir(savedir)
+
         if os.path.exists(settings):
             with open(settings, 'r') as f:
                 self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
@@ -148,11 +154,19 @@ class MainFrame(wx.Frame):
 
     def _on_closewindow(self, evt):
         self.mx_timer.Stop()
+
+        standard_paths = wx.StandardPaths.Get()
+        savedir = standard_paths.GetUserLocalDataDir()
+
+        pname = '{}_sector_ctrl_layout.bak'.format(platform.node().replace('.','_'))
+        pfile = os.path.join(savedir, pname)
         perspective = self._mgr.SavePerspective()
-        with open('sector_ctrl_layout.bak', 'w') as f:
+        with open(pfile, 'w') as f:
             f.write(perspective)
 
-        with open('sector_ctrl_settings.txt', 'w') as f:
+        sname = '{}_sector_ctrl_settings.txt'.format(platform.node().replace('.','_'))
+        sfile = os.path.join(savedir, sname)
+        with open(sfile, 'w') as f:
             f.write(unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)))
 
         self.Destroy()
