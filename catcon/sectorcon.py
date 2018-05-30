@@ -165,7 +165,6 @@ class MainFrame(wx.Frame):
             self._mgr.LoadPerspective(layout)
 
     def show_ctrls(self,ctrl_data):
-        print(ctrl_data)
         self.mx_timer.Stop()
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
@@ -469,7 +468,6 @@ class CtrlsFrame(wx.Frame):
             grid_sizer.AddGrowableCol(i)
 
         for ctrl_name, ctrl_type in ctrls:
-            print(ctrl_name)
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Control'.format(ctrl_name)))
             box_sizer.Add(ctrl_panel, 1, border=2, flag=wx.ALL|wx.EXPAND)

@@ -31,6 +31,7 @@ import wx
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
+import MpCa as mpca
 import MpWx as mpwx
 import MpWxCa as mpwxca
 
@@ -65,12 +66,15 @@ class MotorPanel(wx.Panel):
         :param str panel_name: Name for the panel.
         """
         wx.Panel.__init__(self, parent, panel_id, name=panel_name)
-        print(motor_name)
-        print(mx_database.get_record(motor_name))
         self.mx_database = mx_database
         self.motor_name = motor_name
         self.motor = self.mx_database.get_record(self.motor_name)
+        self.mtr_type = self.motor.get_field('mx_type')
 
+        if self.mtr_type == 'epics_motor':
+            pv = self.motor.get_field('epics_record_name')
+            self.limit_pv = mpca.PV("{}.LVIO".format(pv))
+            self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, self._on_epics_limit, (self.limit_pv, self))
 
         top_sizer = self._create_layout()
 
@@ -84,10 +88,7 @@ class MotorPanel(wx.Panel):
         :rtype: wx.Sizer
         """
 
-        mtr_type = self.motor.get_field('mx_type')
-        print(mtr_type)
-
-        if mtr_type == 'network_motor':
+        if self.mtr_type == 'network_motor':
             server_record_name = self.motor.get_field("server_record")
             server_record = self.mx_database.get_record(server_record_name)
             remote_record_name = self.motor.get_field("remote_record_name")
@@ -101,21 +102,18 @@ class MotorPanel(wx.Panel):
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             mname = wx.StaticText(self, label=self.motor.name)
 
-        elif mtr_type == 'epics_motor':
+        elif self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
 
             pos = mpwxca.Value(self, "{}.RBV".format(pv))
-            low_limit = mpwxca.Value(self, "{}.LLM".format(pv))
-            high_limit = mpwxca.Value(self, "{}.HLM".format(pv))
+            low_limit = mpwxca.ValueEntry(self, "{}.LLM".format(pv))
+            high_limit = mpwxca.ValueEntry(self, "{}.HLM".format(pv))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
 
 
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
         status_grid.Add(mname, (0,1), span=(1,2), flag=wx.EXPAND)
-        # status_grid.Add(wx.StaticText(self, label='Current position:'), (1,0))
-        # status_grid.Add(pos, (1,1), flag=wx.EXPAND)
-        # status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2), flag=wx.ALIGN_RIGHT)
         status_grid.AddGrowableCol(1)
 
         status_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
@@ -201,7 +199,7 @@ class MotorPanel(wx.Panel):
                 wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Position has to be numeric.'
-            wx.MessageBox(msg, 'Error moving motor')
+            wx.CallAfter(wx.MessageBox(msg, 'Error moving motor'))
 
     def _on_setto(self, evt):
         """
@@ -258,6 +256,15 @@ class MotorPanel(wx.Panel):
             return True
         except ValueError:
             return False
+
+    @staticmethod
+    def _on_epics_limit(callback, args):
+        pv, widget = args
+        value = pv.get_local()
+
+        if value == 1:
+            msg = str("Software limit hit for motor '{}'".format(widget.motor_name))
+            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
 class MotorFrame(wx.Frame):
     """

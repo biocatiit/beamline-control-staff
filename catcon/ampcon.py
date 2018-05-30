@@ -91,7 +91,7 @@ class AmpPanel(wx.Panel):
 
         gain_name = "{}.gain".format(self.remote_record_name)
         gain = mpwx.Choice(self, self.server_record, gain_name,
-            choices=amp_choices, function=self._Choice_update)
+            choices=amp_choices, function=self._choice_update)
 
         offset_name = "{}.offset".format(self.remote_record_name)
         offset = mpwx.ValueEntry(self, self.server_record, offset_name)
@@ -120,7 +120,7 @@ class AmpPanel(wx.Panel):
         return top_sizer
 
     @staticmethod
-    def _Choice_update( nf, widget, args, value ):
+    def _choice_update(nf, widget, args, value):
         """
         Callback function for the mpwx choice widget for the amps. It's modeled
         on the base callback function, but properly interprets the string formatting.
