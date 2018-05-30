@@ -91,24 +91,31 @@ class MotorPanel(wx.Panel):
             server_record_name = self.motor.get_field("server_record")
             server_record = self.mx_database.get_record(server_record_name)
             remote_record_name = self.motor.get_field("remote_record_name")
+
             pos_name = "{}.position".format(remote_record_name)
             pos = mpwx.Value(self, server_record, pos_name)
+            # low_limit = utils.FieldValueEntry(self, self.motor, 'negative_limit')
+            # high_limit = utils.FieldValueEntry(self, self.motor, 'positive_limit')
+            # setting limits this way currently doesn't work. So making it a value, not a text entry
+            low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
+            high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
+            mname = wx.StaticText(self, label=self.motor.name)
+
         elif mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
-            print(pv)
-            pos = mpwxca.Value(self, pv)
 
-        if mtr_type == 'network_motor':
-            mname = wx.StaticText(self, label=self.motor.name)
-        elif mtr_type == 'epics_motor':
+            pos = mpwxca.Value(self, "{}.RBV".format(pv))
+            low_limit = mpwxca.Value(self, "{}.LLM".format(pv))
+            high_limit = mpwxca.Value(self, "{}.HLM".format(pv))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
+
 
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
         status_grid.Add(mname, (0,1), span=(1,2), flag=wx.EXPAND)
-        status_grid.Add(wx.StaticText(self, label='Current position:'), (1,0))
-        status_grid.Add(pos, (1,1), flag=wx.EXPAND)
-        status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2), flag=wx.ALIGN_RIGHT)
+        # status_grid.Add(wx.StaticText(self, label='Current position:'), (1,0))
+        # status_grid.Add(pos, (1,1), flag=wx.EXPAND)
+        # status_grid.Add(wx.StaticText(self, label=self.motor.get_field('units')), (1,2), flag=wx.ALIGN_RIGHT)
         status_grid.AddGrowableCol(1)
 
         status_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
@@ -136,27 +143,37 @@ class MotorPanel(wx.Panel):
         step_btn_sizer.Add(tm_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
         step_btn_sizer.Add(tp_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
 
-        stop_btn = wx.Button(self, label='Stop')
+        stop_btn = wx.Button(self, label='Abort')
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
 
         line1 = wx.BoxSizer()
         line1.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-
         line2 = wx.BoxSizer()
         line2.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        line3 = wx.BoxSizer()
+        line3.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
 
         control_grid = wx.GridBagSizer(vgap=5,hgap=5)
+        control_grid.Add(wx.StaticText(self, label='Low lim.'), (0,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Pos. ({})'.format(self.motor.get_field('units'))),
+            (0,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='High lim.'), (0,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(low_limit, (1,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(pos, (1,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(high_limit, (1,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(line1, (2,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+
         control_grid.Add(wx.StaticText(self, label='Position ({}):'.format(self.motor.get_field('units'))),
-            (0,0),flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(self.pos_ctrl, (0,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(mv_btn_sizer, (1,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(line1, (2,0), span=(1,2), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+            (3,0),flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(self.pos_ctrl, (3,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(mv_btn_sizer, (4,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(line2, (5,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
         control_grid.Add(wx.StaticText(self, label='Relative step ({}):'.format(self.motor.get_field('units'))),
-            (3,0), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(self.mrel_ctrl, (3,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(step_btn_sizer, (4,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(line2, (5,0), span=(1,2), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(stop_btn, (6,0), span=(1,2), flag=wx.ALIGN_CENTER_HORIZONTAL)
+            (6,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(self.mrel_ctrl, (6,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(step_btn_sizer, (7,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(line3, (8,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+        control_grid.Add(stop_btn, (9,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
@@ -177,7 +194,11 @@ class MotorPanel(wx.Panel):
         pval = self.pos_ctrl.GetValue()
 
         if self._is_num(pval):
-            self.motor.move_absolute(float(pval))
+            try:
+                self.motor.move_absolute(float(pval))
+            except mp.Would_Exceed_Limit_Error as e:
+                msg = str(e)
+                wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Position has to be numeric.'
             wx.MessageBox(msg, 'Error moving motor')
@@ -205,12 +226,15 @@ class MotorPanel(wx.Panel):
         if self._is_num(pval):
             btn = evt.GetEventObject().GetLabel()
 
-            if btn == 'Step +':
+            if btn == 'Step + >':
                 mult = 1
             else:
                 mult = -1
-            self.motor.move_relative(mult*float(pval))
-
+            try:
+                self.motor.move_relative(mult*float(pval))
+            except mp.Would_Exceed_Limit_Error as e:
+                msg = str(e)
+                wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Step size has to be numeric.'
             wx.MessageBox(msg, 'Error moving motor')
