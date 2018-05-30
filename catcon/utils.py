@@ -27,6 +27,8 @@ from io import open
 import platform
 import os
 
+import wx
+
 def get_mxdir():
     """Gets the top level install directory for MX."""
     try:
@@ -53,3 +55,68 @@ def set_mppath():
 
     if mp_dir not in path:
         os.environ["PATH"] = mp_dir+os.pathsep+os.environ["PATH"]
+
+
+class FuncValueEntry(wx.TextCtrl):
+    """
+    Based on the ValueEntry in mpwx, but without callbacks. Meant to work
+    when the mp record itself has a get/set function, like get/set speed
+    for motors.
+    """
+    def __init__( self, parent, record, getter, setter, **kwargs):
+
+        if 'style' in kwargs:
+            style = kwargs['style'] | wx.TE_PROCESS_ENTER
+            del kwargs[style]
+        else:
+            style = wx.TE_PROCESS_ENTER
+
+        wx.TextCtrl.__init__(self, parent, value=getter(), style=style, **kwargs)
+
+        self.record = record
+        self.getter = getter
+        self.setter = setter
+
+        self.Bind(wx.EVT_TEXT, self.OnText)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+
+    def OnText(self, event):
+        self.SetBackgroundColour("yellow")
+
+    def OnEnter(self, event):
+        value = self.GetValue().strip()
+
+        self.setter(value)
+
+        self.SetBackgroundColour(wx.NullColour)
+
+class FieldValueEntry(wx.TextCtrl):
+    """
+    Based on the ValueEntry in mpwx, but without callbacks. Meant to work
+    when you want to change a field value that doesn't have a getter or setter.
+    """
+    def __init__( self, parent, record, field, **kwargs):
+        self.record = record
+        self.field = field
+
+        if 'style' in kwargs:
+            style = kwargs['style'] | wx.TE_PROCESS_ENTER
+            del kwargs[style]
+        else:
+            style = wx.TE_PROCESS_ENTER
+
+        wx.TextCtrl.__init__(self, parent, value=self.record.get_field(self.field),
+            style=style, **kwargs)
+
+        self.Bind(wx.EVT_TEXT, self.OnText)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+
+    def OnText(self, event):
+        self.SetBackgroundColour("yellow")
+
+    def OnEnter(self, event):
+        value = self.GetValue().strip()
+
+        self.record.set_field(self.field, value)
+
+        self.SetBackgroundColour(wx.NullColour)
