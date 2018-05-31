@@ -71,12 +71,14 @@ class MotorPanel(wx.Panel):
         self.motor = self.mx_database.get_record(self.motor_name)
         self.mtr_type = self.motor.get_field('mx_type')
 
+        self._enabled = True
+
+        top_sizer = self._create_layout()
+
         if self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
             self.limit_pv = mpca.PV("{}.LVIO".format(pv))
             self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, self._on_epics_limit, (self.limit_pv, self))
-
-        top_sizer = self._create_layout()
 
         self.SetSizer(top_sizer)
 
@@ -95,11 +97,12 @@ class MotorPanel(wx.Panel):
 
             pos_name = "{}.position".format(remote_record_name)
             pos = mpwx.Value(self, server_record, pos_name)
-            # low_limit = utils.FieldValueEntry(self, self.motor, 'negative_limit')
-            # high_limit = utils.FieldValueEntry(self, self.motor, 'positive_limit')
-            # setting limits this way currently doesn't work. So making it a value, not a text entry
+            # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
+            # local_server_record = self.mx_database.get_record('localhost')
+            # low_limit = mpwx.ValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
+            # high_limit = mpwx.ValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
             mname = wx.StaticText(self, label=self.motor.name)
 
         elif self.mtr_type == 'epics_motor':
@@ -181,6 +184,8 @@ class MotorPanel(wx.Panel):
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(status_sizer, border=5, flag=wx.EXPAND)
         top_sizer.Add(control_sizer, border=5, flag=wx.EXPAND|wx.TOP)
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
 
@@ -265,6 +270,29 @@ class MotorPanel(wx.Panel):
         if value == 1:
             msg = str("Software limit hit for motor '{}'".format(widget.motor_name))
             wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+
+    def _on_rightclick(self, evt):
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_enablechange)
+
+        if self._enabled:
+            menu.Append(1, 'Disable Control')
+        else:
+            menu.Append(1, 'Enable Control')
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_enablechange(self, evt):
+        if self._enabled:
+            self._enabled = False
+        else:
+            self._enabled = True
+
+        for item in self.GetChildren():
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
+                and not isinstance(item, mpwxca.Value)):
+                item.Enable(self._enabled)
 
 class MotorFrame(wx.Frame):
     """
