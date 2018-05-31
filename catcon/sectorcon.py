@@ -822,7 +822,6 @@ class MyApp(wx.App):
     def OnInit(self):
 
         # sys.excepthook = self.ExceptionHook
-        print(sys.argv)
         if len(sys.argv) > 1:
             title = ' '.join(sys.argv[1:])
         else:
