@@ -822,8 +822,13 @@ class MyApp(wx.App):
     def OnInit(self):
 
         # sys.excepthook = self.ExceptionHook
+        print(sys.argv)
+        if len(sys.argv) > 1:
+            title = ' '.join(sys.argv[1:])
+        else:
+            title = 'BioCAT Staff Controls'
 
-        frame = MainFrame(title='BioCAT Staff Controls', name='MainFrame')
+        frame = MainFrame(title=title, name='MainFrame')
         frame.Show()
 
         return True
