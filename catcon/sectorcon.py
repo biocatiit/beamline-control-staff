@@ -614,7 +614,7 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.SetItem(item)
 
         c0_width = self.list_ctrl.GetColumnWidth(0)
-        c1_width = self.list_ctrl.GetColumnWidth(0)
+        c1_width = self.list_ctrl.GetColumnWidth(1)
 
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
