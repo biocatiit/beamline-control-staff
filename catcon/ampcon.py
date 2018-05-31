@@ -121,6 +121,11 @@ class AmpPanel(wx.Panel):
         top_sizer.Add(control_sizer, 1, flag=wx.EXPAND)
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+        for item in self.GetChildren():
+            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, mpwxca.Value)):
+                print(item)
+                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
 
