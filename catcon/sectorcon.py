@@ -613,8 +613,17 @@ class AddCtrlDialog(wx.Dialog):
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
 
+        c0_width = self.list_ctrl.GetColumnWidth(0)
+        c1_width = self.list_ctrl.GetColumnWidth(0)
+
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+
+        if c0_width > self.list_ctrl.GetColumnWidth(0):
+            self.list_ctrl.SetColumnWidth(0, c0_width)
+
+        if c1_width > self.list_ctrl.GetColumnWidth(1):
+            self.list_ctrl.SetColumnWidth(1, c1_width)
 
         self.Layout()
 
