@@ -35,6 +35,7 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpWx as mpwx
+import MpWxCa as mpwxca
 
 class AmpPanel(wx.Panel):
     """
@@ -72,6 +73,8 @@ class AmpPanel(wx.Panel):
         server_record_name = self.amp.get_field("server_record")
         self.server_record = self.mx_database.get_record(server_record_name)
         self.remote_record_name = self.amp.get_field("remote_record_name")
+
+        self._enabled = True
 
         top_sizer = self._create_layout()
 
@@ -117,6 +120,8 @@ class AmpPanel(wx.Panel):
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(control_sizer, 1, flag=wx.EXPAND)
 
+        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+
         return top_sizer
 
     @staticmethod
@@ -140,6 +145,29 @@ class AmpPanel(wx.Panel):
                 widget.Insert(value, widget.GetCount())
 
             widget.SetStringSelection(value)
+
+    def _on_rightclick(self, evt):
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_enablechange)
+
+        if self._enabled:
+            menu.Append(1, 'Disable Control')
+        else:
+            menu.Append(1, 'Enable Control')
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_enablechange(self, evt):
+        if self._enabled:
+            self._enabled = False
+        else:
+            self._enabled = True
+
+        for item in self.GetChildren():
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
+                and not isinstance(item, mpwxca.Value)):
+                item.Enable(self._enabled)
 
 
 class AmpFrame(wx.Frame):
