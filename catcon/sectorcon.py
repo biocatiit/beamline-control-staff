@@ -36,6 +36,7 @@ import wx
 import wx.aui as aui
 from wx.lib.agw import ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl  as  listmix
+import wx.richtext as rt
 import numpy as np
 
 import utils
@@ -88,6 +89,23 @@ class MainFrame(wx.Frame):
 
         self.mx_db = mp.setup_database(database_filename)
         self.mx_db.set_plot_enable(2)
+
+        self.amp_list = []
+        self.motor_list = []
+
+        for record in self.mx_db.get_all_records():
+            try:
+                class_name = record.get_field('mx_class')
+            except mp.Illegal_Argument_Error:
+                class_name = 'None'
+
+            if class_name == 'amplifier':
+                self.amp_list.append(record.get_field('name'))
+            elif class_name == 'motor':
+                self.motor_list.append(record.get_field('name'))
+
+        self.amp_list = sorted(self.amp_list)
+        self.motor_list = sorted(self.motor_list)
 
     def _load_controls(self):
         standard_paths = wx.StandardPaths.Get()
@@ -562,27 +580,41 @@ class AddCtrlDialog(wx.Dialog):
         index = self.list_ctrl.InsertStringItem(sys.maxint, '')
         main_frame = self.GetParent()
 
+        record_panel = wx.Panel(self.list_ctrl)
+        textctrl = wx.TextCtrl(record_panel, name='record')
+        textctrl.AutoComplete(main_frame.motor_list)
+        button = wx.Button(record_panel, id=index, label='...', size=(30, -1))
+        button.Bind(wx.EVT_BUTTON, self._show_motors)
+        record_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        record_sizer.Add(textctrl, 1, flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+        record_sizer.Add(button, border=2, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT)
+        record_panel.SetSizer(record_sizer)
+
         item = self.list_ctrl.GetItem(index, 0)
-        textctrl = wx.TextCtrl(self.list_ctrl)
-        item.SetWindow(textctrl, expand=True)
+        item.SetWindow(record_panel, expand=True)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
 
         item = self.list_ctrl.GetItem(index, 1)
-        choice_ctrl = wx.Choice(self.list_ctrl, choices=main_frame.ctrl_types.keys(),
+        choice_ctrl = wx.Choice(self.list_ctrl, id=index, choices=main_frame.ctrl_types.keys(),
             style=wx.CB_SORT)
         choice_ctrl.SetStringSelection('Motor')
+        choice_ctrl.Bind(wx.EVT_CHOICE, self._on_typechange)
 
         if index>0:
             prev_item = self.list_ctrl.GetItem(index-1, 1)
             prev_choice = prev_item.GetWindow().GetStringSelection()
             choice_ctrl.SetStringSelection(prev_choice)
 
+            if prev_choice == 'Amplifier':
+                textctrl.AutoComplete(main_frame.amp_list)
+
         item.SetWindow(choice_ctrl)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
 
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE)
 
         self.Layout()
 
@@ -627,7 +659,12 @@ class AddCtrlDialog(wx.Dialog):
         mx_db = main_frame.mx_db
 
         for i in range(self.list_ctrl.GetItemCount()):
-            ctrl_name = self.list_ctrl.GetItem(i, 0).GetWindow().GetValue()
+            record_panel = self.list_ctrl.GetItem(i, 0).GetWindow()
+            if int(wx.__version__.split('.')[0]) > 3:
+                name_ctrl = record_panel.FindWindowByName('record', parent=record_panel)
+            else:
+                name_ctrl = record_panel.FindWindowByName('record')
+            ctrl_name =name_ctrl.GetValue()
             ctrl_type = self.list_ctrl.GetItem(i, 1).GetWindow().GetStringSelection()
 
             try:
@@ -655,11 +692,72 @@ class AddCtrlDialog(wx.Dialog):
 
         for ctrl in ctrls:
             index = self._add()
-            name_ctrl = self.list_ctrl.GetItem(index, 0).GetWindow()
+            record_panel = self.list_ctrl.GetItem(index, 0).GetWindow()
+            if int(wx.__version__.split('.')[0]) > 3:
+                name_ctrl = record_panel.FindWindowByName('record', parent=record_panel)
+            else:
+                name_ctrl = record_panel.FindWindowByName('record')
             type_ctrl = self.list_ctrl.GetItem(index, 1).GetWindow()
 
             name_ctrl.SetValue(ctrl[0])
             type_ctrl.SetStringSelection(ctrl[1])
+
+    def _show_motors(self, evt):
+        index =evt.GetId()
+        button = evt.GetEventObject()
+        main_frame = self.GetParent()
+
+        ctrl_type = self.list_ctrl.GetItem(index, 1).GetWindow().GetStringSelection()
+
+        if ctrl_type == 'Motor':
+            records = main_frame.motor_list
+        elif ctrl_type == 'Amplifier':
+            records = main_frame.amp_list
+
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_motor_menu_choice)
+
+        for i, name in enumerate(records):
+            menu.Append(i+1, name)
+
+        button.PopupMenu(menu)
+
+        menu.Destroy()
+
+    def _on_motor_menu_choice(self, evt):
+        button = evt.GetEventObject().GetInvokingWindow()
+        index = button.GetId()
+        main_frame = self.GetParent()
+        choice = evt.GetId()-1
+
+        record_panel = self.list_ctrl.GetItem(index, 0).GetWindow()
+        if int(wx.__version__.split('.')[0]) > 3:
+            txtctrl = record_panel.FindWindowByName('record', parent=record_panel)
+        else:
+            txtctrl = record_panel.FindWindowByName('record')
+
+        ctrl_type = self.list_ctrl.GetItem(index, 1).GetWindow().GetStringSelection()
+
+        if ctrl_type == 'Motor':
+            txtctrl.SetValue(main_frame.motor_list[choice])
+        elif ctrl_type == 'Amplifier':
+            txtctrl.SetValue(main_frame.amp_list[choice])
+
+    def _on_typechange(self, evt):
+        index =evt.GetId()
+        main_frame = self.GetParent()
+
+        record_panel = self.list_ctrl.GetItem(index, 0).GetWindow()
+        if int(wx.__version__.split('.')[0]) > 3:
+            txtctrl = record_panel.FindWindowByName('record', parent=record_panel)
+        else:
+            txtctrl = record_panel.FindWindowByName('record')
+
+        if evt.GetString() == 'Motor':
+            txtctrl.AutoComplete(main_frame.motor_list)
+        elif evt.GetString() == 'Amplifier':
+            txtctrl.AutoComplete(main_frame.amp_list)
+
 
 class RemoveCtrlDialog(wx.Dialog):
     def __init__(self, params, *args, **kwargs):
@@ -775,6 +873,18 @@ class ControlList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
         ULC.UltimateListCtrl.__init__(self, *args, **kwargs)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
+class MyTextCtrl(wx.TextCtrl):
+    def __init__(self, *args, **kwargs):
+        wx.TextCtrl.__init__(self, *args, **kwargs)
+
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnContextMenu)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnContextMenu)
+
+    def OnContextMenu(self, evt):
+        print('here!')
+        pass
+
 #This class goes with write header, and was lifted from:
 #https://stackoverflow.com/questions/27050108/convert-numpy-type-to-python/27050186#27050186
 class MyEncoder(json.JSONEncoder):
@@ -839,8 +949,8 @@ class MyApp(wx.App):
             pass
 
     #########################
-    # Here's some stuff to inform users of unhandled errors, and quit
-    # gracefully. From http://apprize.info/python/wxpython/10.html
+    # Here's some stuff to inform users of unhandled errors. From
+    # http://apprize.info/python/wxpython/10.html
 
     def ExceptionHook(self, errType, value, trace):
         err = traceback.format_exception(errType, value, trace)
@@ -856,9 +966,10 @@ class MyApp(wx.App):
             sys.stderr.write(msg)
 
     def HandleError(self, error):
-        """ Override in subclass to handle errors
-        @return: True to allow program to continue running withou showing error"""
-
+        """
+        Override in subclass to handle errors
+        @return: True to allow program to continue running withou showing error
+        """
         return False
 
 
