@@ -188,7 +188,7 @@ class MotorPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
             if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, mpwxca.Value)):
+                or isinstance(item, mpwxca.Value) or isinstance(item, wx.StaticBox)):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
@@ -295,7 +295,8 @@ class MotorPanel(wx.Panel):
 
         for item in self.GetChildren():
             if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
-                and not isinstance(item, mpwxca.Value)):
+                and not isinstance(item, mpwxca.Value) and not
+                isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
 class MotorFrame(wx.Frame):
