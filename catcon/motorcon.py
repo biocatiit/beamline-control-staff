@@ -73,9 +73,6 @@ class MotorPanel(wx.Panel):
         self.scale = float(self.motor.get_field('scale'))
         self.offset = float(self.motor.get_field('offset'))
 
-        print(self.scale)
-        print(self.offset)
-
         self._enabled = True
 
         top_sizer = self._create_layout()
