@@ -459,6 +459,8 @@ class CtrlsPanel(wx.Panel):
                                     new_ctrls[key] = old_ctrls[key]
 
                             self.main_frame.controls[new_group] = new_ctrls
+                    else:
+                        self.main_frame.controls[new_group][new_ctrl] = ctrl_data
 
         return
 
