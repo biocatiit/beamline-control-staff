@@ -70,6 +70,11 @@ class MotorPanel(wx.Panel):
         self.motor_name = motor_name
         self.motor = self.mx_database.get_record(self.motor_name)
         self.mtr_type = self.motor.get_field('mx_type')
+        self.scale = float(self.motor.get_field('scale'))
+        self.offset = float(self.motor.get_field('offset'))
+
+        print(self.scale)
+        print(self.offset)
 
         self._enabled = True
 
@@ -96,7 +101,8 @@ class MotorPanel(wx.Panel):
             remote_record_name = self.motor.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = mpwx.Value(self, server_record, pos_name)
+            pos = mpwx.Value(self, server_record, pos_name,
+                function=self._network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
@@ -108,7 +114,8 @@ class MotorPanel(wx.Panel):
         elif self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
 
-            pos = mpwxca.Value(self, "{}.RBV".format(pv))
+            pos = CustomEpicsValue(self, "{}.RBV".format(pv),
+                self._epics_value_callback, scale, offset)
             low_limit = mpwxca.ValueEntry(self, "{}.LLM".format(pv))
             high_limit = mpwxca.ValueEntry(self, "{}.HLM".format(pv))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
@@ -298,6 +305,88 @@ class MotorPanel(wx.Panel):
                 and not isinstance(item, mpwxca.Value) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
+
+    @staticmethod
+    def _network_value_callback(nf, widget, args, value):
+
+        scale, offset = args
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                value = value[0]
+
+        value = value*scale+offset
+
+        if widget.base == 10:
+            value = "%d" % value
+        elif widget.base == 16 :
+            value = "%#x" % value
+        elif widget.base == 8 :
+            value = "%#o" % value
+        else:
+            value = str(value)
+
+        widget.SetLabel(value)
+        widget.SetSize(widget.GetBestSize())
+        widget.Refresh()
+
+    @staticmethod
+    def _epics_value_callback(callback, args):
+
+        pv, widget, scale, offset = args
+
+        value = pv.get_local()
+
+        if isinstance(value, list):
+            if len(value) == 1:
+                value = value[0]
+
+        value = value*scale+offset
+
+        if widget.base == 10:
+            value = "%d" % value
+        elif widget.base == 16:
+            value = "%#x" % value
+        elif widget.base == 8:
+            value = "%#o" % value
+        else:
+            value = str(value)
+
+        wx.PostEvent(widget, mpwxca.UpdateEvent(value))
+
+class CustomEpicsValue(wx.StaticText):
+
+    def __init__(self, parent, pv_name, function, scale, offset, id=-1,
+        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
+        name=wx.StaticTextNameStr, base=None):
+
+        wx.StaticText.__init__(self, parent, id=id, label="-----", pos=pos,
+            size=size, style=style, name=name )
+
+        if base != 10 and base != 16 and base != 8 and base != None:
+            error_message = "Only base 8, 10, and 16 are supported."
+            raise ValueError, error_message
+
+        self.base = base
+        self.pv = mpca.PV(pv_name)
+
+        mpwxca.EVT_UPDATE(self, self.OnUpdate)
+
+        args = (self.pv, self, scale, offset)
+
+        self.callback = self.pv.add_callback( mpca.DBE_VALUE, function, args )
+
+        try:
+            self.pv.caget()
+            function(self.callback, args)
+        except mp.Not_Found_Error:
+            self.SetValue("NOT FOUND")
+            self.Enable(False)
+            return
+
+        mpca.poll()
+
+        self.SetForegroundColour("blue")
 
 class MotorFrame(wx.Frame):
     """
