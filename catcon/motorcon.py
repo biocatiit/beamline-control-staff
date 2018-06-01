@@ -112,7 +112,7 @@ class MotorPanel(wx.Panel):
             pv = self.motor.get_field('epics_record_name')
 
             pos = CustomEpicsValue(self, "{}.RBV".format(pv),
-                self._epics_value_callback, scale, offset)
+                self._epics_value_callback, self.scale, self.offset)
             low_limit = mpwxca.ValueEntry(self, "{}.LLM".format(pv))
             high_limit = mpwxca.ValueEntry(self, "{}.HLM".format(pv))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
@@ -384,6 +384,12 @@ class CustomEpicsValue(wx.StaticText):
         mpca.poll()
 
         self.SetForegroundColour("blue")
+
+    def OnUpdate(self, event):
+        value = event.args
+
+        self.SetLabel(value)
+        self.SetSize(self.GetBestSize())
 
 class MotorFrame(wx.Frame):
     """
