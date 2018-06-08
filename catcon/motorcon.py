@@ -77,13 +77,14 @@ class MotorPanel(wx.Panel):
 
         self._enabled = True
 
-        # font = wx.Font(6, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        if platform.system() == 'Darwin':
-            font = self.GetFont()
-        else:
-            font = wx.Font(6, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        # if platform.system() == 'Darwin':
+        #     font = self.GetFont()
+        # else:
+        #     font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        # # self.SetFont(font)
+        font = self.GetFont()
         self.vert_size = font.GetPixelSize()[1]+5
-        # self.SetFont(font)
+        
 
         top_sizer = self._create_layout()
 
