@@ -25,8 +25,10 @@ from builtins import object, range, map
 from io import open
 
 import os
+import platform
 
 import wx
+import wx.lib.buttons as buttons
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -75,6 +77,14 @@ class MotorPanel(wx.Panel):
 
         self._enabled = True
 
+        # font = wx.Font(6, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        if platform.system() == 'Darwin':
+            font = self.GetFont()
+        else:
+            font = wx.Font(6, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        self.vert_size = font.GetPixelSize()[1]+5
+        # self.SetFont(font)
+
         top_sizer = self._create_layout()
 
         if self.mtr_type == 'epics_motor':
@@ -113,81 +123,80 @@ class MotorPanel(wx.Panel):
 
             pos = CustomEpicsValue(self, "{}.RBV".format(pv),
                 self._epics_value_callback, self.scale, self.offset)
-            low_limit = mpwxca.ValueEntry(self, "{}.LLM".format(pv))
-            high_limit = mpwxca.ValueEntry(self, "{}.HLM".format(pv))
+            low_limit = CustomEpicsValue(self, "{}.LLM".format(pv),
+                self._epics_value_callback, self.scale, self.offset)
+            high_limit = CustomEpicsValue(self, "{}.HLM".format(pv),
+                self._epics_value_callback, self.scale, self.offset)
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
 
 
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
         status_grid.Add(wx.StaticText(self, label='Motor name:'), (0,0))
-        status_grid.Add(mname, (0,1), span=(1,2), flag=wx.EXPAND)
+        status_grid.Add(mname, (0,1), flag=wx.EXPAND)
         status_grid.AddGrowableCol(1)
 
         status_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
             wx.VERTICAL)
         status_sizer.Add(status_grid, 1, flag=wx.EXPAND)
 
-        self.pos_ctrl = wx.TextCtrl(self, value='')
-        self.mrel_ctrl = wx.TextCtrl(self, value='1.0')
+        self.pos_ctrl = wx.TextCtrl(self, value='', size=(50,self.vert_size))
+        self.mrel_ctrl = wx.TextCtrl(self, value='1.0', size=(50,self.vert_size))
 
-        move_btn = wx.Button(self, label='Move to')
+        # move_btn = wx.Button(self, label='Move', size=(50, self.vert_size), style=wx.BU_EXACTFIT)
+        move_btn = buttons.ThemedGenButton(self, label='Move', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
         move_btn.Bind(wx.EVT_BUTTON, self._on_moveto)
-        set_btn = wx.Button(self, label='Set to')
+        set_btn = buttons.ThemedGenButton(self, label='Set', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
         set_btn.Bind(wx.EVT_BUTTON, self._on_setto)
 
-        mv_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        mv_btn_sizer.Add(move_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
-        mv_btn_sizer.Add(set_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-        tp_btn = wx.Button(self, label='Step + >')
-        tm_btn = wx.Button(self, label='< Step -')
+        tp_btn = buttons.ThemedGenButton(self, label='+ >', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
+        tm_btn = buttons.ThemedGenButton(self, label='< -', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
         tp_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
         tm_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
 
-        step_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        step_btn_sizer.Add(tm_btn, border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_HORIZONTAL)
-        step_btn_sizer.Add(tp_btn, flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-        stop_btn = wx.Button(self, label='Abort')
+        stop_btn = buttons.ThemedGenButton(self, label='Abort', size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
 
-        line1 = wx.BoxSizer()
-        line1.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        line2 = wx.BoxSizer()
-        line2.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        line3 = wx.BoxSizer()
-        line3.Add(wx.StaticLine(self), 1, border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=5, rows=2)
+        pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add((1,1))
+        pos_sizer.Add(wx.StaticText(self, label='Pos. ({})'.format(self.motor.get_field('units'))),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add((1,1))
+        pos_sizer.Add(wx.StaticText(self, label='High lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add(low_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add((1,1))
+        pos_sizer.Add(pos, flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add((1,1))
+        pos_sizer.Add(high_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.AddGrowableCol(1)
+        pos_sizer.AddGrowableCol(3)
 
-        control_grid = wx.GridBagSizer(vgap=5,hgap=5)
-        control_grid.Add(wx.StaticText(self, label='Low lim.'), (0,0), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(wx.StaticText(self, label='Pos. ({})'.format(self.motor.get_field('units'))),
-            (0,1), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(wx.StaticText(self, label='High lim.'), (0,2), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(low_limit, (1,0), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(pos, (1,1), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(high_limit, (1,2), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(line1, (2,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
+        mabs_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mabs_sizer.Add(wx.StaticText(self, label='Position:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(self.pos_ctrl, 1, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(move_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(set_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
-        control_grid.Add(wx.StaticText(self, label='Position ({}):'.format(self.motor.get_field('units'))),
-            (3,0),flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(self.pos_ctrl, (3,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(mv_btn_sizer, (4,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(line2, (5,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(wx.StaticText(self, label='Relative step ({}):'.format(self.motor.get_field('units'))),
-            (6,0), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(self.mrel_ctrl, (6,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(step_btn_sizer, (7,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(line3, (8,0), span=(1,3), flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
-        control_grid.Add(stop_btn, (9,0), span=(1,3), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        mrel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mrel_sizer.Add(wx.StaticText(self, label='Rel. Move:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(tm_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(self.mrel_ctrl, 1, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(tp_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
             wx.VERTICAL)
-        control_sizer.Add(control_grid, 1,border=5, flag=wx.EXPAND|wx.BOTTOM)
+        control_sizer.Add(pos_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
+        control_sizer.Add(mabs_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
+        control_sizer.Add(mrel_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM|wx.TOP)
+        control_sizer.Add(wx.StaticLine(self), border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
+        control_sizer.Add(stop_btn, border=2, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(status_sizer, border=5, flag=wx.EXPAND)
-        top_sizer.Add(control_sizer, border=5, flag=wx.EXPAND|wx.TOP)
+        top_sizer.Add(status_sizer, flag=wx.EXPAND)
+        top_sizer.Add(control_sizer, border=2, flag=wx.EXPAND|wx.TOP)
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
@@ -212,7 +221,7 @@ class MotorPanel(wx.Panel):
                 wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Position has to be numeric.'
-            wx.CallAfter(wx.MessageBox(msg, 'Error moving motor'))
+            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
     def _on_setto(self, evt):
         """

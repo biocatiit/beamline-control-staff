@@ -37,6 +37,7 @@ import wx.aui as aui
 from wx.lib.agw import ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl  as  listmix
 import wx.richtext as rt
+import wx.lib.inspection
 import numpy as np
 
 import utils
@@ -503,9 +504,11 @@ class CtrlsFrame(wx.Frame):
 
         for ctrl_name, ctrl_type in ctrls:
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
-            box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Control'.format(ctrl_name)))
-            box_sizer.Add(ctrl_panel, 1, border=2, flag=wx.ALL|wx.EXPAND)
-            grid_sizer.Add(box_sizer, border=2, flag=wx.EXPAND|wx.ALL)
+            box = wx.StaticBox(self, label='{} Control'.format(ctrl_name))
+            box.SetOwnForegroundColour(wx.RED)
+            box_sizer = wx.StaticBoxSizer(box)
+            box_sizer.Add(ctrl_panel, 1, flag=wx.EXPAND)
+            grid_sizer.Add(box_sizer, flag=wx.EXPAND)
 
         self.SetSizer(grid_sizer)
 
@@ -988,4 +991,5 @@ if __name__ == '__main__':
     setup_thread_excepthook()
 
     app = MyApp(0)   #MyApp(redirect = True)
+    # wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
