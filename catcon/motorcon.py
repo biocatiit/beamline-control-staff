@@ -148,8 +148,10 @@ class MotorPanel(wx.Panel):
         set_btn = buttons.ThemedGenButton(self, label='Set', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
         set_btn.Bind(wx.EVT_BUTTON, self._on_setto)
 
-        tp_btn = buttons.ThemedGenButton(self, label='+ >', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
-        tm_btn = buttons.ThemedGenButton(self, label='< -', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
+        tp_btn = buttons.ThemedGenButton(self, label='+ >', size=(-1, self.vert_size),
+            style=wx.BU_EXACTFIT, name='rel_move_plus')
+        tm_btn = buttons.ThemedGenButton(self, label='< -', size=(-1, self.vert_size),
+            style=wx.BU_EXACTFIT, name='rel_move_minus')
         tp_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
         tm_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
 
@@ -244,9 +246,9 @@ class MotorPanel(wx.Panel):
         pval = self.mrel_ctrl.GetValue()
 
         if self._is_num(pval):
-            btn = evt.GetEventObject().GetLabel()
+            btn = evt.GetEventObject().GetName()
 
-            if btn == 'Step + >':
+            if btn == 'rel_move_plus':
                 mult = 1
             else:
                 mult = -1
