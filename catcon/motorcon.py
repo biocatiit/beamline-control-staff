@@ -25,7 +25,6 @@ from builtins import object, range, map
 from io import open
 
 import os
-import platform
 
 import wx
 import wx.lib.buttons as buttons
@@ -124,10 +123,10 @@ class MotorPanel(wx.Panel):
 
             pos = CustomEpicsValue(self, "{}.RBV".format(pv),
                 self._epics_value_callback, self.scale, self.offset)
-            low_limit = CustomEpicsValue(self, "{}.LLM".format(pv),
-                self._epics_value_callback, self.scale, self.offset)
-            high_limit = CustomEpicsValue(self, "{}.HLM".format(pv),
-                self._epics_value_callback, self.scale, self.offset)
+            low_limit = CustomEpicsValueEntry(self, "{}.LLM".format(pv),
+                self._epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+            high_limit = CustomEpicsValueEntry(self, "{}.HLM".format(pv),
+                self._epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
 
 
@@ -352,12 +351,15 @@ class MotorPanel(wx.Panel):
 
         value = value*scale+offset
 
-        if widget.base == 10:
-            value = "%d" % value
-        elif widget.base == 16:
-            value = "%#x" % value
-        elif widget.base == 8:
-            value = "%#o" % value
+        if isinstance(widget, CustomEpicsValue):
+            if widget.base == 10:
+                value = "%d" % value
+            elif widget.base == 16:
+                value = "%#x" % value
+            elif widget.base == 8:
+                value = "%#o" % value
+            else:
+                value = str(value)
         else:
             value = str(value)
 
@@ -402,6 +404,67 @@ class CustomEpicsValue(wx.StaticText):
 
         self.SetLabel(value)
         self.SetSize(self.GetBestSize())
+
+class CustomEpicsValueEntry(wx.TextCtrl):
+
+    def __init__(self, parent, pv_name,function, scale, offset, id=-1, 
+        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, 
+        name=wx.TextCtrlNameStr, validator=wx.DefaultValidator):
+
+        # Adding wx.TE_PROCESS_ENTER to the style causes the
+        # widget to generate wx.EVT_TEXT_ENTER events when
+        # the Enter key is pressed.
+
+        style = style | wx.TE_PROCESS_ENTER
+
+        wx.TextCtrl.__init__(self, parent, id=id, value=wx.EmptyString, 
+            pos=pos, size=size, style=style, validator=validator)
+
+        self.pv = mpca.PV(pv_name)
+        self.scale = scale
+        self.offset = offset
+
+        mpwxca.EVT_UPDATE(self, self.OnUpdate)
+
+        args = (self.pv, self, self.scale, self.offset)
+
+        self.callback = self.pv.add_callback(mpca.DBE_VALUE, function, args)
+
+        # Test for the existence of the PV.
+
+        try:
+            self.pv.caget()
+        except mp.Not_Found_Error:
+            self.SetValue("NOT FOUND")
+            self.Enable(False)
+            return
+
+        # Disable the widget if the PV is read only.
+
+        read_only = False
+
+        if read_only:
+            self.Enable(False)
+
+        mpca.poll()
+
+        self.Bind(wx.EVT_TEXT, self.OnText)
+
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+
+    def OnText(self, event):
+        self.SetBackgroundColour("yellow")
+
+    def OnEnter(self, event):
+        value = float(self.GetValue().strip())
+        value = str((value-self.offset)/self.scale)
+        self.pv.caput(value, wait=False)
+        self.SetBackgroundColour(wx.NullColour)
+
+    def OnUpdate(self, event):
+        value = event.args
+        self.SetValue(value)
+        self.SetBackgroundColour(wx.NullColour)
 
 class MotorFrame(wx.Frame):
     """
