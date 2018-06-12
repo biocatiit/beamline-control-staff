@@ -159,6 +159,8 @@ class AmpPanel(wx.Panel):
         else:
             menu.Append(1, 'Enable Control')
 
+        menu.Append(2, 'Show control info')
+
         self.PopupMenu(menu)
         menu.Destroy()
 

@@ -81,7 +81,7 @@ class MainFrame(wx.Frame):
         try:
             # First try to get the name from an environment variable.
             database_filename = os.environ["MXDATABASE"]
-        except:
+        except Exception:
             # If the environment variable does not exist, construct
             # the filename for the default MX database.
             mxdir = utils.get_mxdir()

@@ -83,7 +83,7 @@ class MotorPanel(wx.Panel):
         # # self.SetFont(font)
         font = self.GetFont()
         self.vert_size = font.GetPixelSize()[1]+5
-        
+
 
         top_sizer = self._create_layout()
 
@@ -332,7 +332,7 @@ class MotorPanel(wx.Panel):
         elif widget.base == 8 :
             value = "%#o" % value
         else:
-            value = str(value)
+            value = str(round(value, 4))
 
         widget.SetLabel(value)
         widget.SetSize(widget.GetBestSize())
@@ -359,9 +359,9 @@ class MotorPanel(wx.Panel):
             elif widget.base == 8:
                 value = "%#o" % value
             else:
-                value = str(value)
+                value = str(round(value, 4))
         else:
-            value = str(value)
+            value = str(round(value, 4))
 
         wx.PostEvent(widget, mpwxca.UpdateEvent(value))
 
@@ -407,8 +407,8 @@ class CustomEpicsValue(wx.StaticText):
 
 class CustomEpicsValueEntry(wx.TextCtrl):
 
-    def __init__(self, parent, pv_name,function, scale, offset, id=-1, 
-        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, 
+    def __init__(self, parent, pv_name,function, scale, offset, id=-1,
+        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
         name=wx.TextCtrlNameStr, validator=wx.DefaultValidator):
 
         # Adding wx.TE_PROCESS_ENTER to the style causes the
@@ -417,7 +417,7 @@ class CustomEpicsValueEntry(wx.TextCtrl):
 
         style = style | wx.TE_PROCESS_ENTER
 
-        wx.TextCtrl.__init__(self, parent, id=id, value=wx.EmptyString, 
+        wx.TextCtrl.__init__(self, parent, id=id, value=wx.EmptyString,
             pos=pos, size=size, style=style, validator=validator)
 
         self.pv = mpca.PV(pv_name)
