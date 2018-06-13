@@ -29,12 +29,14 @@ import os
 import wx
 import wx.lib.buttons as buttons
 
+import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpCa as mpca
 import MpWx as mpwx
 import MpWxCa as mpwxca
+
 
 
 class MotorPanel(wx.Panel):
@@ -109,7 +111,7 @@ class MotorPanel(wx.Panel):
 
             pos_name = "{}.position".format(remote_record_name)
             pos = mpwx.Value(self, server_record, pos_name,
-                function=self._network_value_callback, args=(self.scale, self.offset))
+                function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
@@ -121,12 +123,12 @@ class MotorPanel(wx.Panel):
         elif self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
 
-            pos = CustomEpicsValue(self, "{}.RBV".format(pv),
-                self._epics_value_callback, self.scale, self.offset)
-            low_limit = CustomEpicsValueEntry(self, "{}.LLM".format(pv),
-                self._epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-            high_limit = CustomEpicsValueEntry(self, "{}.HLM".format(pv),
-                self._epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+            pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
+                custom_widgets.epics_value_callback, self.scale, self.offset)
+            low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
+                custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+            high_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.HLM".format(pv),
+                custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
 
 
@@ -281,15 +283,6 @@ class MotorPanel(wx.Panel):
         except ValueError:
             return False
 
-    @staticmethod
-    def _on_epics_limit(callback, args):
-        pv, widget = args
-        value = pv.get_local()
-
-        if value == 1:
-            msg = str("Software limit hit for motor '{}'".format(widget.motor_name))
-            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
-
     def _on_rightclick(self, evt):
         menu = wx.Menu()
         menu.Bind(wx.EVT_MENU, self._on_enablechange)
@@ -313,158 +306,6 @@ class MotorPanel(wx.Panel):
                 and not isinstance(item, mpwxca.Value) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
-
-    @staticmethod
-    def _network_value_callback(nf, widget, args, value):
-
-        scale, offset = args
-
-        if isinstance(value, list):
-            if len(value) == 1:
-                value = value[0]
-
-        value = value*scale+offset
-
-        if widget.base == 10:
-            value = "%d" % value
-        elif widget.base == 16 :
-            value = "%#x" % value
-        elif widget.base == 8 :
-            value = "%#o" % value
-        else:
-            value = str(round(value, 4))
-
-        widget.SetLabel(value)
-        widget.SetSize(widget.GetBestSize())
-        widget.Refresh()
-
-    @staticmethod
-    def _epics_value_callback(callback, args):
-
-        pv, widget, scale, offset = args
-
-        value = pv.get_local()
-
-        if isinstance(value, list):
-            if len(value) == 1:
-                value = value[0]
-
-        value = value*scale+offset
-
-        if isinstance(widget, CustomEpicsValue):
-            if widget.base == 10:
-                value = "%d" % value
-            elif widget.base == 16:
-                value = "%#x" % value
-            elif widget.base == 8:
-                value = "%#o" % value
-            else:
-                value = str(round(value, 4))
-        else:
-            value = str(round(value, 4))
-
-        wx.PostEvent(widget, mpwxca.UpdateEvent(value))
-
-class CustomEpicsValue(wx.StaticText):
-
-    def __init__(self, parent, pv_name, function, scale, offset, id=-1,
-        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
-        name=wx.StaticTextNameStr, base=None):
-
-        wx.StaticText.__init__(self, parent, id=id, label="-----", pos=pos,
-            size=size, style=style, name=name )
-
-        if base != 10 and base != 16 and base != 8 and base != None:
-            error_message = "Only base 8, 10, and 16 are supported."
-            raise ValueError, error_message
-
-        self.base = base
-        self.pv = mpca.PV(pv_name)
-
-        mpwxca.EVT_UPDATE(self, self.OnUpdate)
-
-        args = (self.pv, self, scale, offset)
-
-        self.callback = self.pv.add_callback( mpca.DBE_VALUE, function, args )
-
-        try:
-            self.pv.caget()
-            function(self.callback, args)
-        except mp.Not_Found_Error:
-            self.SetValue("NOT FOUND")
-            self.Enable(False)
-            return
-
-        mpca.poll()
-
-        self.SetForegroundColour("blue")
-
-    def OnUpdate(self, event):
-        value = event.args
-
-        self.SetLabel(value)
-        self.SetSize(self.GetBestSize())
-
-class CustomEpicsValueEntry(wx.TextCtrl):
-
-    def __init__(self, parent, pv_name,function, scale, offset, id=-1,
-        pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
-        name=wx.TextCtrlNameStr, validator=wx.DefaultValidator):
-
-        # Adding wx.TE_PROCESS_ENTER to the style causes the
-        # widget to generate wx.EVT_TEXT_ENTER events when
-        # the Enter key is pressed.
-
-        style = style | wx.TE_PROCESS_ENTER
-
-        wx.TextCtrl.__init__(self, parent, id=id, value=wx.EmptyString,
-            pos=pos, size=size, style=style, validator=validator)
-
-        self.pv = mpca.PV(pv_name)
-        self.scale = scale
-        self.offset = offset
-
-        mpwxca.EVT_UPDATE(self, self.OnUpdate)
-
-        args = (self.pv, self, self.scale, self.offset)
-
-        self.callback = self.pv.add_callback(mpca.DBE_VALUE, function, args)
-
-        # Test for the existence of the PV.
-
-        try:
-            self.pv.caget()
-        except mp.Not_Found_Error:
-            self.SetValue("NOT FOUND")
-            self.Enable(False)
-            return
-
-        # Disable the widget if the PV is read only.
-
-        read_only = False
-
-        if read_only:
-            self.Enable(False)
-
-        mpca.poll()
-
-        self.Bind(wx.EVT_TEXT, self.OnText)
-
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
-
-    def OnText(self, event):
-        self.SetBackgroundColour("yellow")
-
-    def OnEnter(self, event):
-        value = float(self.GetValue().strip())
-        value = str((value-self.offset)/self.scale)
-        self.pv.caput(value, wait=False)
-        self.SetBackgroundColour(wx.NullColour)
-
-    def OnUpdate(self, event):
-        value = event.args
-        self.SetValue(value)
-        self.SetBackgroundColour(wx.NullColour)
 
 class MotorFrame(wx.Frame):
     """
