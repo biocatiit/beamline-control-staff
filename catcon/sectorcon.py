@@ -36,7 +36,6 @@ import wx
 import wx.aui as aui
 from wx.lib.agw import ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl  as  listmix
-import wx.richtext as rt
 import wx.lib.inspection
 import numpy as np
 

@@ -34,6 +34,40 @@ import MpWx as mpwx
 import MpWxCa as mpwxca
 
 
+class FuncValueEntry(wx.TextCtrl):
+    """
+    Based on the ValueEntry in mpwx, but without callbacks. Meant to work
+    when the mp record itself has a get/set function, like get/set speed
+    for motors.
+    """
+    def __init__( self, parent, record, getter, setter, **kwargs):
+
+        if 'style' in kwargs:
+            style = kwargs['style'] | wx.TE_PROCESS_ENTER
+            del kwargs[style]
+        else:
+            style = wx.TE_PROCESS_ENTER
+
+        wx.TextCtrl.__init__(self, parent, value=getter(), style=style, **kwargs)
+
+        self.record = record
+        self.getter = getter
+        self.setter = setter
+
+        self.Bind(wx.EVT_TEXT, self.OnText)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+
+    def OnText(self, event):
+        self.SetBackgroundColour("yellow")
+
+    def OnEnter(self, event):
+        value = self.GetValue().strip()
+
+        self.setter(value)
+
+        self.SetBackgroundColour(wx.NullColour)
+
+
 class CustomEpicsValue(wx.StaticText):
 
     def __init__(self, parent, pv_name, function, scale, offset, id=-1,

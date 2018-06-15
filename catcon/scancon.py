@@ -29,8 +29,14 @@ import queue
 import tempfile
 import os
 import math
+import threading
+import time
 
 import wx
+import matplotlib
+matplotlib.rcParams['backend'] = 'WxAgg'
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 import custom_widgets
 import utils
@@ -161,6 +167,7 @@ class ScanProcess(multiprocessing.Process):
             standard_paths = wx.StandardPaths.Get()
             tmpdir = standard_paths.GetTempDir()
             fname = tempfile.NamedTemporaryFile(dir=tmpdir).name
+            fname=os.path.normpath('./{}'.format(os.path.split(fname)[-1]))
         else:
             fname = os.path.join(self.out_path, self.out_name)
 
@@ -220,14 +227,20 @@ class ScanPanel(wx.Panel):
         self.scale = float(self.device.get_field('scale'))
         self.offset = float(self.device.get_field('offset'))
 
-        self.cmd_q = multiprocessing.Queue()
-        self.return_q = multiprocessing.Queue()
-        self.abort_event = multiprocessing.Event()
+        self.manager = multiprocessing.Manager()
+        self.cmd_q = self.manager.Queue()
+        self.return_q = self.manager.Queue()
+        self.abort_event = self.manager.Event()
         self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
         self.scan_proc.start()
 
         self.scan_timer = wx.Timer()
         self.scan_timer.Bind(wx.EVT_TIMER, self._on_scantimer)
+
+        self.plt_line = None
+        self.plt_y = None
+        self.plt_x = None
+        self.live_plt_evt = threading.Event()
 
         self._create_layout()
 
@@ -255,7 +268,7 @@ class ScanPanel(wx.Panel):
         info_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
         info_grid.Add(wx.StaticText(self, label='Device name:'))
         info_grid.Add(dname)
-        info_grid.Add(wx.StaticText(self, label='Current position:'))
+        info_grid.Add(wx.StaticText(self, label='Current position ({}):'.format(self.device.get_field('units'))))
         info_grid.Add(pos)
 
         info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
@@ -275,60 +288,99 @@ class ScanPanel(wx.Panel):
             elif mx_class == 'area_detector':
                 detectors.append(r.name)
 
-        self.start = wx.TextCtrl(self)
-        self.stop = wx.TextCtrl(self)
-        self.step = wx.TextCtrl(self)
-        self.count_time = wx.TextCtrl(self)
+        self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
+        self.scan_type.SetSelection(1)
+        self.start = wx.TextCtrl(self, value='-2')
+        self.stop = wx.TextCtrl(self, value='2')
+        self.step = wx.TextCtrl(self, value='0.5')
+        self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=scalers)
         self.timer = wx.Choice(self, choices=timers)
         self.detector = wx.Choice(self, choices=detectors)
 
-        ctrl_grid = wx.FlexGridSizer(rows=7, cols=2, vgap=5, hgap=5)
-        ctrl_grid.Add(wx.StaticText(self, label='Start:'))
-        ctrl_grid.Add(self.start)
-        ctrl_grid.Add(wx.StaticText(self, label='Stop:'))
-        ctrl_grid.Add(self.stop)
-        ctrl_grid.Add(wx.StaticText(self, label='Step size:'))
-        ctrl_grid.Add(self.step)
-        ctrl_grid.Add(wx.StaticText(self, label='Scaler:'))
-        ctrl_grid.Add(self.scaler)
-        ctrl_grid.Add(wx.StaticText(self, label='Count time:'))
-        ctrl_grid.Add(self.count_time)
-        ctrl_grid.Add(wx.StaticText(self, label='Timer:'))
-        ctrl_grid.Add(self.timer)
-        ctrl_grid.Add(wx.StaticText(self, label='Detector:'))
-        ctrl_grid.Add(self.detector)
-        ctrl_grid.AddGrowableCol(1)
+        type_sizer =wx.BoxSizer(wx.HORIZONTAL)
+        type_sizer.Add(wx.StaticText(self, label='Scan type:'))
+        type_sizer.Add(self.scan_type, border=5, flag=wx.LEFT)
+
+        mv_grid = wx.FlexGridSizer(rows=2, cols=3, vgap=5, hgap=5)
+        mv_grid.Add(wx.StaticText(self, label='Start'))
+        mv_grid.Add(wx.StaticText(self, label='Stop'))
+        mv_grid.Add(wx.StaticText(self, label='Step'))
+        mv_grid.Add(self.start)
+        mv_grid.Add(self.stop)
+        mv_grid.Add(self.step)
+
+
+        count_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
+        count_grid.Add(wx.StaticText(self, label='Count time (s):'))
+        count_grid.Add(self.count_time)
+        count_grid.Add(wx.StaticText(self, label='Timer:'))
+        count_grid.Add(self.timer)
+        count_grid.Add(wx.StaticText(self, label='Scaler:'))
+        count_grid.Add(self.scaler)
+        count_grid.Add(wx.StaticText(self, label='Detector:'))
+        count_grid.Add(self.detector)
+        count_grid.AddGrowableCol(1)
 
         self.start_btn = wx.Button(self, label='Start')
         self.start_btn.Bind(wx.EVT_BUTTON, self._on_start)
 
         ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
             wx.VERTICAL)
-        ctrl_sizer.Add(ctrl_grid, flag=wx.EXPAND)
+        ctrl_sizer.Add(type_sizer)
+        ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
+        ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
         ctrl_sizer.Add(self.start_btn, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(info_sizer)
-        top_sizer.Add(ctrl_sizer)
+        scan_sizer = wx.BoxSizer(wx.VERTICAL)
+        scan_sizer.Add(info_sizer)
+        scan_sizer.Add(ctrl_sizer)
+
+
+        self.fig = matplotlib.figure.Figure()
+        self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
+        self.canvas.SetBackgroundColour('white')
+        self.toolbar = CustomPlotToolbar(self, self.canvas)
+        self.toolbar.Realize()
+
+        self.plot = self.fig.add_subplot(1,1,1, title='Scan')
+        self.plot.set_ylabel('Scaler counts')
+        self.plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
+
+        self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+        self.canvas.callbacks.connect('motion_notify_event', self._onMouseMotion)
+
+        plot_sizer = wx.BoxSizer(wx.VERTICAL)
+        plot_sizer.Add(self.canvas, 1, flag=wx.EXPAND)
+        plot_sizer.Add(self.toolbar, 0, flag=wx.EXPAND)
+
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_sizer.Add(scan_sizer)
+        top_sizer.Add(plot_sizer, 1, flag=wx.EXPAND)
 
         self.SetSizer(top_sizer)
 
     def _on_start(self ,evt):
         scan_params = self._get_params()
 
+        self.plot.set_xlim(scan_params['start'], scan_params['stop'])
         print(scan_params)
 
         self.initial_position = self.device.get_position()
-        self.scan_timer.Start(100)
+        self.scan_timer.Start(10)
 
         self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
         self.cmd_q.put_nowait(['scan', [], {}])
 
     def _get_params(self):
+        if self.scan_type.GetStringSelection() == 'Absolute':
+            offset = 0
+        else:
+            offset = self.device.get_position()
+
         scan_params = {'device'     : self.device_name,
-                    'start'         : float(self.start.GetValue()),
-                    'stop'          : float(self.stop.GetValue()),
+                    'start'         : float(self.start.GetValue())+offset,
+                    'stop'          : float(self.stop.GetValue())+offset,
                     'step'          : float(self.step.GetValue()),
                     'scalers'       : [self.scaler.GetStringSelection()],
                     'dwell_time'    : float(self.count_time.GetValue()),
@@ -354,14 +406,103 @@ class ScanPanel(wx.Panel):
             scan_return = None
 
         if scan_return is not None and scan_return != 'stop_live_plotting':
-            # print(scan_return)
-            # self.plot_panel.plot(scan_return)
-            # wx.Yield()
-            pass
+            self.live_plt_evt.clear()
+            self.live_thread = threading.Thread(target=self.live_plot, args=(scan_return,))
+            self.live_thread.daemon = True
+            self.live_thread.start()
         elif scan_return == 'stop_live_plotting':
             self.scan_timer.Stop()
+            self.live_plt_evt.set()
             self.device.move_absolute(self.initial_position)
+            #This is a hack
+            self.scan_proc.stop()
+            self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
+            self.scan_proc.start()
+            self._start_scan_mxdb()
 
+    def _ax_redraw(self, widget=None):
+        ''' Redraw plots on window resize event '''
+
+        self.background = self.canvas.copy_from_bbox(self.plot.bbox)
+
+        if self.plt_line is not None:
+            self.canvas.mpl_disconnect(self.cid)
+            self.update_plot()
+            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+
+    def update_plot(self):
+        if self.plt_line is None:
+            if (self.plt_x is not None and self.plt_y is not None and
+                len(self.plt_x) == len(self.plt_y)) and len(self.plt_x) != 0:
+
+                self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'bo-', animated=True)
+                self.canvas.mpl_disconnect(self.cid)
+                self.canvas.draw()
+                self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+                self.background = self.canvas.copy_from_bbox(self.plot.bbox)
+        else:
+            self.plt_line.set_xdata(self.plt_x)
+            self.plt_line.set_ydata(self.plt_y)
+
+        if self.plt_line is not None:
+            oldx = self.plot.get_xlim()
+            oldy = self.plot.get_ylim()
+
+            self.plot.relim()
+            self.plot.autoscale_view()
+
+            newx = self.plot.get_xlim()
+            newy = self.plot.get_ylim()
+
+            if newx != oldx or newy != oldy:
+                self.canvas.mpl_disconnect(self.cid)
+                self.canvas.draw()
+                self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+
+            self.canvas.restore_region(self.background)
+            self.plot.draw_artist(self.plt_line)
+            self.canvas.blit(self.plot.bbox)
+
+    def live_plot(self, filename):
+        self.plt_x = []
+        self.plt_y = []
+        self.update_plot() #Is this threadsafe?
+        wx.Yield()
+
+        if not os.path.exists(filename):
+            time.sleep(0.01)
+
+        with open(filename) as thefile:
+            data = utils.file_follow(thefile, self.live_plt_evt)
+            for val in data:
+                if self.live_plt_evt.is_set():
+                    break
+                if not val.startswith('#'):
+                    x, y = val.strip().split()
+                    self.plt_x.append(float(x))
+                    self.plt_y.append(float(y))
+                    self.update_plot() #Is this threadsafe?
+                    wx.Yield()
+
+        os.remove(filename)
+
+    def _onMouseMotion(self, event):
+        if event.inaxes:
+            x, y = event.xdata, event.ydata
+            self.toolbar.set_status('x={}, y={}'.format(x, y))
+        else:
+            self.toolbar.set_status('')
+
+class CustomPlotToolbar(NavigationToolbar2WxAgg):
+    def __init__(self, parent, canvas):
+        NavigationToolbar2WxAgg.__init__(self, canvas)
+
+        self.status = wx.StaticText(self, label='')
+
+        self.AddControl(self.status)
+
+    def set_status(self, status):
+        self.status.SetLabel(status)
 
 
 class ScanFrame(wx.Frame):
@@ -376,7 +517,7 @@ class ScanFrame(wx.Frame):
         scan_panel = ScanPanel(device, mx_database, parent=self)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        top_sizer.Add(scan_panel)
+        top_sizer.Add(scan_panel, 1, wx.EXPAND)
 
         self.SetSizer(top_sizer)
 
