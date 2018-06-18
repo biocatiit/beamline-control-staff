@@ -92,7 +92,7 @@ class MotorPanel(wx.Panel):
         if self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
             self.limit_pv = mpca.PV("{}.LVIO".format(pv))
-            self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, cutom_widgets.on_epics_limit, (self.limit_pv, self))
+            self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, custom_widgets.on_epics_limit, (self.limit_pv, self))
 
         self.SetSizer(top_sizer)
 
