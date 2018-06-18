@@ -31,12 +31,15 @@ import os
 import math
 import threading
 import time
+import platform
 
 import wx
 import matplotlib
 matplotlib.rcParams['backend'] = 'WxAgg'
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+import matplotlib.gridspec as gridspec
+import numpy as np
 
 import custom_widgets
 import utils
@@ -181,7 +184,7 @@ class ScanProcess(multiprocessing.Process):
 
         description = description + ("{} {} ".format(self.start, self.step))
 
-        num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))
+        num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
         description = description + ("{} ".format(num_measurements))
 
         print("Description = %s" % (description))
@@ -238,9 +241,12 @@ class ScanPanel(wx.Panel):
         self.scan_timer.Bind(wx.EVT_TIMER, self._on_scantimer)
 
         self.plt_line = None
+        self.der_line = None
         self.plt_y = None
         self.plt_x = None
         self.live_plt_evt = threading.Event()
+
+        self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
         self._create_layout()
 
@@ -332,10 +338,20 @@ class ScanPanel(wx.Panel):
         ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
         ctrl_sizer.Add(self.start_btn, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
 
+
+        self.show_der = wx.CheckBox(self, label='Show derivative')
+        self.show_der.SetValue(False)
+        self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
+
+        plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
+            wx.VERTICAL)
+        plt_ctrl_sizer.Add(self.show_der)
+
+
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
         scan_sizer.Add(info_sizer)
         scan_sizer.Add(ctrl_sizer)
-
+        scan_sizer.Add(plt_ctrl_sizer)
 
         self.fig = matplotlib.figure.Figure()
         self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
@@ -343,12 +359,23 @@ class ScanPanel(wx.Panel):
         self.toolbar = CustomPlotToolbar(self, self.canvas)
         self.toolbar.Realize()
 
-        self.plot = self.fig.add_subplot(1,1,1, title='Scan')
+        self.plt_gs = gridspec.GridSpec(1, 1)
+        self.plt_gs2 = gridspec.GridSpec(2,1)
+
+        self.plot = self.fig.add_subplot(self.plt_gs2[0], title='Scan')
         self.plot.set_ylabel('Scaler counts')
         self.plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
 
+        self.plot_der = self.fig.add_subplot(self.plt_gs2[1], title='Derivative', sharex=self.plot)
+        self.plot_der.set_ylabel('Derivative')
+        self.plot_der.set_xlabel('Position ({})'.format(self.device.get_field('units')))
+
+        self.plot_der.set_visible(False)
+        self.plot.set_position(self.plt_gs[0].get_position(self.fig))
+
         self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
-        self.canvas.callbacks.connect('motion_notify_event', self._onMouseMotion)
+        self.canvas.callbacks.connect('motion_notify_event', self._on_mousemotion)
+        self.canvas.callbacks.connect('pick_event', self._on_pickevent)
 
         plot_sizer = wx.BoxSizer(wx.VERTICAL)
         plot_sizer.Add(self.canvas, 1, flag=wx.EXPAND)
@@ -435,14 +462,40 @@ class ScanPanel(wx.Panel):
             if (self.plt_x is not None and self.plt_y is not None and
                 len(self.plt_x) == len(self.plt_y)) and len(self.plt_x) != 0:
 
-                self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'bo-', animated=True)
+                self.plt_pts, = self.plot.plot(self.plt_x, self.plt_y, 'bo', animated=True, picker=5)
+                self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'b-', animated=True,)
                 self.canvas.mpl_disconnect(self.cid)
                 self.canvas.draw()
                 self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
                 self.background = self.canvas.copy_from_bbox(self.plot.bbox)
-        else:
+        elif self.plt_line is not None and self.der_line is None:
+            self.der_pts, = self.plot_der.plot(self.plt_x, self.plt_der, 'bo', animated=True, picker=5)
+            self.der_line, = self.plot_der.plot(self.plt_x, self.plt_der, 'b-', animated=True,)
+            self.canvas.mpl_disconnect(self.cid)
+            self.canvas.draw()
+            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+            self.der_background = self.canvas.copy_from_bbox(self.plot_der.bbox)
+
+            self.plt_pts.set_xdata(self.plt_x)
+            self.plt_pts.set_ydata(self.plt_y)
+
             self.plt_line.set_xdata(self.plt_x)
             self.plt_line.set_ydata(self.plt_y)
+
+        else:
+            self.plt_pts.set_xdata(self.plt_x)
+            self.plt_pts.set_ydata(self.plt_y)
+
+            self.plt_line.set_xdata(self.plt_x)
+            self.plt_line.set_ydata(self.plt_y)
+
+            self.der_pts.set_xdata(self.plt_x)
+            self.der_pts.set_ydata(self.plt_der)
+
+            self.der_line.set_xdata(self.plt_x)
+            self.der_line.set_ydata(self.plt_der)
+
+        redraw = False
 
         if self.plt_line is not None:
             oldx = self.plot.get_xlim()
@@ -455,17 +508,40 @@ class ScanPanel(wx.Panel):
             newy = self.plot.get_ylim()
 
             if newx != oldx or newy != oldy:
-                self.canvas.mpl_disconnect(self.cid)
-                self.canvas.draw()
-                self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+                redraw = True
 
             self.canvas.restore_region(self.background)
             self.plot.draw_artist(self.plt_line)
+            self.plot.draw_artist(self.plt_pts)
             self.canvas.blit(self.plot.bbox)
+
+        if self.der_line is not None and self.show_der.GetValue():
+            oldx = self.plot_der.get_xlim()
+            oldy = self.plot_der.get_ylim()
+
+            self.plot_der.relim()
+            self.plot_der.autoscale_view()
+
+            newx = self.plot_der.get_xlim()
+            newy = self.plot_der.get_ylim()
+
+            if newx != oldx or newy != oldy:
+                redraw = True
+
+            self.canvas.restore_region(self.der_background)
+            self.plot_der.draw_artist(self.der_line)
+            self.plot_der.draw_artist(self.der_pts)
+            self.canvas.blit(self.plot_der.bbox)
+
+        if redraw:
+            self.canvas.mpl_disconnect(self.cid)
+            self.canvas.draw()
+            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
 
     def live_plot(self, filename):
         self.plt_x = []
         self.plt_y = []
+        self.plt_der = []
         self.update_plot() #Is this threadsafe?
         wx.Yield()
 
@@ -481,17 +557,68 @@ class ScanPanel(wx.Panel):
                     x, y = val.strip().split()
                     self.plt_x.append(float(x))
                     self.plt_y.append(float(y))
+                    if len(self.plt_y) > 1:
+                        self.plt_der = np.gradient(self.plt_y, self.plt_x)
+                        self.plt_der[np.isnan(self.plt_der)] = 0
                     self.update_plot() #Is this threadsafe?
                     wx.Yield()
 
         os.remove(filename)
 
-    def _onMouseMotion(self, event):
+    def _on_mousemotion(self, event):
         if event.inaxes:
             x, y = event.xdata, event.ydata
             self.toolbar.set_status('x={}, y={}'.format(x, y))
         else:
             self.toolbar.set_status('')
+
+    def _on_closewindow(self, event):
+        print('in _on_closewindow!!!!!\n\n\n\n\n\n')
+        self.scan_timer.Stop()
+        self.scan_proc.stop()
+
+        while self.scan_proc.is_alive():
+            print('here')
+            time.sleep(.01)
+
+        self.Destroy()
+
+    def _on_pickevent(self, event):
+        artist = event.artist
+        button = event.mouseevent.button
+
+        if button == 3:
+            x = artist.get_xdata()
+            ind = event.ind
+            position = x[ind[0]]
+
+            if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
+                wx.CallAfter(self._show_popupmenu, position)
+            else:
+                self._show_popupmenu(position)
+
+    def _show_popupmenu(self, position):
+        menu = wx.Menu()
+
+        menu.Append(1, 'Move to {}'.format(position))
+        self.Bind(wx.EVT_MENU, lambda event: self._on_popupmenu_choice(event, position))
+        self.PopupMenu(menu)
+
+        menu.Destroy()
+
+    def _on_popupmenu_choice(self, event, position):
+        self.device.move_absolute(position)
+
+    def _on_showder(self, event):
+        if event.IsChecked():
+            self.plot_der.set_visible(True)
+            self.plot.set_position(self.plt_gs2[0].get_position(self.fig))
+            self.plot_der.set_position(self.plt_gs2[1].get_position(self.fig))
+        else:
+            self.plot_der.set_visible(False)
+            self.plot.set_position(self.plt_gs[0].get_position(self.fig))
+
+        self.canvas.draw()
 
 class CustomPlotToolbar(NavigationToolbar2WxAgg):
     def __init__(self, parent, canvas):
