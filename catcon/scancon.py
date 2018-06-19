@@ -40,6 +40,7 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 import matplotlib.gridspec as gridspec
 import numpy as np
+import scipy.optimize
 
 import custom_widgets
 import utils
@@ -244,6 +245,12 @@ class ScanPanel(wx.Panel):
         self.der_line = None
         self.plt_y = None
         self.plt_x = None
+        self.der_y = None
+        self.plt_fit_line = None
+        self.der_fit_line = None
+        self.plt_fit_x = None
+        self.plt_fit_y = None
+        self.der_fit_y = None
         self.live_plt_evt = threading.Event()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
@@ -343,9 +350,23 @@ class ScanPanel(wx.Panel):
         self.show_der.SetValue(False)
         self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
 
+        self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
+        self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
+        self.plt_fit.SetSelection(0)
+        self.der_fit.SetSelection(0)
+        self.plt_fit.Bind(wx.EVT_CHOICE, self._on_fitchoice)
+        self.der_fit.Bind(wx.EVT_CHOICE, self._on_fitchoice)
+
+        self.fit_sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        self.fit_sizer.Add(wx.StaticText(self, label='Counts Fit:'))
+        self.fit_sizer.Add(self.plt_fit)
+        self.fit_sizer.Add(wx.StaticText(self, label='Derivative Fit:'))
+        self.fit_sizer.Add(self.der_fit)
+
         plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
             wx.VERTICAL)
         plt_ctrl_sizer.Add(self.show_der)
+        plt_ctrl_sizer.Add(self.fit_sizer, border=5, flag=wx.TOP)
 
 
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -366,11 +387,11 @@ class ScanPanel(wx.Panel):
         self.plot.set_ylabel('Scaler counts')
         self.plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
 
-        self.plot_der = self.fig.add_subplot(self.plt_gs2[1], title='Derivative', sharex=self.plot)
-        self.plot_der.set_ylabel('Derivative')
-        self.plot_der.set_xlabel('Position ({})'.format(self.device.get_field('units')))
+        self.der_plot = self.fig.add_subplot(self.plt_gs2[1], title='Derivative', sharex=self.plot)
+        self.der_plot.set_ylabel('Derivative')
+        self.der_plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
 
-        self.plot_der.set_visible(False)
+        self.der_plot.set_visible(False)
         self.plot.set_position(self.plt_gs[0].get_position(self.fig))
 
         self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
@@ -451,49 +472,82 @@ class ScanPanel(wx.Panel):
         ''' Redraw plots on window resize event '''
 
         self.background = self.canvas.copy_from_bbox(self.plot.bbox)
+        self.der_background = self.canvas.copy_from_bbox(self.der_plot.bbox)
 
-        if self.plt_line is not None:
-            self.canvas.mpl_disconnect(self.cid)
-            self.update_plot()
-            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+        self.update_plot()
+
+    def _safe_draw(self):
+        self.canvas.mpl_disconnect(self.cid)
+        self.canvas.draw()
+        self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
 
     def update_plot(self):
+        get_plt_bkg = False
+        get_fit_bkg = False
+
         if self.plt_line is None:
             if (self.plt_x is not None and self.plt_y is not None and
-                len(self.plt_x) == len(self.plt_y)) and len(self.plt_x) != 0:
+                len(self.plt_x) == len(self.plt_y)) and len(self.plt_x) > 0:
 
                 self.plt_pts, = self.plot.plot(self.plt_x, self.plt_y, 'bo', animated=True, picker=5)
-                self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'b-', animated=True,)
-                self.canvas.mpl_disconnect(self.cid)
-                self.canvas.draw()
-                self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+                self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'b-', animated=True)
+
+                get_plt_bkg = True
+
+        if self.der_line is None:
+            if (self.plt_x is not None and self.der_y is not None and
+                len(self.plt_x) == len(self.der_y) and len(self.plt_x) > 1):
+
+                self.der_pts, = self.der_plot.plot(self.plt_x, self.der_y, 'bo', animated=True, picker=5)
+                self.der_line, = self.der_plot.plot(self.plt_x, self.der_y, 'b-', animated=True)
+
+                get_fit_bkg = True
+
+        if self.plt_fit_line is None:
+            if (self.plt_fit_y is not None and len(self.plt_fit_x) == len(self.plt_fit_y)
+                and len(self.plt_fit_y) > 0):
+
+                self.plt_fit_line, = self.plot.plot(self.plt_fit_x, self.plt_fit_y, 'r-', animated=True)
+
+                get_plt_bkg = True
+
+        if self.der_fit_line is None:
+            if (self.der_fit_y is not None and len(self.plt_fit_x) == len(self.der_fit_y)
+                and len(self.der_fit_y) > 1):
+
+                self.der_fit_line, = self.der_plot.plot(self.plt_fit_x, self.der_fit_y, 'r-', animated=True)
+
+                get_fit_bkg = True
+
+        if get_plt_bkg or get_fit_bkg:
+            self._safe_draw()
+
+            if get_plt_bkg:
                 self.background = self.canvas.copy_from_bbox(self.plot.bbox)
-        elif self.plt_line is not None and self.der_line is None:
-            self.der_pts, = self.plot_der.plot(self.plt_x, self.plt_der, 'bo', animated=True, picker=5)
-            self.der_line, = self.plot_der.plot(self.plt_x, self.plt_der, 'b-', animated=True,)
-            self.canvas.mpl_disconnect(self.cid)
-            self.canvas.draw()
-            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
-            self.der_background = self.canvas.copy_from_bbox(self.plot_der.bbox)
+            if get_fit_bkg:
+                self.der_background = self.canvas.copy_from_bbox(self.der_plot.bbox)
 
+
+        if self.plt_line is not None:
             self.plt_pts.set_xdata(self.plt_x)
             self.plt_pts.set_ydata(self.plt_y)
-
             self.plt_line.set_xdata(self.plt_x)
             self.plt_line.set_ydata(self.plt_y)
 
-        else:
-            self.plt_pts.set_xdata(self.plt_x)
-            self.plt_pts.set_ydata(self.plt_y)
-
-            self.plt_line.set_xdata(self.plt_x)
-            self.plt_line.set_ydata(self.plt_y)
-
+        if self.der_line is not None:
             self.der_pts.set_xdata(self.plt_x)
-            self.der_pts.set_ydata(self.plt_der)
-
+            self.der_pts.set_ydata(self.der_y)
             self.der_line.set_xdata(self.plt_x)
-            self.der_line.set_ydata(self.plt_der)
+            self.der_line.set_ydata(self.der_y)
+
+        if self.plt_fit_line is not None:
+            self.plt_fit_line.set_xdata(self.plt_fit_x)
+            self.plt_fit_line.set_ydata(self.plt_fit_y)
+
+        if self.der_fit_line is not None:
+            self.der_fit_line.set_xdata(self.plt_fit_x)
+            self.der_fit_line.set_ydata(self.der_fit_y)
+
 
         redraw = False
 
@@ -510,38 +564,75 @@ class ScanPanel(wx.Panel):
             if newx != oldx or newy != oldy:
                 redraw = True
 
-            self.canvas.restore_region(self.background)
-            self.plot.draw_artist(self.plt_line)
-            self.plot.draw_artist(self.plt_pts)
-            self.canvas.blit(self.plot.bbox)
-
         if self.der_line is not None and self.show_der.GetValue():
-            oldx = self.plot_der.get_xlim()
-            oldy = self.plot_der.get_ylim()
+            oldx = self.der_plot.get_xlim()
+            oldy = self.der_plot.get_ylim()
 
-            self.plot_der.relim()
-            self.plot_der.autoscale_view()
+            self.der_plot.relim()
+            self.der_plot.autoscale_view()
 
-            newx = self.plot_der.get_xlim()
-            newy = self.plot_der.get_ylim()
+            newx = self.der_plot.get_xlim()
+            newy = self.der_plot.get_ylim()
 
             if newx != oldx or newy != oldy:
                 redraw = True
-
-            self.canvas.restore_region(self.der_background)
-            self.plot_der.draw_artist(self.der_line)
-            self.plot_der.draw_artist(self.der_pts)
-            self.canvas.blit(self.plot_der.bbox)
 
         if redraw:
             self.canvas.mpl_disconnect(self.cid)
             self.canvas.draw()
             self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
 
+
+        if self.plt_line is not None:
+            self.canvas.restore_region(self.background)
+            self.plot.draw_artist(self.plt_line)
+            self.plot.draw_artist(self.plt_pts)
+
+        if self.der_line is not None and self.show_der.GetValue():
+            self.canvas.restore_region(self.der_background)
+            self.der_plot.draw_artist(self.der_line)
+            self.der_plot.draw_artist(self.der_pts)
+
+        if self.plt_fit_line is not None:
+            self.plot.draw_artist(self.plt_fit_line)
+
+        if self.der_fit_line is not None and self.show_der.GetValue():
+            self.der_plot.draw_artist(self.der_fit_line)
+
+
+        self.canvas.blit(self.plot.bbox)
+
+        if self.show_der.GetValue():
+            self.canvas.blit(self.der_plot.bbox)
+
     def live_plot(self, filename):
+        if self.plt_line is not None:
+            self.plt_line.remove()
+            self.plt_line = None
+            self.plt_pts.remove()
+            self.plt_pts = None
+
+        if self.der_line is not None:
+            self.der_line.remove()
+            self.der_line = None
+            self.der_pts.remove()
+            self.der_pts = None
+
+        if self.plt_fit_line is not None:
+            self.plt_fit_line.remove()
+            self.plt_fit_line = None
+
+        if self.der_fit_line is not None:
+            self.der_fit_line.remove()
+            self.der_fit_line = None
+
         self.plt_x = []
         self.plt_y = []
-        self.plt_der = []
+        self.der_y = []
+        self.plt_fit_x = []
+        self.plt_fit_y = []
+        self.der_fit_y = []
+
         self.update_plot() #Is this threadsafe?
         wx.Yield()
 
@@ -557,9 +648,13 @@ class ScanPanel(wx.Panel):
                     x, y = val.strip().split()
                     self.plt_x.append(float(x))
                     self.plt_y.append(float(y))
+                    self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
+
                     if len(self.plt_y) > 1:
-                        self.plt_der = np.gradient(self.plt_y, self.plt_x)
-                        self.plt_der[np.isnan(self.plt_der)] = 0
+                        self.der_y = np.gradient(self.plt_y, self.plt_x)
+                        self.der_y[np.isnan(self.der_y)] = 0
+                        self._calc_fit('der', self.der_fit.GetStringSelection(), False)
+
                     self.update_plot() #Is this threadsafe?
                     wx.Yield()
 
@@ -611,14 +706,68 @@ class ScanPanel(wx.Panel):
 
     def _on_showder(self, event):
         if event.IsChecked():
-            self.plot_der.set_visible(True)
+            self.der_plot.set_visible(True)
             self.plot.set_position(self.plt_gs2[0].get_position(self.fig))
-            self.plot_der.set_position(self.plt_gs2[1].get_position(self.fig))
+            self.der_plot.set_position(self.plt_gs2[1].get_position(self.fig))
         else:
-            self.plot_der.set_visible(False)
+            self.der_plot.set_visible(False)
             self.plot.set_position(self.plt_gs[0].get_position(self.fig))
 
         self.canvas.draw()
+
+    def _on_fitchoice(self, event):
+        fit = event.GetString()
+
+        if event.GetEventObject() == self.plt_fit:
+            plot = 'plt'
+        else:
+            plot = 'der'
+
+        self._calc_fit(plot, fit)
+
+    def _calc_fit(self, plot, fit, update_plot=True):
+        if plot == 'plt':
+            ydata = self.plt_y
+        else:
+            ydata = self.der_y
+
+        if fit == 'Gaussian':
+            if self.plt_x is not None and len(self.plt_x) > 2:
+                npts = int(100*(self.plt_x[-1] - self.plt_x[0])/(self.plt_x[1] - self.plt_x[0]))
+                self.plt_fit_x = np.linspace(self.plt_x[0], self.plt_x[-1], npts)
+
+                try:
+                    opt, cov = scipy.optimize.curve_fit(gaussian, self.plt_x, ydata)
+                    if plot == 'plt':
+                        self.plt_fit_y = gaussian(self.plt_fit_x, opt[0], opt[1], opt[2])
+                    else:
+                        self.der_fit_y = gaussian(self.plt_fit_x, opt[0], opt[1], opt[2])
+
+                except RuntimeError:
+                    if plot == 'plt':
+                        self.plt_fit_y = np.zeros_like(self.plt_fit_x)
+                    else:
+                        self.der_fit_y = np.zeros_like(self.plt_fit_x)
+
+
+        elif fit == 'None':
+            if plot == 'plt':
+                if self.plt_fit_line is not None:
+                    self.plt_fit_line.remove()
+                    self.plt_fit_line = None
+                    self.plt_fit_y = []
+            else:
+                if self.der_fit_line is not None:
+                    self.der_fit_line.remove()
+                    self.der_fit_line = None
+                    self.der_fit_y = []
+
+        if update_plot:
+            self.update_plot()
+
+
+def gaussian(x, A, cen, std):
+    return A*np.exp(-(x-cen)**2/(2*std**2))
 
 class CustomPlotToolbar(NavigationToolbar2WxAgg):
     def __init__(self, parent, canvas):
