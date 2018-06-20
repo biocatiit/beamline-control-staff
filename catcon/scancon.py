@@ -247,6 +247,7 @@ class ScanPanel(wx.Panel):
         self.plt_y = None
         self.plt_x = None
         self.der_y = None
+
         self.plt_fit_line = None
         self.der_fit_line = None
         self.plt_fit_x = None
@@ -254,10 +255,17 @@ class ScanPanel(wx.Panel):
         self.der_fit_y = None
         self.plt_fitparams = None
         self.der_fitparams = None
+
         self.fwhm = None
         self.der_fwhm = None
         self.fwhm_line = None
         self.der_fwhm_line = None
+
+        self.com_line = None
+        self.der_com_line = None
+        self.com = None
+        self.der_com = None
+
         self.live_plt_evt = threading.Event()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
@@ -357,14 +365,6 @@ class ScanPanel(wx.Panel):
         self.show_der.SetValue(False)
         self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
 
-        self.show_fwhm = wx.CheckBox(self, label='Show FWHM')
-        self.show_fwhm.SetValue(False)
-        self.show_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
-
-        self.show_der_fwhm = wx.CheckBox(self, label='Show derivative FWHM')
-        self.show_der_fwhm.SetValue(False)
-        self.show_der_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
-
         self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.plt_fit.SetSelection(0)
@@ -378,18 +378,99 @@ class ScanPanel(wx.Panel):
         self.fit_sizer.Add(wx.StaticText(self, label='Derivative Fit:'))
         self.fit_sizer.Add(self.der_fit)
 
+        self.show_fwhm = wx.CheckBox(self, label='Show FWHM')
+        self.show_fwhm.SetValue(False)
+        self.show_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
+
+        self.show_der_fwhm = wx.CheckBox(self, label='Show derivative FWHM')
+        self.show_der_fwhm.SetValue(False)
+        self.show_der_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
+
+        self.show_com = wx.CheckBox(self, label='Show COM')
+        self.show_com.SetValue(False)
+        self.show_com.Bind(wx.EVT_CHECKBOX, self._on_showcom)
+
+        self.show_der_com = wx.CheckBox(self, label='Show derivative COM')
+        self.show_der_com.SetValue(False)
+        self.show_der_com.Bind(wx.EVT_CHECKBOX, self._on_showcom)
+
+        calc_sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        calc_sizer.Add(self.show_fwhm)
+        calc_sizer.Add(self.show_der_fwhm)
+        calc_sizer.Add(self.show_com)
+        calc_sizer.Add(self.show_der_com)
+
         plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
             wx.VERTICAL)
         plt_ctrl_sizer.Add(self.show_der)
         plt_ctrl_sizer.Add(self.fit_sizer, border=5, flag=wx.TOP)
-        plt_ctrl_sizer.Add(self.show_fwhm, border=5, flag=wx.TOP)
-        plt_ctrl_sizer.Add(self.show_der_fwhm, border=5, flag=wx.TOP)
+        plt_ctrl_sizer.Add(calc_sizer, border=5, flag=wx.TOP)
+
+
+        self.disp_fwhm = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_fwhm_pos = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_com = wx.StaticText(self, label='', size=(60, -1))
+
+        self.disp_fit_label1 = wx.StaticText(self, label='Fit param. 1:')
+        self.disp_fit_label2 = wx.StaticText(self, label='Fit param. 2:')
+        self.disp_fit_p1 = wx.StaticText(self, label='')
+        self.disp_fit_p2 = wx.StaticText(self, label='')
+
+        scan_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
+        scan_results.Add(wx.StaticText(self, label='FWHM:'))
+        scan_results.Add(self.disp_fwhm)
+        scan_results.Add(wx.StaticText(self, label='FWHM pos.:'))
+        scan_results.Add(self.disp_fwhm_pos)
+        scan_results.Add(wx.StaticText(self, label='COM pos.:'))
+        scan_results.Add(self.disp_com)
+        scan_results.Add((1,1))
+        scan_results.Add((1,1))
+        scan_results.Add(self.disp_fit_label1)
+        scan_results.Add(self.disp_fit_p1)
+        scan_results.Add(self.disp_fit_label2)
+        scan_results.Add(self.disp_fit_p2)
+
+        self.disp_der_fwhm = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_der_fwhm_pos = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_der_com = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_der_fit_label1 = wx.StaticText(self, label='Fit param. 1:')
+        self.disp_der_fit_label2 = wx.StaticText(self, label='Fit param. 2:')
+        self.disp_der_fit_p1 = wx.StaticText(self, label='')
+        self.disp_der_fit_p2 = wx.StaticText(self, label='')
+
+        der_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
+        der_results.Add(wx.StaticText(self, label='FWHM:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fwhm, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(wx.StaticText(self, label='FWHM pos.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fwhm_pos, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(wx.StaticText(self, label='COM pos.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_com, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fit_label1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fit_p1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fit_label2, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(self.disp_der_fit_p2, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+
+        self.der_results_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.der_results_sizer.Add(wx.StaticText(self, label='Derivative:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.der_results_sizer.Add(der_results, border=5, flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+
+        self.scan_results_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Results'),
+            wx.VERTICAL)
+        self.scan_results_sizer.Add(wx.StaticText(self, label='Scan:'))
+        self.scan_results_sizer.Add(scan_results, border=5, flag=wx.TOP)
+        self.scan_results_sizer.Add(self.der_results_sizer, border=5, flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+
+        self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
 
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
         scan_sizer.Add(info_sizer)
         scan_sizer.Add(ctrl_sizer)
         scan_sizer.Add(plt_ctrl_sizer)
+        scan_sizer.Add(self.scan_results_sizer)
+
 
         self.fig = matplotlib.figure.Figure()
         self.canvas = FigureCanvasWxAgg(self, -1, self.fig)
@@ -478,6 +559,7 @@ class ScanPanel(wx.Panel):
         elif scan_return == 'stop_live_plotting':
             self.scan_timer.Stop()
             self.live_plt_evt.set()
+            self._update_results()
             self.device.move_absolute(self.initial_position)
             #This is a hack
             self.scan_proc.stop()
@@ -546,14 +628,26 @@ class ScanPanel(wx.Panel):
         if self.der_fwhm_line is None:
             if (self.der_fwhm is not None and self.show_der_fwhm.IsChecked()
                 and self.der_fwhm[1] != self.der_fwhm[2]):
-                print('adding der fwhm line')
                 self.der_fwhm_line = self.der_plot.axvspan(self.der_fwhm[1],
                     self.der_fwhm[2], facecolor='g', alpha=0.5, animated=True)
 
                 get_der_bkg = True
 
+        if self.com_line is None:
+            if self.com is not None and self.show_com.IsChecked():
+                self.com_line = self.plot.axvline(self.com, color='k',
+                    linestyle='dashed', animated=True)
+
+                get_plt_bkg = True
+
+        if self.der_com_line is None:
+            if self.der_com is not None and self.show_der_com.IsChecked():
+                self.der_com_line = self.der_plot.axvline(self.der_com, color='k',
+                    linestyle='dashed', animated=True)
+
+                get_der_bkg = True
+
         if get_plt_bkg or get_der_bkg:
-            print('redrawing')
             self._safe_draw()
 
             if get_plt_bkg:
@@ -604,6 +698,12 @@ class ScanPanel(wx.Panel):
                 self.der_fwhm_line.remove()
                 self.der_fwhm_line = None
 
+        if self.com_line is not None:
+            self.com_line.set_xdata([self.com, self.com])
+
+        if self.der_com_line is not None:
+            self.der_com_line.set_xdata([self.der_com, self.der_com])
+
         redraw = False
 
         if self.plt_line is not None:
@@ -633,7 +733,6 @@ class ScanPanel(wx.Panel):
                 redraw = True
 
         if redraw:
-            print('redrawing2')
             self.canvas.mpl_disconnect(self.cid)
             self.canvas.draw()
             self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
@@ -660,6 +759,12 @@ class ScanPanel(wx.Panel):
 
         if self.der_fwhm_line is not None and self.show_der.GetValue():
             self.der_plot.draw_artist(self.der_fwhm_line)
+
+        if self.com_line is not None:
+            self.plot.draw_artist(self.com_line)
+
+        if self.der_com_line is not None and self.show_der.GetValue():
+            self.der_plot.draw_artist(self.der_com_line)
 
 
         self.canvas.blit(self.plot.bbox)
@@ -696,6 +801,14 @@ class ScanPanel(wx.Panel):
             self.der_fwhm_line.remove()
             self.der_fwhm_line = None
 
+        if self.com_line is not None:
+            self.com_line.remove()
+            self.com_line = None
+
+        if self.der_com_line is not None:
+            self.der_com_line.remove()
+            self.der_com_line = None
+
         self.plt_x = []
         self.plt_y = []
         self.der_y = []
@@ -707,8 +820,11 @@ class ScanPanel(wx.Panel):
         self.der_fwhm = None
         self.plt_fitparams = None
         self.der_fitparams = None
+        self.com = None
+        self.der_com = None
 
         self.update_plot() #Is this threadsafe?
+        wx.CallAfter(self._update_results)
         wx.Yield()
 
         if not os.path.exists(filename):
@@ -725,14 +841,17 @@ class ScanPanel(wx.Panel):
                     self.plt_y.append(float(y))
                     self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
                     self._calc_fwhm('plt', False)
+                    self._calc_com('plt', False)
 
                     if len(self.plt_y) > 1:
                         self.der_y = np.gradient(self.plt_y, self.plt_x)
                         self.der_y[np.isnan(self.der_y)] = 0
                         self._calc_fit('der', self.der_fit.GetStringSelection(), False)
                         self._calc_fwhm('der', False)
+                        self._calc_com('der', False)
 
                     self.update_plot() #Is this threadsafe?
+                    wx.CallAfter(self._update_results)
                     wx.Yield()
 
         os.remove(filename)
@@ -786,11 +905,23 @@ class ScanPanel(wx.Panel):
             self.der_plot.set_visible(True)
             self.plot.set_position(self.plt_gs2[0].get_position(self.fig))
             self.der_plot.set_position(self.plt_gs2[1].get_position(self.fig))
+            self.plot.xaxis.label.set_visible(False)
+            for label in self.plot.get_xticklabels():
+                label.set_visible(False)
+
+            self.scan_results_sizer.Show(self.der_results_sizer, recursive=True)
         else:
             self.der_plot.set_visible(False)
             self.plot.set_position(self.plt_gs[0].get_position(self.fig))
+            self.plot.xaxis.label.set_visible(True)
+            self.plot.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+            for label in self.plot.get_xticklabels():
+                label.set_visible(True)
 
-        self.canvas.draw()
+            self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
+
+        self._safe_draw()
+        self.update_plot()
 
     def _on_fitchoice(self, event):
         fit = event.GetString()
@@ -843,6 +974,7 @@ class ScanPanel(wx.Panel):
 
         if update_plot:
             self.update_plot()
+            wx.CallAfter(self._update_results)
 
     def _on_showfwhm(self, event):
         if event.GetEventObject() == self.show_fwhm:
@@ -882,8 +1014,6 @@ class ScanPanel(wx.Panel):
 
             fwhm = np.fabs(r2-r1)
 
-            print(fwhm)
-
             if plot == 'plt':
                 if r1 < r2:
                     self.fwhm = (fwhm, r1, r2)
@@ -904,6 +1034,88 @@ class ScanPanel(wx.Panel):
 
         if update_plot:
             self.update_plot()
+            wx.CallAfter(self._update_results)
+
+    def _on_showcom(self, event):
+        if event.GetEventObject() == self.show_com:
+            plot = 'plt'
+        else:
+            plot = 'der'
+
+        self._calc_com(plot)
+
+    def _calc_com(self, plot, update_plot=True):
+        if plot == 'plt':
+            ydata = self.plt_y
+        else:
+            ydata = self.der_y
+
+        if self.plt_x is not None and len(self.plt_x)>0:
+            ydata = np.array(ydata)
+            xdata = np.array(self.plt_x)
+            scale = 1/ydata.sum()
+            if not np.isfinite(scale):
+                scale = 1
+            com = (scale)*(np.sum(xdata*ydata))
+
+            if plot == 'plt':
+                self.com = com
+
+                if not self.show_com.IsChecked() and self.com_line is not None:
+                    self.com_line.remove()
+                    self.com_line = None
+
+            else:
+                self.der_com = com
+
+                if not self.show_der_com.IsChecked() and self.der_com_line is not None:
+                    self.der_com_line.remove()
+                    self.der_com_line = None
+
+        if update_plot:
+            self.update_plot()
+            wx.CallAfter(self._update_results)
+
+    def _update_results(self):
+
+        if self.fwhm is not None:
+            self.disp_fwhm.SetLabel(str(round(self.fwhm[0], 4)))
+            self.disp_fwhm_pos.SetLabel(str(round(((self.fwhm[1]-self.fwhm[0])/2.), 4)))
+
+        if self.com is not None:
+            self.disp_com.SetLabel(str(round(self.com, 4)))
+
+        if self.der_fwhm is not None:
+            self.disp_der_fwhm.SetLabel(str(round(self.der_fwhm[0], 4)))
+            self.disp_der_fwhm_pos.SetLabel(str(round(((self.der_fwhm[1]-self.der_fwhm[0])/2.), 4)))
+
+        if self.der_com is not None:
+            self.disp_der_com.SetLabel(str(round(self.der_com, 4)))
+
+        if self.plt_fit.GetStringSelection() == 'None':
+            self.disp_fit_label1.SetLabel('Fit param. 1:')
+            self.disp_fit_label2.SetLabel('Fit param. 2:')
+            self.disp_fit_p1.SetLabel('')
+            self.disp_fit_p2.SetLabel('')
+
+        elif self.plt_fit.GetStringSelection() == 'Gaussian':
+            self.disp_fit_label1.SetLabel('Fit Center:')
+            self.disp_fit_label2.SetLabel('Fit Std.:')
+            self.disp_fit_p1.SetLabel(str(round(self.plt_fitparams[0][1],4)))
+            self.disp_fit_p2.SetLabel(str(round(self.plt_fitparams[0][2],4)))
+
+        if self.der_fit.GetStringSelection() == 'None':
+            self.disp_der_fit_label1.SetLabel('Fit param. 1:')
+            self.disp_der_fit_label2.SetLabel('Fit param. 2:')
+            self.disp_der_fit_p1.SetLabel('')
+            self.disp_der_fit_p2.SetLabel('')
+
+        elif self.der_fit.GetStringSelection() == 'Gaussian':
+            self.disp_der_fit_label1.SetLabel('Fit Center:')
+            self.disp_der_fit_label2.SetLabel('Fit Std.:')
+            self.disp_der_fit_p1.SetLabel(str(round(self.der_fitparams[0][1],4)))
+            self.disp_der_fit_p2.SetLabel(str(round(self.der_fitparams[0][2],4)))
+
 
 def gaussian(x, A, cen, std):
     return A*np.exp(-(x-cen)**2/(2*std**2))
