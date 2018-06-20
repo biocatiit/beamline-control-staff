@@ -41,6 +41,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 import matplotlib.gridspec as gridspec
 import numpy as np
 import scipy.optimize
+import scipy.interpolate
 
 import custom_widgets
 import utils
@@ -251,6 +252,12 @@ class ScanPanel(wx.Panel):
         self.plt_fit_x = None
         self.plt_fit_y = None
         self.der_fit_y = None
+        self.plt_fitparams = None
+        self.der_fitparams = None
+        self.fwhm = None
+        self.der_fwhm = None
+        self.fwhm_line = None
+        self.der_fwhm_line = None
         self.live_plt_evt = threading.Event()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
@@ -350,6 +357,14 @@ class ScanPanel(wx.Panel):
         self.show_der.SetValue(False)
         self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
 
+        self.show_fwhm = wx.CheckBox(self, label='Show FWHM')
+        self.show_fwhm.SetValue(False)
+        self.show_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
+
+        self.show_der_fwhm = wx.CheckBox(self, label='Show derivative FWHM')
+        self.show_der_fwhm.SetValue(False)
+        self.show_der_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
+
         self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.plt_fit.SetSelection(0)
@@ -367,6 +382,8 @@ class ScanPanel(wx.Panel):
             wx.VERTICAL)
         plt_ctrl_sizer.Add(self.show_der)
         plt_ctrl_sizer.Add(self.fit_sizer, border=5, flag=wx.TOP)
+        plt_ctrl_sizer.Add(self.show_fwhm, border=5, flag=wx.TOP)
+        plt_ctrl_sizer.Add(self.show_der_fwhm, border=5, flag=wx.TOP)
 
 
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -483,7 +500,7 @@ class ScanPanel(wx.Panel):
 
     def update_plot(self):
         get_plt_bkg = False
-        get_fit_bkg = False
+        get_der_bkg = False
 
         if self.plt_line is None:
             if (self.plt_x is not None and self.plt_y is not None and
@@ -501,7 +518,7 @@ class ScanPanel(wx.Panel):
                 self.der_pts, = self.der_plot.plot(self.plt_x, self.der_y, 'bo', animated=True, picker=5)
                 self.der_line, = self.der_plot.plot(self.plt_x, self.der_y, 'b-', animated=True)
 
-                get_fit_bkg = True
+                get_der_bkg = True
 
         if self.plt_fit_line is None:
             if (self.plt_fit_y is not None and len(self.plt_fit_x) == len(self.plt_fit_y)
@@ -517,14 +534,31 @@ class ScanPanel(wx.Panel):
 
                 self.der_fit_line, = self.der_plot.plot(self.plt_fit_x, self.der_fit_y, 'r-', animated=True)
 
-                get_fit_bkg = True
+                get_der_bkg = True
 
-        if get_plt_bkg or get_fit_bkg:
+        if self.fwhm_line is None:
+            if self.fwhm is not None and self.show_fwhm.IsChecked() and self.fwhm[1] != self.fwhm[2]:
+                self.fwhm_line = self.plot.axvspan(self.fwhm[1], self.fwhm[2],
+                    facecolor='g', alpha=0., animated=True)
+
+                get_plt_bkg = True
+
+        if self.der_fwhm_line is None:
+            if (self.der_fwhm is not None and self.show_der_fwhm.IsChecked()
+                and self.der_fwhm[1] != self.der_fwhm[2]):
+                print('adding der fwhm line')
+                self.der_fwhm_line = self.der_plot.axvspan(self.der_fwhm[1],
+                    self.der_fwhm[2], facecolor='g', alpha=0.5, animated=True)
+
+                get_der_bkg = True
+
+        if get_plt_bkg or get_der_bkg:
+            print('redrawing')
             self._safe_draw()
 
             if get_plt_bkg:
                 self.background = self.canvas.copy_from_bbox(self.plot.bbox)
-            if get_fit_bkg:
+            if get_der_bkg:
                 self.der_background = self.canvas.copy_from_bbox(self.der_plot.bbox)
 
 
@@ -548,6 +582,27 @@ class ScanPanel(wx.Panel):
             self.der_fit_line.set_xdata(self.plt_fit_x)
             self.der_fit_line.set_ydata(self.der_fit_y)
 
+        if self.fwhm_line is not None:
+            try:
+                pts = self.fwhm_line.get_xy()
+                x0 = self.fwhm[1]
+                x1 = self.fwhm[2]
+                pts[:,0] = [x0, x0, x1, x1, x0]
+                self.fwhm_line.set_xy(pts)
+            except ValueError:
+                self.fwhm_line.remove()
+                self.fwhm_line = None
+
+        if self.der_fwhm_line is not None:
+            try:
+                pts = self.der_fwhm_line.get_xy()
+                x0 = self.der_fwhm[1]
+                x1 = self.der_fwhm[2]
+                pts[:,0] = [x0, x0, x1, x1, x0]
+                self.der_fwhm_line.set_xy(pts)
+            except ValueError:
+                self.der_fwhm_line.remove()
+                self.der_fwhm_line = None
 
         redraw = False
 
@@ -578,6 +633,7 @@ class ScanPanel(wx.Panel):
                 redraw = True
 
         if redraw:
+            print('redrawing2')
             self.canvas.mpl_disconnect(self.cid)
             self.canvas.draw()
             self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
@@ -598,6 +654,12 @@ class ScanPanel(wx.Panel):
 
         if self.der_fit_line is not None and self.show_der.GetValue():
             self.der_plot.draw_artist(self.der_fit_line)
+
+        if self.fwhm_line is not None:
+            self.plot.draw_artist(self.fwhm_line)
+
+        if self.der_fwhm_line is not None and self.show_der.GetValue():
+            self.der_plot.draw_artist(self.der_fwhm_line)
 
 
         self.canvas.blit(self.plot.bbox)
@@ -626,12 +688,25 @@ class ScanPanel(wx.Panel):
             self.der_fit_line.remove()
             self.der_fit_line = None
 
+        if self.fwhm_line is not None:
+            self.fwhm_line.remove()
+            self.fwhm_line = None
+
+        if self.der_fwhm_line is not None:
+            self.der_fwhm_line.remove()
+            self.der_fwhm_line = None
+
         self.plt_x = []
         self.plt_y = []
         self.der_y = []
         self.plt_fit_x = []
         self.plt_fit_y = []
         self.der_fit_y = []
+
+        self.fwhm = None
+        self.der_fwhm = None
+        self.plt_fitparams = None
+        self.der_fitparams = None
 
         self.update_plot() #Is this threadsafe?
         wx.Yield()
@@ -649,11 +724,13 @@ class ScanPanel(wx.Panel):
                     self.plt_x.append(float(x))
                     self.plt_y.append(float(y))
                     self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
+                    self._calc_fwhm('plt', False)
 
                     if len(self.plt_y) > 1:
                         self.der_y = np.gradient(self.plt_y, self.plt_x)
                         self.der_y[np.isnan(self.der_y)] = 0
                         self._calc_fit('der', self.der_fit.GetStringSelection(), False)
+                        self._calc_fwhm('der', False)
 
                     self.update_plot() #Is this threadsafe?
                     wx.Yield()
@@ -740,8 +817,10 @@ class ScanPanel(wx.Panel):
                     opt, cov = scipy.optimize.curve_fit(gaussian, self.plt_x, ydata)
                     if plot == 'plt':
                         self.plt_fit_y = gaussian(self.plt_fit_x, opt[0], opt[1], opt[2])
+                        self.plt_fitparams = [opt, cov]
                     else:
                         self.der_fit_y = gaussian(self.plt_fit_x, opt[0], opt[1], opt[2])
+                        self.der_fitparams = [opt, cov]
 
                 except RuntimeError:
                     if plot == 'plt':
@@ -765,6 +844,66 @@ class ScanPanel(wx.Panel):
         if update_plot:
             self.update_plot()
 
+    def _on_showfwhm(self, event):
+        if event.GetEventObject() == self.show_fwhm:
+            plot = 'plt'
+        else:
+            plot = 'der'
+
+        self._calc_fwhm(plot)
+
+    def _calc_fwhm(self, plot, update_plot=True):
+        if plot == 'plt':
+            ydata = self.plt_y
+        else:
+            ydata = self.der_y
+
+        if self.plt_x is not None and len(self.plt_x)>3:
+            if self.plt_x[0]>self.plt_x[1]:
+                spline = scipy.interpolate.UnivariateSpline(self.plt_x[::-1], ydata[::-1], s=0)
+            else:
+                spline = scipy.interpolate.UnivariateSpline(self.plt_x, ydata, s=0)
+
+            try:
+                roots = spline.roots()
+                if roots.size == 2:
+                    r1 = roots[0]
+                    r2 = roots[1]
+                elif roots.size>2:
+                    rmax = np.argmax(abs(np.diff(roots)))
+                    r1 = roots[rmax]
+                    r2 = roots[rmax+1]
+                else:
+                    r1 = 0
+                    r2 = 0
+            except Exception:
+              r1 = 0
+              r2 = 0
+
+            fwhm = np.fabs(r2-r1)
+
+            print(fwhm)
+
+            if plot == 'plt':
+                if r1 < r2:
+                    self.fwhm = (fwhm, r1, r2)
+                else:
+                    self.fwhm = (fwhm, r2, r1)
+
+                if not self.show_fwhm.IsChecked() and self.fwhm_line is not None:
+                    self.fwhm_line.remove()
+                    self.fwhm_line = None
+            else:
+                if r1 < r2:
+                    self.der_fwhm = (fwhm, r1, r2)
+                else:
+                    self.der_fwhm = (fwhm, r2, r1)
+                if not self.show_der_fwhm.IsChecked() and self.der_fwhm_line is not None:
+                    self.der_fwhm_line.remove()
+                    self.der_fwhm_line = None
+
+        if update_plot:
+            self.update_plot()
 
 def gaussian(x, A, cen, std):
     return A*np.exp(-(x-cen)**2/(2*std**2))
