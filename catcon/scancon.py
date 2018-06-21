@@ -47,6 +47,7 @@ import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
+import MpWx as mpwx
 
 class ScanProcess(multiprocessing.Process):
 
@@ -210,12 +211,13 @@ class ScanProcess(multiprocessing.Process):
         return int(self._abort_event.is_set())
 
 class ScanPanel(wx.Panel):
-    def __init__(self, device_name, mx_database, *args, **kwargs):
+    def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
         wx.Panel.__init__(self, *args, **kwargs)
 
         self.device_name = device_name
         self.mx_database = mx_database
-        self.device = self.mx_database.get_record(self.device_name)
+        self.device = device
+        self.server_record = server_record
         self.type = self.device.get_field('mx_type')
         self.scale = float(self.device.get_field('scale'))
         self.offset = float(self.device.get_field('offset'))
@@ -242,12 +244,12 @@ class ScanPanel(wx.Panel):
     def _create_layout(self):
 
         if self.type == 'network_motor':
-            server_record_name = self.device.get_field("server_record")
-            server_record = self.mx_database.get_record(server_record_name)
+            # server_record_name = self.device.get_field("server_record")
+            # server_record = self.mx_database.get_record(server_record_name) #Invokes MX bug
             remote_record_name = self.device.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = mpwx.Value(self, server_record, pos_name,
+            pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             dname = wx.StaticText(self, label=self.device_name)
 
@@ -256,6 +258,7 @@ class ScanPanel(wx.Panel):
 
             pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset)
+            self.pos = wx.StaticText(self, label='{}'.format(self.device.get_position()))
             dname = wx.StaticText(self, label='{} ({})'.format(self.device_name, pv))
 
         info_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
@@ -873,7 +876,7 @@ class ScanPanel(wx.Panel):
         wx.Yield()
 
         if not os.path.exists(filename):
-            time.sleep(0.01)
+            time.sleep(0.1)
 
         with open(filename) as thefile:
             data = utils.file_follow(thefile, self.live_plt_evt)
@@ -1334,15 +1337,15 @@ class CustomPlotToolbar(NavigationToolbar2WxAgg):
 
 
 class ScanFrame(wx.Frame):
-    def __init__(self, device, mx_database, *args, **kwargs):
+    def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
         wx.Frame.__init__(self, *args, **kwargs)
 
-        self._create_layout(device, mx_database)
+        self._create_layout(device_name, device, server_record, mx_database)
 
         self.Fit()
 
-    def _create_layout(self, device, mx_database):
-        scan_panel = ScanPanel(device, mx_database, parent=self)
+    def _create_layout(self, device_name, device, server_record, mx_database):
+        scan_panel = ScanPanel(device_name, device, server_record, mx_database, parent=self)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(scan_panel, 1, wx.EXPAND)
@@ -1363,9 +1366,16 @@ if __name__ == '__main__':
 
     mx_database = mp.setup_database(database_filename)
     mx_database.set_plot_enable(2)
+    device = mx_database.get_record('mtr1')
+    if device.get_field('mx_type') == 'network_motor':
+        server_record_name = device.get_field("server_record")
+        server_record = mx_database.get_record(server_record_name)
+    else:
+        server_record = None
 
     app = wx.App()
-    frame = ScanFrame('mtr1', mx_database, parent=None, title='Test Scan Control')
+
+    frame = ScanFrame('mtr1', device, server_record, mx_database, parent=None, title='Test Scan Control')
     frame.Show()
     app.MainLoop()
 

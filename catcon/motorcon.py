@@ -29,6 +29,7 @@ import os
 import wx
 import wx.lib.buttons as buttons
 
+import scancon
 import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -77,6 +78,7 @@ class MotorPanel(wx.Panel):
         self.offset = float(self.motor.get_field('offset'))
 
         self._enabled = True
+        self.scan_frame = None
 
         # if platform.system() == 'Darwin':
         #     font = self.GetFont()
@@ -85,7 +87,6 @@ class MotorPanel(wx.Panel):
         # # self.SetFont(font)
         font = self.GetFont()
         self.vert_size = font.GetPixelSize()[1]+5
-
 
         top_sizer = self._create_layout()
 
@@ -106,11 +107,11 @@ class MotorPanel(wx.Panel):
 
         if self.mtr_type == 'network_motor':
             server_record_name = self.motor.get_field("server_record")
-            server_record = self.mx_database.get_record(server_record_name)
+            self.server_record = self.mx_database.get_record(server_record_name)
             remote_record_name = self.motor.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = mpwx.Value(self, server_record, pos_name,
+            pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
@@ -122,7 +123,7 @@ class MotorPanel(wx.Panel):
 
         elif self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
-
+            self.sever_record = None #Needed to get around some MP bugs
             pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset)
             low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
@@ -160,6 +161,9 @@ class MotorPanel(wx.Panel):
         stop_btn = buttons.ThemedGenButton(self, label='Abort', size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
 
+        scan_btn = buttons.ThemedGenButton(self, label='Scan', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
+        scan_btn.Bind(wx.EVT_BUTTON, self._on_scan)
+
         pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=5, rows=2)
         pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.Add((1,1))
@@ -189,6 +193,11 @@ class MotorPanel(wx.Panel):
         mrel_sizer.Add(self.mrel_ctrl, 1, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
         mrel_sizer.Add(tp_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
+        ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
+        ctrl_btn_sizer.AddStretchSpacer(1)
+        ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT|wx.ALIGN_RIGHT)
+
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
             wx.VERTICAL)
@@ -196,7 +205,7 @@ class MotorPanel(wx.Panel):
         control_sizer.Add(mabs_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
         control_sizer.Add(mrel_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM|wx.TOP)
         control_sizer.Add(wx.StaticLine(self), border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
-        control_sizer.Add(stop_btn, border=2, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL)
+        control_sizer.Add(ctrl_btn_sizer, border=2, flag=wx.TOP|wx.EXPAND)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(status_sizer, flag=wx.EXPAND)
@@ -306,6 +315,28 @@ class MotorPanel(wx.Panel):
                 and not isinstance(item, mpwxca.Value) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
+
+    def _on_scan(self, evt):
+        # if self.scan_frame is not None:
+        #     try:
+        #         self.scan_frame.Close()
+        #     except Exception as e:
+        #         print(e)
+        #     self.scan_frame = scancon.ScanFrame(self.motor_name, self.motor,
+        #         self.server_record, self.mx_database, parent=None,
+        #         title='{} Scan Control'.format(self.motor_name))
+        #     self.scan_frame.Show()
+        # else:
+        #     self.scan_frame = scancon.ScanFrame(self.motor_name, self.motor,
+        #         self.server_record, self.mx_database, parent=None,
+        #         title='{} Scan Control'.format(self.motor_name))
+        #     self.scan_frame.Show()
+
+        frame = scancon.ScanFrame(self.motor_name, self.motor, self.server_record,
+            self.mx_database, parent=None, title='{} Scan Control'.format(self.motor_name))
+        frame.Show()
+
+
 
 class MotorFrame(wx.Frame):
     """
