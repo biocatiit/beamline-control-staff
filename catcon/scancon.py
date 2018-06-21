@@ -47,10 +47,6 @@ import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
-import MpCa as mpca
-import MpWx as mpwx
-import MpWxCa as mpwxca
-
 
 class ScanProcess(multiprocessing.Process):
 
@@ -63,6 +59,8 @@ class ScanProcess(multiprocessing.Process):
         self._abort_event = abort_event
         self._stop_event = multiprocessing.Event()
 
+        mp.set_user_interrupt_function(self._stop_scan)
+
         self._commands = {'start_mxdb'      : self._start_mxdb,
                         'set_scan_params'   : self._set_scan_params,
                         'scan'              : self._scan,
@@ -72,7 +70,6 @@ class ScanProcess(multiprocessing.Process):
         while True:
             try:
                 cmd, args, kwargs = self.command_queue.get_nowait()
-                print(cmd)
             except queue.Empty:
                 cmd = None
 
@@ -91,8 +88,6 @@ class ScanProcess(multiprocessing.Process):
                     self.working=False
                 except Exception as e:
                     self.working=False
-                    print('What was that? Sorry, I could not run that command.')
-                    print(e)
 
         if self._stop_event.is_set():
             self._stop_event.clear()
@@ -101,10 +96,8 @@ class ScanProcess(multiprocessing.Process):
 
     def _start_mxdb(self, db_path):
         self.db_path = db_path
-        print("MX Database : %s is being downloaded..."%(self.db_path))
         self.mx_database = mp.setup_database(self.db_path)
         self.mx_database.set_plot_enable(2)
-        print("Database has been set up")
 
     def _set_scan_params(self, device, start, stop, step, scalers,
         dwell_time, timer, detector=None, file_name=None, dir_path=None):
@@ -138,8 +131,6 @@ class ScanProcess(multiprocessing.Process):
                 else:
                     scan_name = "{}_{}".format(scan_name[:-2], str(i).zfill(2))
                 i=i+1
-
-        print("Scanning %s" % (scan_name))
 
         description = ('{} scan linear_scan motor_scan "" "" '.format(scan_name))
 
@@ -189,8 +180,6 @@ class ScanProcess(multiprocessing.Process):
         num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
         description = description + ("{} ".format(num_measurements))
 
-        print("Description = %s" % (description))
-
         self.mx_database.create_record_from_description(description)
 
         scan = self.mx_database.get_record(scan_name)
@@ -198,11 +187,8 @@ class ScanProcess(multiprocessing.Process):
         scan.finish_record_initialization()
 
         self.return_queue.put_nowait([datafile_name])
-        print(datafile_name)
 
         scan.perform_scan()
-
-        print("%s has been performed" % (scan_name))
 
         self.return_queue.put_nowait(['stop_live_plotting'])
 
@@ -220,6 +206,8 @@ class ScanProcess(multiprocessing.Process):
         """Stops the thread cleanly."""
         self._stop_event.set()
 
+    def _stop_scan(self):
+        return int(self._abort_event.is_set())
 
 class ScanPanel(wx.Panel):
     def __init__(self, device_name, mx_database, *args, **kwargs):
@@ -242,35 +230,11 @@ class ScanPanel(wx.Panel):
         self.scan_timer = wx.Timer()
         self.scan_timer.Bind(wx.EVT_TIMER, self._on_scantimer)
 
-        self.plt_line = None
-        self.der_line = None
-        self.plt_y = None
-        self.plt_x = None
-        self.der_y_orig = None
-        self.der_y = None
-
-        self.plt_fit_line = None
-        self.der_fit_line = None
-        self.plt_fit_x = None
-        self.plt_fit_y = None
-        self.der_fit_y = None
-        self.plt_fitparams = None
-        self.der_fitparams = None
-
-        self.fwhm = None
-        self.der_fwhm = None
-        self.fwhm_line = None
-        self.der_fwhm_line = None
-
-        self.com_line = None
-        self.der_com_line = None
-        self.com = None
-        self.der_com = None
-
         self.live_plt_evt = threading.Event()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
+        self._initialize_variables()
         self._create_layout()
 
         self._start_scan_mxdb()
@@ -354,12 +318,20 @@ class ScanPanel(wx.Panel):
         self.start_btn = wx.Button(self, label='Start')
         self.start_btn.Bind(wx.EVT_BUTTON, self._on_start)
 
+        self.stop_btn = wx.Button(self, label='Stop')
+        self.stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
+        self.stop_btn.Disable()
+
+        ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ctrl_btn_sizer.Add(self.start_btn)
+        ctrl_btn_sizer.Add(self.stop_btn, border=5, flag=wx.LEFT)
+
         ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
             wx.VERTICAL)
         ctrl_sizer.Add(type_sizer)
         ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
         ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
-        ctrl_sizer.Add(self.start_btn, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
+        ctrl_sizer.Add(ctrl_btn_sizer, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
 
 
         self.show_der = wx.CheckBox(self, label='Show derivative')
@@ -536,18 +508,50 @@ class ScanPanel(wx.Panel):
 
         self.SetSizer(top_sizer)
 
-    def _on_start(self ,evt):
+    def _initialize_variables(self):
+        self.plt_line = None
+        self.der_line = None
+        self.plt_y = None
+        self.plt_x = None
+        self.der_y_orig = None
+        self.der_y = None
+
+        self.plt_fit_line = None
+        self.der_fit_line = None
+        self.plt_fit_x = None
+        self.plt_fit_y = None
+        self.der_fit_y = None
+        self.plt_fitparams = None
+        self.der_fitparams = None
+
+        self.fwhm = None
+        self.der_fwhm = None
+        self.fwhm_line = None
+        self.der_fwhm_line = None
+
+        self.com_line = None
+        self.der_com_line = None
+        self.com = None
+        self.der_com = None
+
+    def _on_start(self, evt):
+        self.start_btn.Disable()
+        self.stop_btn.Enable()
         scan_params = self._get_params()
 
         if scan_params is not None:
             self.plot.set_xlim(scan_params['start'], scan_params['stop'])
-            print(scan_params)
 
             self.initial_position = self.device.get_position()
             self.scan_timer.Start(10)
 
             self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
             self.cmd_q.put_nowait(['scan', [], {}])
+
+    def _on_stop(self, evt):
+        self.abort_event.set()
+        time.sleep(0.5) #Wait for the process to abort before trying to reload the db
+        self.return_q.put_nowait(['stop_live_plotting'])
 
     def _get_params(self):
         if self.scan_type.GetStringSelection() == 'Absolute':
@@ -602,6 +606,8 @@ class ScanPanel(wx.Panel):
             self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
             self.scan_proc.start()
             self._start_scan_mxdb()
+            self.start_btn.Enable()
+            self.stop_btn.Disable()
 
     def _ax_redraw(self, widget=None):
         ''' Redraw plots on window resize event '''
@@ -853,6 +859,8 @@ class ScanPanel(wx.Panel):
         self.plt_fit_y = []
         self.der_fit_y = []
 
+        self.scan_header = ''
+
         self.fwhm = None
         self.der_fwhm = None
         self.plt_fitparams = None
@@ -872,7 +880,9 @@ class ScanPanel(wx.Panel):
             for val in data:
                 if self.live_plt_evt.is_set():
                     break
-                if not val.startswith('#'):
+                if val.startswith('#'):
+                    self.scan_header = self.scan_header + val
+                else:
                     x, y = val.strip().split()
                     self.plt_x.append(float(x))
                     self.plt_y.append(float(y))
@@ -1271,6 +1281,7 @@ class ScanPanel(wx.Panel):
 
             with open(path, 'w') as f:
                 f.write('# Scan Results\n')
+                f.write(self.scan_header)
                 f.write('# Scan FWHM: {}\n'.format(self.fwhm[0]))
                 f.write('# Scan FWHM center: {}\n'.format((self.fwhm[2]+self.fwhm[1])/2.))
                 f.write('# Scan COM: {}\n'.format(self.com))
