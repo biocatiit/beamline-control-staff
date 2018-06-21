@@ -246,6 +246,7 @@ class ScanPanel(wx.Panel):
         self.der_line = None
         self.plt_y = None
         self.plt_x = None
+        self.der_y_orig = None
         self.der_y = None
 
         self.plt_fit_line = None
@@ -318,13 +319,13 @@ class ScanPanel(wx.Panel):
 
         self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
         self.scan_type.SetSelection(1)
-        self.start = wx.TextCtrl(self, value='-2')
-        self.stop = wx.TextCtrl(self, value='2')
-        self.step = wx.TextCtrl(self, value='0.5')
+        self.start = wx.TextCtrl(self, value='-1', size=(80, -1))
+        self.stop = wx.TextCtrl(self, value='1', size=(80, -1))
+        self.step = wx.TextCtrl(self, value='0.1', size=(80, -1))
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=scalers)
         self.timer = wx.Choice(self, choices=timers)
-        self.detector = wx.Choice(self, choices=detectors)
+        # self.detector = wx.Choice(self, choices=detectors)
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
@@ -346,8 +347,8 @@ class ScanPanel(wx.Panel):
         count_grid.Add(self.timer)
         count_grid.Add(wx.StaticText(self, label='Scaler:'))
         count_grid.Add(self.scaler)
-        count_grid.Add(wx.StaticText(self, label='Detector:'))
-        count_grid.Add(self.detector)
+        # count_grid.Add(wx.StaticText(self, label='Detector:'))
+        # count_grid.Add(self.detector)
         count_grid.AddGrowableCol(1)
 
         self.start_btn = wx.Button(self, label='Start')
@@ -364,6 +365,14 @@ class ScanPanel(wx.Panel):
         self.show_der = wx.CheckBox(self, label='Show derivative')
         self.show_der.SetValue(False)
         self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
+
+        self.flip_der = wx.CheckBox(self, label='Flip derivative')
+        self.flip_der.SetValue(False)
+        self.flip_der.Bind(wx.EVT_CHECKBOX, self._on_flipder)
+
+        der_ctrl_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        der_ctrl_sizer.Add(self.show_der)
+        der_ctrl_sizer.Add(self.flip_der, border=5, flag=wx.LEFT)
 
         self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
@@ -402,7 +411,7 @@ class ScanPanel(wx.Panel):
 
         plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
             wx.VERTICAL)
-        plt_ctrl_sizer.Add(self.show_der)
+        plt_ctrl_sizer.Add(der_ctrl_sizer)
         plt_ctrl_sizer.Add(self.fit_sizer, border=5, flag=wx.TOP)
         plt_ctrl_sizer.Add(calc_sizer, border=5, flag=wx.TOP)
 
@@ -419,7 +428,7 @@ class ScanPanel(wx.Panel):
         scan_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
         scan_results.Add(wx.StaticText(self, label='FWHM:'))
         scan_results.Add(self.disp_fwhm)
-        scan_results.Add(wx.StaticText(self, label='FWHM pos.:'))
+        scan_results.Add(wx.StaticText(self, label='FWHM cen.:'))
         scan_results.Add(self.disp_fwhm_pos)
         scan_results.Add(wx.StaticText(self, label='COM pos.:'))
         scan_results.Add(self.disp_com)
@@ -433,20 +442,20 @@ class ScanPanel(wx.Panel):
         self.disp_der_fwhm = wx.StaticText(self, label='', size=(60, -1))
         self.disp_der_fwhm_pos = wx.StaticText(self, label='', size=(60, -1))
         self.disp_der_com = wx.StaticText(self, label='', size=(60, -1))
-        self.disp_der_fit_label1 = wx.StaticText(self, label='Fit param. 1:')
-        self.disp_der_fit_label2 = wx.StaticText(self, label='Fit param. 2:')
+        self.disp_der_fit_label1 = wx.StaticText(self, label='Fit param.:')
+        self.disp_der_fit_label2 = wx.StaticText(self, label='Fit param.:')
         self.disp_der_fit_p1 = wx.StaticText(self, label='')
         self.disp_der_fit_p2 = wx.StaticText(self, label='')
 
         der_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
         der_results.Add(wx.StaticText(self, label='FWHM:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_fwhm, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(wx.StaticText(self, label='FWHM pos.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add(wx.StaticText(self, label='FWHM cen.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_fwhm_pos, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(wx.StaticText(self, label='COM pos.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_com, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_fit_label1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_fit_p1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         der_results.Add(self.disp_der_fit_label2, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
@@ -456,20 +465,41 @@ class ScanPanel(wx.Panel):
         self.der_results_sizer.Add(wx.StaticText(self, label='Derivative:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         self.der_results_sizer.Add(der_results, border=5, flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
 
+        self.move_to = wx.Choice(self, choices=['FWHM center', 'COM position'])
+        self.move_to.SetSelection(0)
+        self.move = wx.Button(self, label='Move')
+        self.move.Bind(wx.EVT_BUTTON, self._on_moveto)
+
+        move_to_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        move_to_sizer.Add(wx.StaticText(self, label='Move to:'))
+        move_to_sizer.Add(self.move_to, border=5, flag=wx.LEFT)
+        move_to_sizer.Add(self.move, border=5, flag=wx.LEFT)
+
+        save_btn = wx.Button(self, label='Save Scan Results')
+        save_btn.Bind(wx.EVT_BUTTON, self._on_saveresults)
+
+
         self.scan_results_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Results'),
             wx.VERTICAL)
         self.scan_results_sizer.Add(wx.StaticText(self, label='Scan:'))
-        self.scan_results_sizer.Add(scan_results, border=5, flag=wx.TOP)
-        self.scan_results_sizer.Add(self.der_results_sizer, border=5, flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.scan_results_sizer.Add(scan_results, border=5, flag=wx.TOP|wx.BOTTOM)
+        self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
+            border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        self.scan_results_sizer.Add(self.der_results_sizer, border=5,
+            flag=wx.TOP|wx.BOTTOM|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
+            border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        self.scan_results_sizer.Add(move_to_sizer, border=5, flag=wx.TOP)
+        self.scan_results_sizer.Add(save_btn, border=5, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL)
 
         self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
 
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
-        scan_sizer.Add(info_sizer)
-        scan_sizer.Add(ctrl_sizer)
-        scan_sizer.Add(plt_ctrl_sizer)
-        scan_sizer.Add(self.scan_results_sizer)
+        scan_sizer.Add(info_sizer, flag=wx.EXPAND)
+        scan_sizer.Add(ctrl_sizer, flag=wx.EXPAND)
+        scan_sizer.Add(plt_ctrl_sizer, flag=wx.EXPAND)
+        scan_sizer.Add(self.scan_results_sizer, flag=wx.EXPAND)
 
 
         self.fig = matplotlib.figure.Figure()
@@ -509,30 +539,36 @@ class ScanPanel(wx.Panel):
     def _on_start(self ,evt):
         scan_params = self._get_params()
 
-        self.plot.set_xlim(scan_params['start'], scan_params['stop'])
-        print(scan_params)
+        if scan_params is not None:
+            self.plot.set_xlim(scan_params['start'], scan_params['stop'])
+            print(scan_params)
 
-        self.initial_position = self.device.get_position()
-        self.scan_timer.Start(10)
+            self.initial_position = self.device.get_position()
+            self.scan_timer.Start(10)
 
-        self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
-        self.cmd_q.put_nowait(['scan', [], {}])
+            self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
+            self.cmd_q.put_nowait(['scan', [], {}])
 
     def _get_params(self):
         if self.scan_type.GetStringSelection() == 'Absolute':
             offset = 0
         else:
             offset = self.device.get_position()
-
-        scan_params = {'device'     : self.device_name,
-                    'start'         : float(self.start.GetValue())+offset,
-                    'stop'          : float(self.stop.GetValue())+offset,
-                    'step'          : float(self.step.GetValue()),
-                    'scalers'       : [self.scaler.GetStringSelection()],
-                    'dwell_time'    : float(self.count_time.GetValue()),
-                    'timer'         : self.timer.GetStringSelection(),
-                    'detector'      : self.detector.GetStringSelection(),
-                    }
+        try:
+            scan_params = {'device'     : self.device_name,
+                        'start'         : float(self.start.GetValue())+offset,
+                        'stop'          : float(self.stop.GetValue())+offset,
+                        'step'          : float(self.step.GetValue()),
+                        'scalers'       : [self.scaler.GetStringSelection()],
+                        'dwell_time'    : float(self.count_time.GetValue()),
+                        'timer'         : self.timer.GetStringSelection(),
+                        # 'detector'      : self.detector.GetStringSelection(),
+                        'detector'      : 'None'
+                        }
+        except ValueError:
+            msg = 'All of start, stop, step, and count time must be numbers.'
+            wx.MessageBox(msg, "Failed to start scan", wx.OK)
+            return None
 
         if scan_params['detector'] == 'None':
             scan_params['detector'] = None
@@ -811,6 +847,7 @@ class ScanPanel(wx.Panel):
 
         self.plt_x = []
         self.plt_y = []
+        self.der_y_orig = []
         self.der_y = []
         self.plt_fit_x = []
         self.plt_fit_y = []
@@ -844,8 +881,12 @@ class ScanPanel(wx.Panel):
                     self._calc_com('plt', False)
 
                     if len(self.plt_y) > 1:
-                        self.der_y = np.gradient(self.plt_y, self.plt_x)
-                        self.der_y[np.isnan(self.der_y)] = 0
+                        self.der_y_orig = np.gradient(self.plt_y, self.plt_x)
+                        self.der_y_orig[np.isnan(self.der_y_orig)] = 0
+                        if self.flip_der.IsChecked():
+                            self.der_y = self.der_y_orig*-1
+                        else:
+                            self.der_y = self.der_y_orig
                         self._calc_fit('der', self.der_fit.GetStringSelection(), False)
                         self._calc_fwhm('der', False)
                         self._calc_com('der', False)
@@ -910,6 +951,9 @@ class ScanPanel(wx.Panel):
                 label.set_visible(False)
 
             self.scan_results_sizer.Show(self.der_results_sizer, recursive=True)
+
+            self.move_to.Set(['FWHM center', 'COM position', 'Der. FWHM center',
+                'Der. COM position'])
         else:
             self.der_plot.set_visible(False)
             self.plot.set_position(self.plt_gs[0].get_position(self.fig))
@@ -920,7 +964,23 @@ class ScanPanel(wx.Panel):
 
             self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
+            self.move_to.Set(['FWHM center', 'COM position'])
+
         self._safe_draw()
+        self._ax_redraw()
+
+    def _on_flipder(self, event):
+        if event.IsChecked():
+            if self.der_y_orig is not None and len(self.der_y_orig)>0:
+                self.der_y = self.der_y_orig*-1
+        else:
+            if self.der_y_orig is not None and len(self.der_y_orig)>0:
+                self.der_y = self.der_y_orig
+
+        self._calc_fit('der', self.der_fit.GetStringSelection(), False)
+        self._calc_fwhm('der', False)
+        self._calc_com('der', False)
+
         self.update_plot()
 
     def _on_fitchoice(self, event):
@@ -991,20 +1051,68 @@ class ScanPanel(wx.Panel):
             ydata = self.der_y
 
         if self.plt_x is not None and len(self.plt_x)>3:
+            y = ydata - np.max(ydata)/2
             if self.plt_x[0]>self.plt_x[1]:
-                spline = scipy.interpolate.UnivariateSpline(self.plt_x[::-1], ydata[::-1], s=0)
+                spline = scipy.interpolate.UnivariateSpline(self.plt_x[::-1], y[::-1], s=0)
             else:
-                spline = scipy.interpolate.UnivariateSpline(self.plt_x, ydata, s=0)
+                spline = scipy.interpolate.UnivariateSpline(self.plt_x, y, s=0)
 
             try:
                 roots = spline.roots()
                 if roots.size == 2:
                     r1 = roots[0]
                     r2 = roots[1]
+
+                    if self.plt_x[1]>self.plt_x[0]:
+                        if r1>r2:
+                            index1 = np.searchsorted(self.plt_x, r1, side='right')
+                            index2 = np.searchsorted(self.plt_x, r2, side='right')
+                        else:
+                            index1 = np.searchsorted(self.plt_x, r2, side='right')
+                            index2 = np.searchsorted(self.plt_x, r1, side='right')
+
+                        mean = np.mean(y[index1:index2])
+                    else:
+                        if r1>r2:
+                            index1 = np.searchsorted(self.plt_x[::-1], r1, side='right')
+                            index2 = np.searchsorted(self.plt_x[::-1], r2, side='right')
+                        else:
+                            index1 = np.searchsorted(self.plt_x[::-1], r2, side='right')
+                            index2 = np.searchsorted(self.plt_x[::-1], r1, side='right')
+
+                        mean = np.mean(y[::-1][index1:index2])
+
+                    if mean<=0:
+                        r1 = 0
+                        r2 = 0
+
                 elif roots.size>2:
-                    rmax = np.argmax(abs(np.diff(roots)))
-                    r1 = roots[rmax]
-                    r2 = roots[rmax+1]
+                    max_diffs = np.argsort(abs(np.diff(roots)))[::-1]
+                    for rmax in max_diffs:
+                        r1 = roots[rmax]
+                        r2 = roots[rmax+1]
+
+                        if self.plt_x[1]>self.plt_x[0]:
+                            if r1<r2:
+                                index1 = np.searchsorted(self.plt_x, r1, side='right')
+                                index2 = np.searchsorted(self.plt_x, r2, side='right')
+                            else:
+                                index1 = np.searchsorted(self.plt_x, r2, side='right')
+                                index2 = np.searchsorted(self.plt_x, r1, side='right')
+
+                            mean = np.mean(y[index1:index2])
+                        else:
+                            if r1<r2:
+                                index1 = np.searchsorted(self.plt_x[::-1], r1, side='right')
+                                index2 = np.searchsorted(self.plt_x[::-1], r2, side='right')
+                            else:
+                                index1 = np.searchsorted(self.plt_x[::-1], r2, side='right')
+                                index2 = np.searchsorted(self.plt_x[::-1], r1, side='right')
+
+                            mean = np.mean(y[::-1][index1:index2])
+
+                        if mean>0:
+                            break
                 else:
                     r1 = 0
                     r2 = 0
@@ -1080,14 +1188,14 @@ class ScanPanel(wx.Panel):
 
         if self.fwhm is not None:
             self.disp_fwhm.SetLabel(str(round(self.fwhm[0], 4)))
-            self.disp_fwhm_pos.SetLabel(str(round(((self.fwhm[1]-self.fwhm[0])/2.), 4)))
+            self.disp_fwhm_pos.SetLabel(str(round(((self.fwhm[2]+self.fwhm[1])/2.), 4)))
 
         if self.com is not None:
             self.disp_com.SetLabel(str(round(self.com, 4)))
 
         if self.der_fwhm is not None:
             self.disp_der_fwhm.SetLabel(str(round(self.der_fwhm[0], 4)))
-            self.disp_der_fwhm_pos.SetLabel(str(round(((self.der_fwhm[1]-self.der_fwhm[0])/2.), 4)))
+            self.disp_der_fwhm_pos.SetLabel(str(round(((self.der_fwhm[2]+self.der_fwhm[1])/2.), 4)))
 
         if self.der_com is not None:
             self.disp_der_com.SetLabel(str(round(self.der_com, 4)))
@@ -1115,6 +1223,88 @@ class ScanPanel(wx.Panel):
             self.disp_der_fit_label2.SetLabel('Fit Std.:')
             self.disp_der_fit_p1.SetLabel(str(round(self.der_fitparams[0][1],4)))
             self.disp_der_fit_p2.SetLabel(str(round(self.der_fitparams[0][2],4)))
+
+    def _on_moveto(self, event):
+        choice = self.move_to.GetStringSelection()
+        pos = None
+
+        if choice == 'FWHM center':
+            if self.fwhm is not None:
+                pos = (self.fwhm[2]+self.fwhm[1])/2.
+
+        elif choice == 'COM position':
+            if self.com is not None:
+                pos = self.com
+
+        elif choice == 'Der. FWHM center':
+            if self.fwhm is not None:
+                pos = (self.der_fwhm[2]+self.der_fwhm[1])/2.
+
+        elif choice == 'Der. COM position':
+            if self.com is not None:
+                pos = self.der_com
+
+        if pos is not None:
+            self.device.move_absolute(pos)
+
+    def _on_saveresults(self, event):
+        if self.plt_x is None or len(self.plt_x) == 0:
+            wx.MessageBox('There are no scan results to save.', 'Failed to save results', wx.OK)
+        else:
+            path = os.path.normpath('./')
+            msg = "Please select save directory and enter save file name"
+            filters = 'Comma Separated Files (*.csv)|*.csv'
+            dialog = wx.FileDialog(self, message = msg, style = wx.FD_SAVE,
+                defaultDir = path, wildcard = filters, defaultFile='scan_results.csv')
+
+            if dialog.ShowModal() == wx.ID_OK:
+                path = dialog.GetPath()
+            else:
+                return
+
+            path=os.path.splitext(path)[0]+'.csv'
+
+            results = [self.plt_x, self.plt_y]
+
+            if self.show_der.IsChecked():
+                results.append(self.der_y)
+
+            with open(path, 'w') as f:
+                f.write('# Scan Results\n')
+                f.write('# Scan FWHM: {}\n'.format(self.fwhm[0]))
+                f.write('# Scan FWHM center: {}\n'.format((self.fwhm[2]+self.fwhm[1])/2.))
+                f.write('# Scan COM: {}\n'.format(self.com))
+
+                if self.plt_fit.GetStringSelection() == 'Gaussian':
+                    f.write('# Scan fit type: Gaussian\n')
+                    f.write('# Scan fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
+                    f.write('# Scan fit A: {}\n'.format(self.plt_fitparams[0][0]))
+                    f.write('# Scan fit cen: {}\n'.format(self.plt_fitparams[0][1]))
+                    f.write('# Scan fit std: {}\n'.format(self.plt_fitparams[0][2]))
+
+                if self.show_der.IsChecked():
+                    f.write('# Derivative FWHM: {}\n'.format(self.der_fwhm[0]))
+                    f.write('# Derivative FWHM center: {}\n'.format((self.der_fwhm[2]+self.der_fwhm[1])/2.))
+                    f.write('# Derivative COM: {}\n'.format(self.der_com))
+
+                if self.der_fit.GetStringSelection() == 'Gaussian':
+                    f.write('# Derivative fit type: Gaussian\n')
+                    f.write('# Derivative fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
+                    f.write('# Derivative fit A: {}\n'.format(self.der_fitparams[0][0]))
+                    f.write('# Derivative fit cen: {}\n'.format(self.der_fitparams[0][1]))
+                    f.write('# Derivative fit std: {}\n'.format(self.der_fitparams[0][2]))
+
+                f.write('scan_x, scan_y')
+                if self.show_der.IsChecked():
+                    f.write(', der_y\n')
+                else:
+                    f.write('\n')
+
+                for i in range(len(results[0])):
+                    data = ', '.join([str(results[j][i]) for j in range(len(results))])
+                    f.write('{}\n'.format(data))
+
+        return
 
 
 def gaussian(x, A, cen, std):
