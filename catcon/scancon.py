@@ -286,9 +286,9 @@ class ScanPanel(wx.Panel):
 
         self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
         self.scan_type.SetSelection(1)
-        self.start = wx.TextCtrl(self, value='-1', size=(80, -1))
-        self.stop = wx.TextCtrl(self, value='1', size=(80, -1))
-        self.step = wx.TextCtrl(self, value='0.1', size=(80, -1))
+        self.start = wx.TextCtrl(self, value='', size=(80, -1))
+        self.stop = wx.TextCtrl(self, value='', size=(80, -1))
+        self.step = wx.TextCtrl(self, value='', size=(80, -1))
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=scalers)
         self.timer = wx.Choice(self, choices=timers)
