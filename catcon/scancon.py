@@ -1274,6 +1274,7 @@ class ScanPanel(wx.Panel):
                 path = dialog.GetPath()
             else:
                 return
+            dialog.Destroy()
 
             path=os.path.splitext(path)[0]+'.csv'
 

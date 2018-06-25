@@ -173,6 +173,11 @@ class MainFrame(wx.Frame):
     def _on_closewindow(self, evt):
         self.mx_timer.Stop()
 
+        self.save_layout()
+
+        self.Destroy()
+
+    def save_layout(self):
         standard_paths = wx.StandardPaths.Get()
         savedir = standard_paths.GetUserLocalDataDir()
 
@@ -186,8 +191,6 @@ class MainFrame(wx.Frame):
         sfile = os.path.join(savedir, sname)
         with open(sfile, 'w') as f:
             f.write(unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)))
-
-        self.Destroy()
 
     def _load_layout(self):
         perspective = 'sector_ctrl_layout.bak'
@@ -314,6 +317,8 @@ class CtrlsPanel(wx.Panel):
         button.Bind(wx.EVT_RIGHT_UP, self._onBtnRightMouseClick)
         self.grid_sizer.Add(button)
 
+        self.main_frame.save_layout()
+
     def _onRightMouseClick(self, event):
         if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
             wx.CallAfter(self._showPopupMenu)
@@ -373,6 +378,8 @@ class CtrlsPanel(wx.Panel):
                     if group not in new_groups:
                         del self.main_frame.ctrl_panels[group]
             dlg.Destroy()
+
+        self.main_frame.save_layout()
 
     def _onBtnRightMouseClick(self, evt):
         if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
@@ -462,6 +469,7 @@ class CtrlsPanel(wx.Panel):
                     else:
                         self.main_frame.controls[new_group][new_ctrl] = ctrl_data
 
+        self.main_frame.save_layout()
         return
 
     def _showDupWarning(self, group, ctrl):
