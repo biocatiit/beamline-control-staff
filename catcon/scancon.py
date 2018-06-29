@@ -50,8 +50,26 @@ import Mp as mp
 import MpWx as mpwx
 
 class ScanProcess(multiprocessing.Process):
+    """
+    This is a separate Process (as opposed to Thread) that runs the ``Mp``
+    scan. It has to be a Process because even in a new Thread the scan
+    eats all processing resources and essentially locks the GUI while it's
+    running.
+    """
 
     def __init__(self, command_queue, return_queue, abort_event):
+        """
+        Initializes the thread.
+
+        :param multiprocessing.Manager.Queue command_queue: This queue is used
+            to pass commands to the scan process.
+
+        :param multiprocessing.Manager.Queue return_queue: This queue is used
+            to return values from the scan process.
+
+        :param multiprocessing.Manager.Event abort_event: This event is set when
+            a scan needs to be aborted.
+        """
         multiprocessing.Process.__init__(self)
         self.daemon = True
 
@@ -68,6 +86,11 @@ class ScanProcess(multiprocessing.Process):
                         }
 
     def run(self):
+        """
+        Runs the process. It waits for commands to show up in the command_queue,
+        and then runs them. It is aborted if the abort_event is set. It is stopped
+        when the stop_event is set, and that allows the process to end gracefully.
+        """
         while True:
             try:
                 cmd, args, kwargs = self.command_queue.get_nowait()
@@ -96,12 +119,34 @@ class ScanProcess(multiprocessing.Process):
             self._abort()
 
     def _start_mxdb(self, db_path):
+        """
+        Starts the MX database
+
+        :param str db_path: The path to the MX database.
+        """
         self.db_path = db_path
         self.mx_database = mp.setup_database(self.db_path)
         self.mx_database.set_plot_enable(2)
 
     def _set_scan_params(self, device, start, stop, step, scalers,
         dwell_time, timer, detector=None, file_name=None, dir_path=None):
+        """
+        Sets the parameters for the scan.
+
+        :param str device: The MX record name.
+        :param float start: The absolute start position of the scan.
+        :param float stop: The absolute stop position of the scan.
+        :param float step: The step size of the scan.
+        :param list scalers: A list of the scalers for the scan.
+        :param float dwell_time: The count time at each point in the scan.
+        :param str timer: The name of the timer to be used for the scan.
+        :param str detector: Currently not used. The name of the detector
+            to be used for the scan.
+        :param str file_name: The scan name (and output name) for the scan.
+            Currently not used.
+        :param str dir_path: The directory path where the scan file will be
+            saved. Currently not used.
+        """
         self.out_path = dir_path
         self.out_name = file_name
 
@@ -117,7 +162,9 @@ class ScanProcess(multiprocessing.Process):
 
     def _scan(self):
         """
-        scan a record
+        Constructs and MX scan record and then carries out the scan. It also
+        communicates with the :mod:`ScanPanel` to send the filename for live
+        plotting of the scan.
         """
         all_names = [r.name for r in self.mx_database.get_all_records()]
 
@@ -208,10 +255,37 @@ class ScanProcess(multiprocessing.Process):
         self._stop_event.set()
 
     def _stop_scan(self):
+        """
+        This function is used Mp to abort the scan.
+
+        :returns: Returns 1 if the abort event is set, and that causes Mp to
+            abort the running scan. Returns 0 otherwise, which doesn't abort
+            anything.
+        :rtype: int
+        """
         return int(self._abort_event.is_set())
 
 class ScanPanel(wx.Panel):
+    """
+    This creates the scan panel with both scan controls and the live plot. It
+    allows both relative and absolute scans. THe user defines the start, stop,
+    and step. It allows the user to define the counter (scaler) and count time.
+    It also allows the user to fit the scan or derivative. Finally, it calculates
+    various parameters (COM, FWHM), and allows the user to move to those positions
+    or to any point in the scan.
+    """
     def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
+        """
+        Initializes the scan panel. Accepts the usual wx.Panel arguments plus
+        the following.
+
+        :param str device_name: The MX record name of the device.
+        :param Mp.Record device: The Mp record (i.e. the device)
+        :param Mp.Record server_record: The Mp record for the server that the
+            device is located on.
+        :param Mp.RecordList mx_database: The Mp record list representing the
+            MX database being used.
+        """
         wx.Panel.__init__(self, *args, **kwargs)
 
         self.device_name = device_name
@@ -242,6 +316,7 @@ class ScanPanel(wx.Panel):
         self._start_scan_mxdb()
 
     def _create_layout(self):
+        """Creates the layout of both the controls and the plots."""
 
         if self.type == 'network_motor':
             # server_record_name = self.device.get_field("server_record")
@@ -498,8 +573,8 @@ class ScanPanel(wx.Panel):
         self.plot.set_position(self.plt_gs[0].get_position(self.fig))
 
         self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
-        self.canvas.callbacks.connect('motion_notify_event', self._on_mousemotion)
-        self.canvas.callbacks.connect('pick_event', self._on_pickevent)
+        self.canvas.mpl_connect('motion_notify_event', self._on_mousemotion)
+        self.canvas.mpl_connect('pick_event', self._on_pickevent)
 
         plot_sizer = wx.BoxSizer(wx.VERTICAL)
         plot_sizer.Add(self.canvas, 1, flag=wx.EXPAND)
@@ -512,6 +587,7 @@ class ScanPanel(wx.Panel):
         self.SetSizer(top_sizer)
 
     def _initialize_variables(self):
+        """Initializes the variables related to plotting and fitting."""
         self.plt_line = None
         self.der_line = None
         self.plt_y = None
@@ -538,6 +614,10 @@ class ScanPanel(wx.Panel):
         self.der_com = None
 
     def _on_start(self, evt):
+        """
+        Called when the start scan button is pressed. It gets the scan
+        parameters and then puts the scan in the ``cmd_q``.
+        """
         self.start_btn.Disable()
         self.stop_btn.Enable()
         scan_params = self._get_params()
@@ -552,11 +632,21 @@ class ScanPanel(wx.Panel):
             self.cmd_q.put_nowait(['scan', [], {}])
 
     def _on_stop(self, evt):
+        """
+        Called when the stop button is pressed. Aborts the scan and live
+        plotting
+        """
         self.abort_event.set()
         time.sleep(0.5) #Wait for the process to abort before trying to reload the db
         self.return_q.put_nowait(['stop_live_plotting'])
 
     def _get_params(self):
+        """
+        Gets the scan parameters from the GUI and returns them.
+
+        :returns: A dictionary of the scan parameters.
+        :rtype: dict
+        """
         if self.scan_type.GetStringSelection() == 'Absolute':
             offset = 0
         else:
@@ -583,12 +673,24 @@ class ScanPanel(wx.Panel):
         return scan_params
 
     def _start_scan_mxdb(self):
+        """Loads the mx database in the scan process"""
         mxdir = utils.get_mxdir()
         database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
         database_filename = os.path.normpath(database_filename)
         self.cmd_q.put_nowait(['start_mxdb', [database_filename], {}])
 
     def _on_scantimer(self, evt):
+        """
+        .. todo::
+            Once the MP bug is fixed, remove the hack that restarts the scan
+            process after the end of every scan.
+
+        Called while the scan is running. It starts the live plotting at the
+        start of the scan, and stops the live plotting at the end. Also at
+        the end it moves the motor back to the initial position, restarts
+        the scan process (needed because of an MP bug), and enables/disables
+        the start/stop buttons as appropriate.
+        """
         try:
             scan_return = self.return_q.get_nowait()[0]
         except queue.Empty:
@@ -609,11 +711,12 @@ class ScanPanel(wx.Panel):
             self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
             self.scan_proc.start()
             self._start_scan_mxdb()
+
             self.start_btn.Enable()
             self.stop_btn.Disable()
 
     def _ax_redraw(self, widget=None):
-        ''' Redraw plots on window resize event '''
+        """Redraw plots on window resize event."""
 
         self.background = self.canvas.copy_from_bbox(self.plot.bbox)
         self.der_background = self.canvas.copy_from_bbox(self.der_plot.bbox)
@@ -621,11 +724,17 @@ class ScanPanel(wx.Panel):
         self.update_plot()
 
     def _safe_draw(self):
+        """A safe draw call that doesn 't endlessly recurse."""
         self.canvas.mpl_disconnect(self.cid)
         self.canvas.draw()
         self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
 
     def update_plot(self):
+        """
+        Updates the plot. Is long and complicated because there are many plot
+        elements and we blit all of them. It also accounts for the derivative
+        plot sometimes being shown and sometimes not.
+        """
         get_plt_bkg = False
         get_der_bkg = False
 
@@ -818,6 +927,14 @@ class ScanPanel(wx.Panel):
             self.canvas.blit(self.der_plot.bbox)
 
     def live_plot(self, filename):
+        """
+        This does the live plotting. It is intended to be run in its own
+        thread. It first clears all of the plot related variables and clears
+        the plot. It then enters a loop where it reads from the scan file
+        and plots the points as they come in, until the scan ends.
+
+        :param str filename: The filename of the scan file to live plot.
+        """
         if self.plt_line is not None:
             self.plt_line.remove()
             self.plt_line = None
@@ -911,6 +1028,10 @@ class ScanPanel(wx.Panel):
         os.remove(filename)
 
     def _on_mousemotion(self, event):
+        """
+        Called on mouse motion in the plot. If the mouse is in the plot the
+        location is shown in the plot toolbar.
+        """
         if event.inaxes:
             x, y = event.xdata, event.ydata
             self.toolbar.set_status('x={}, y={}'.format(x, y))
@@ -918,6 +1039,11 @@ class ScanPanel(wx.Panel):
             self.toolbar.set_status('')
 
     def _on_closewindow(self, event):
+        """
+        .. todo:: This doesn't seem to work as expected. Investigate.
+
+        Called when the scan window is closed.
+        """
         print('in _on_closewindow!!!!!\n\n\n\n\n\n')
         self.scan_timer.Stop()
         self.scan_proc.stop()
@@ -929,6 +1055,10 @@ class ScanPanel(wx.Panel):
         self.Destroy()
 
     def _on_pickevent(self, event):
+        """
+        Called when a point on the plot is clicked on. If the click is a right
+        click, it opens a context menu.
+        """
         artist = event.artist
         button = event.mouseevent.button
 
@@ -943,6 +1073,12 @@ class ScanPanel(wx.Panel):
                 self._show_popupmenu(position)
 
     def _show_popupmenu(self, position):
+        """
+        Shows a context menu when users right click on a plot point. It allows
+        the user to move to the selected point.
+
+        :param float position: The position the user selected.
+        """
         menu = wx.Menu()
 
         menu.Append(1, 'Move to {}'.format(position))
@@ -952,9 +1088,18 @@ class ScanPanel(wx.Panel):
         menu.Destroy()
 
     def _on_popupmenu_choice(self, event, position):
+        """
+        Moves the device to the selected plot point.
+
+        :param float position: The position the user selected.
+        """
         self.device.move_absolute(position)
 
     def _on_showder(self, event):
+        """
+        Toggles wehre the derivative plot is show, and whether the calculated
+        parameters (fit, FWHM, COM) are shown.
+        """
         if event.IsChecked():
             self.der_plot.set_visible(True)
             self.plot.set_position(self.plt_gs2[0].get_position(self.fig))
@@ -983,6 +1128,7 @@ class ScanPanel(wx.Panel):
         self._ax_redraw()
 
     def _on_flipder(self, event):
+        """Flips the derivative plot upside down (multiplication by -1)."""
         if event.IsChecked():
             if self.der_y_orig is not None and len(self.der_y_orig)>0:
                 self.der_y = self.der_y_orig*-1
@@ -997,6 +1143,10 @@ class ScanPanel(wx.Panel):
         self.update_plot()
 
     def _on_fitchoice(self, event):
+        """
+        Called when the fit choice is changed for either the main plot or the
+        derivative plot. Calculates the fit as aproprite.
+        """
         fit = event.GetString()
 
         if event.GetEventObject() == self.plt_fit:
@@ -1007,6 +1157,16 @@ class ScanPanel(wx.Panel):
         self._calc_fit(plot, fit)
 
     def _calc_fit(self, plot, fit, update_plot=True):
+        """
+        Calculates the selected fit.
+
+        :param str plot: A string indicating which plot the fit should be done on.
+            Should be either 'plt' or 'der'.
+        :param str fit: A string indicating the fit type (currently only Gaussian
+            or None supported)
+        :param bool update_plot: If True, the plot will be updated. If False it
+            won't be updated.
+        """
         if plot == 'plt':
             ydata = self.plt_y
         else:
@@ -1050,6 +1210,9 @@ class ScanPanel(wx.Panel):
             wx.CallAfter(self._update_results)
 
     def _on_showfwhm(self, event):
+        """
+        Called when the user decides to show/hide the FWHM on the plot.
+        """
         if event.GetEventObject() == self.show_fwhm:
             plot = 'plt'
         else:
@@ -1058,6 +1221,14 @@ class ScanPanel(wx.Panel):
         self._calc_fwhm(plot)
 
     def _calc_fwhm(self, plot, update_plot=True):
+        """
+        Calculates the FWHM of the scan or the derivative.
+
+        :param str plot: A string indicating which plot the fit should be done on.
+            Should be either 'plt' or 'der'.
+        :param bool update_plot: If True, the plot will be updated. If False it
+            won't be updated.
+        """
         if plot == 'plt':
             ydata = self.plt_y
         else:
@@ -1158,6 +1329,9 @@ class ScanPanel(wx.Panel):
             wx.CallAfter(self._update_results)
 
     def _on_showcom(self, event):
+        """
+        Called when the user decides to show/hide the COM on the scan or der plot.
+        """
         if event.GetEventObject() == self.show_com:
             plot = 'plt'
         else:
@@ -1166,6 +1340,14 @@ class ScanPanel(wx.Panel):
         self._calc_com(plot)
 
     def _calc_com(self, plot, update_plot=True):
+        """
+        Calculates the COM of the scan or the derivative.
+
+        :param str plot: A string indicating which plot the fit should be done on.
+            Should be either 'plt' or 'der'.
+        :param bool update_plot: If True, the plot will be updated. If False it
+            won't be updated.
+        """
         if plot == 'plt':
             ydata = self.plt_y
         else:
@@ -1198,6 +1380,7 @@ class ScanPanel(wx.Panel):
             wx.CallAfter(self._update_results)
 
     def _update_results(self):
+        """Updates the results section of the GUI."""
 
         if self.fwhm is not None:
             self.disp_fwhm.SetLabel(str(round(self.fwhm[0], 4)))
@@ -1238,6 +1421,11 @@ class ScanPanel(wx.Panel):
             self.disp_der_fit_p2.SetLabel(str(round(self.der_fitparams[0][2],4)))
 
     def _on_moveto(self, event):
+        """
+        Called when the move to button is pressed. Moves the motor to the
+        chosen position. One of: FWHM center, COM position, Der. FWHM position,
+        Der. COM position.
+        """
         choice = self.move_to.GetStringSelection()
         pos = None
 
@@ -1261,6 +1449,10 @@ class ScanPanel(wx.Panel):
             self.device.move_absolute(pos)
 
     def _on_saveresults(self, event):
+        """
+        Called when the save button is pressed. Saves the results, both of the
+        scan and the fitting.
+        """
         if self.plt_x is None or len(self.plt_x) == 0:
             wx.MessageBox('There are no scan results to save.', 'Failed to save results', wx.OK)
         else:
@@ -1323,10 +1515,27 @@ class ScanPanel(wx.Panel):
 
 
 def gaussian(x, A, cen, std):
+    """
+    The gaussian function used for fitting.
+
+    :param float A: The overall scale factor of the gaussian
+    :param float cen: The center position of the gaussian
+    :param float std: The standard deviation of the gaussian
+    """
     return A*np.exp(-(x-cen)**2/(2*std**2))
 
 class CustomPlotToolbar(NavigationToolbar2WxAgg):
+    """
+    A custom plot toolbar that displays the cursor position on the plot
+    in addition to the usual controls.
+    """
     def __init__(self, parent, canvas):
+        """
+        Initializes the toolbar.
+
+        :param wx.Window parent: The parent window
+        :param matplotlib.Canvas: The canvas associated with the toolbar.
+        """
         NavigationToolbar2WxAgg.__init__(self, canvas)
 
         self.status = wx.StaticText(self, label='')
@@ -1334,11 +1543,29 @@ class CustomPlotToolbar(NavigationToolbar2WxAgg):
         self.AddControl(self.status)
 
     def set_status(self, status):
+        """
+        Called to set the status text in the toolbar, i.e. the cursor position
+        on the plot.
+        """
         self.status.SetLabel(status)
 
 
 class ScanFrame(wx.Frame):
+    """
+    A lightweight scan frame that holds the :mod:`ScanPanel`.
+    """
     def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
+        """
+        Initializes the scan frame. Takes all the usual wx.Frame arguments and
+        also the following.
+
+        :param str device_name: The MX record name of the device.
+        :param Mp.Record device: The Mp record (i.e. the device)
+        :param Mp.Record server_record: The Mp record for the server that the
+            device is located on.
+        :param Mp.RecordList mx_database: The Mp record list representing the
+            MX database being used.
+        """
         wx.Frame.__init__(self, *args, **kwargs)
 
         self._create_layout(device_name, device, server_record, mx_database)
@@ -1346,6 +1573,16 @@ class ScanFrame(wx.Frame):
         self.Fit()
 
     def _create_layout(self, device_name, device, server_record, mx_database):
+        """
+        Creates the layout, by calling mod:`ScanPanel`.
+
+        :param str device_name: The MX record name of the device.
+        :param Mp.Record device: The Mp record (i.e. the device)
+        :param Mp.Record server_record: The Mp record for the server that the
+            device is located on.
+        :param Mp.RecordList mx_database: The Mp record list representing the
+            MX database being used.
+        """
         scan_panel = ScanPanel(device_name, device, server_record, mx_database, parent=self)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)

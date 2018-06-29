@@ -56,44 +56,22 @@ def set_mppath():
     if mp_dir not in path:
         os.environ["PATH"] = mp_dir+os.pathsep+os.environ["PATH"]
 
-class FieldValueEntry(wx.TextCtrl):
+
+def file_follow(the_file, stop_event):
     """
-    Based on the ValueEntry in mpwx, but without callbacks. Meant to work
-    when you want to change a field value that doesn't have a getter or setter.
+    This function follows a file that is continuously being written to and
+    provides a generator that gives each new line written into the file.
+
+    Modified from: http://www.dabeaz.com/generators/follow.py
+
+    :param file the_file: The file object to read lines from.
+    :param threading.Event stop_event: A stop event that will end the generator,
+        allowing any loops iterating on the generator to exit.
     """
-    def __init__( self, parent, record, field, **kwargs):
-        self.record = record
-        self.field = field
-
-        if 'style' in kwargs:
-            style = kwargs['style'] | wx.TE_PROCESS_ENTER
-            del kwargs[style]
-        else:
-            style = wx.TE_PROCESS_ENTER
-
-        wx.TextCtrl.__init__(self, parent, value=self.record.get_field(self.field),
-            style=style, **kwargs)
-
-        self.Bind(wx.EVT_TEXT, self.OnText)
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
-
-    def OnText(self, event):
-        self.SetBackgroundColour("yellow")
-
-    def OnEnter(self, event):
-        value = self.GetValue().strip()
-
-        self.record.set_field(self.field, value)
-
-        self.SetBackgroundColour(wx.NullColour)
-
-
-def file_follow(thefile, stop_event):
-    """Modified from: http://www.dabeaz.com/generators/follow.py"""
     while True:
         if stop_event.is_set():
             break
-        line = thefile.readline()
+        line = the_file.readline()
         if not line:
             time.sleep(0.001)
             continue

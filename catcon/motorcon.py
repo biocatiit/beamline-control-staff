@@ -293,6 +293,10 @@ class MotorPanel(wx.Panel):
             return False
 
     def _on_rightclick(self, evt):
+        """
+        Shows a context menu. Current options allow enabling/disabling
+        the control panel.
+        """
         menu = wx.Menu()
         menu.Bind(wx.EVT_MENU, self._on_enablechange)
 
@@ -305,6 +309,10 @@ class MotorPanel(wx.Panel):
         menu.Destroy()
 
     def _on_enablechange(self, evt):
+        """
+        Called from the panel context menu. Enables/disables the control
+        panel.
+        """
         if self._enabled:
             self._enabled = False
         else:
@@ -317,6 +325,15 @@ class MotorPanel(wx.Panel):
                 item.Enable(self._enabled)
 
     def _on_scan(self, evt):
+        """
+        .. todo::
+            Due to the problesm with MP, you can't open a scan window for the same
+            control twice. Ideally this would check whether a window was open,
+            if so it would highlight it/bring it to the current window. If not it
+            would open/reopen one.
+
+        Called when the user requests a scan. Opens a scan window.
+        """
         # if self.scan_frame is not None:
         #     try:
         #         self.scan_frame.Close()

@@ -14,8 +14,11 @@ the interface with the `MX software <http://mx.iit.edu/>`_.
    :maxdepth: 2
    :caption: Contents:
 
+   controls
    motors
    amplifiers
+   scan
+   widgets
    utilities
 
 Indices and tables

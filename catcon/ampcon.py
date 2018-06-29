@@ -44,7 +44,7 @@ class AmpPanel(wx.Panel):
         settings, ideally through a generic GUI that works for various
         types of devices, not just amps.
 
-    This motor panel supports standard amplifier controls, such as setting the
+    This amp panel supports standard amplifier controls, such as setting the
     gain and the offset. It is mean to be embedded in a larger application,
     and can be instanced several times, once for each amp. It communicates
     with the amps by calling ``Mp``, the python wrapper for ``MX``.
@@ -151,6 +151,10 @@ class AmpPanel(wx.Panel):
             widget.SetStringSelection(value)
 
     def _on_rightclick(self, evt):
+        """
+        Shows a context menu. Current options allow enabling/disabling
+        the control panel.
+        """
         menu = wx.Menu()
         menu.Bind(wx.EVT_MENU, self._on_enablechange)
 
@@ -165,6 +169,10 @@ class AmpPanel(wx.Panel):
         menu.Destroy()
 
     def _on_enablechange(self, evt):
+        """
+        Called from the panel context menu. Enables/disables the control
+        panel.
+        """
         if self._enabled:
             self._enabled = False
         else:

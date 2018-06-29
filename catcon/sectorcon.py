@@ -48,8 +48,21 @@ import ampcon as ac
 
 
 class MainFrame(wx.Frame):
+    """
+    .. todo::
+        Support for scalers, measuring and taking dark counts
 
+    This frame is the top level frame for the sector controls. it consists of a
+    tab panel and several buttons for adding new controls. Each tab is a
+    control group, the button opens a control set. It calls the :mod:`scancon`
+    and :mod:`motorcon` and :mod:`ampcon` libraries to actually do anything.
+    It communicates with the devices by calling ``Mp``, the python wrapper for ``MX``.
+    """
     def __init__(self, *args, **kwargs):
+        """
+        Initializes the main frame. It takes the standard arguments for a
+        :mod:`wx.Frame`, except parent should not be specified.
+        """
         wx.Frame.__init__(self, None, *args, **kwargs)
 
         self.controls = collections.OrderedDict()
@@ -77,6 +90,14 @@ class MainFrame(wx.Frame):
         self.Fit()
 
     def _start_mxdatabase(self):
+        """
+        Starts the MX database. It first looks for the database specified
+        by the ``MXDATABASE`` environment variable. If that is not found, then
+        it looks for a database in the standard ``mx/etc/mxmotor.dat`` location.
+
+        This also creates lists of all amplifiers and motors available to the
+        controls.
+        """
         try:
             # First try to get the name from an environment variable.
             database_filename = os.environ["MXDATABASE"]
@@ -104,10 +125,16 @@ class MainFrame(wx.Frame):
             elif class_name == 'motor':
                 self.motor_list.append(record.get_field('name'))
 
-        self.amp_list = sorted(self.amp_list)
-        self.motor_list = sorted(self.motor_list)
+        self.amp_list = sorted(self.amp_list, key=str.lower)
+        self.motor_list = sorted(self.motor_list, key=str.lower)
 
     def _load_controls(self):
+        """
+        This loads in a previously saved configuration of controls for the
+        panel. It looks in the user local data directory (using :mod:`wx.StandardPaths`)
+        and if there is a file called ``<node_name>_sector_ctrl_settings.txt``.
+        Settings are loaded assuming a json format.
+        """
         standard_paths = wx.StandardPaths.Get()
         savedir = standard_paths.GetUserLocalDataDir()
         sname = '{}_sector_ctrl_settings.txt'.format(platform.node().replace('.','_'))
@@ -121,6 +148,17 @@ class MainFrame(wx.Frame):
                 self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
 
     def _create_layout(self):
+        """
+        .. todo::
+            Save the AuiNotebook layout (might have to switch to the AGW version),
+            and load in the correct layout every time.
+
+        .. todo::
+            Is it possible to save the layout of the open windows (using the aui manager)
+            and then reopen all open windows when the program is reopened?
+
+        Creates the layout for the panel.
+        """
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
 
@@ -171,6 +209,10 @@ class MainFrame(wx.Frame):
         self.mx_db.wait_for_messages(0.01)
 
     def _on_closewindow(self, evt):
+        """
+        Called when the window is closed to clean up running processes and save
+        the current layout before the program quits.
+        """
         self.mx_timer.Stop()
 
         self.save_layout()
@@ -178,6 +220,11 @@ class MainFrame(wx.Frame):
         self.Destroy()
 
     def save_layout(self):
+        """
+        This saves the current layout. It saves both the AUI layout and the
+        control sets and groups. However, at the moment the AUI layout is not used
+        on loading.
+        """
         standard_paths = wx.StandardPaths.Get()
         savedir = standard_paths.GetUserLocalDataDir()
 
@@ -193,6 +240,9 @@ class MainFrame(wx.Frame):
             f.write(unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)))
 
     def _load_layout(self):
+        """
+        This funciton is currently unused. it loads in the aui manager perspective.
+        """
         perspective = 'sector_ctrl_layout.bak'
         if os.path.exists(perspective):
             with open(perspective) as f:
@@ -200,12 +250,24 @@ class MainFrame(wx.Frame):
             self._mgr.LoadPerspective(layout)
 
     def show_ctrls(self,ctrl_data):
+        """
+        This creates a :class:`CtrlsFrame` with the controls given by the
+        ctrl_data.
+
+        :param collections.OrderedDict ctrl_data: This is a dictionary that
+            contains all of the controls that will be shown in the new controls
+            frame.
+        """
         self.mx_timer.Stop()
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
         self.mx_timer.Start()
 
     def _on_addctrl(self, evt):
+        """
+        Called when the Add Control Button is pressed. Calls the :func:`add_ctrl`
+        function.
+        """
         self.add_ctrl()
 
     def _on_showctrl(self, evt):
@@ -217,6 +279,10 @@ class MainFrame(wx.Frame):
                 self.show_ctrls(ctrl_data)
 
     def add_ctrl(self):
+        """
+        Adds a new control set to the control frame. Calls the :class:`AddCtrlDialog`
+        to do the actual add.
+        """
         add_dlg = AddCtrlDialog(parent=self, title='Define control set',
             style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
         if add_dlg.ShowModal() == wx.ID_OK:
@@ -248,14 +314,28 @@ class MainFrame(wx.Frame):
         add_dlg.Destroy()
 
     def start_timer(self):
+        """Starts the mx timer."""
         self.mx_timer.Start()
 
     def redo_layout(self):
+        """Redo the tab layout after changes have been made."""
         for i in range(self.ctrl_nb.GetPageCount()):
             if self.ctrl_nb.GetPageText(i) not in self.controls.keys():
                 self.ctrl_nb.DeletePage(i)
 
     def _showDupWarning(self, group, ctrl):
+        """
+        When adding or moving control sets (buttons) between groups (tabs),
+        this function checks whether there is already a set with the desired name
+        on that tab. If there is, it asks to confirm the overwritten.
+
+        :param str group: The group (tab) name on which the duplicate set appears.
+        :param str ctrl: The set (button) name which is being duplicated.
+
+        :returns: True if the user wants to overwrite the control. False
+            if the user doesn't want to overwrite the control.
+        :rtype: bool
+        """
         msg = ('Warning: Control group {} already has a control set named '
             '{}. This will be overwritten if you continue. Proceed and '
             'overwrite?'.format(group, ctrl))
@@ -271,8 +351,22 @@ class MainFrame(wx.Frame):
             return False
 
 class CtrlsPanel(wx.Panel):
-
+    """
+    This is the base panel for laying out a group (tab) of control sets (buttons).
+    It basically consists of a grid of buttons that can be clicked to open the
+    control sets.
+    """
     def __init__(self, panel_data, main_frame, *args, **kwargs):
+        """
+        Initializes the control panel. It takes all of the arguments of a wx.Panel
+        object, plus those listed below.
+
+        :param collections.OrderedDict panel_data: The dictionary of panel data
+            that defines a control set. Used to create the control layout on the
+            panel.
+
+        :param wx.Frame main_frame: The :class:`MainFrame`.
+        """
         wx.Panel.__init__(self, *args, **kwargs)
         self.main_frame = main_frame
         self._create_layout(panel_data)
@@ -280,6 +374,13 @@ class CtrlsPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_UP, self._onRightMouseClick)
 
     def _create_layout(self, panel_data):
+        """
+        Creates the layout for the panel
+
+        :param collections.OrderedDict panel_data: The dictionary of panel data
+            that defines a control set. Used to create the control layout on the
+            panel.
+        """
         nitems = len(panel_data.keys())
 
         self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=5, hgap=5)
@@ -297,6 +398,10 @@ class CtrlsPanel(wx.Panel):
         self.SetSizer(top_sizer)
 
     def _on_button(self, evt):
+        """
+        Called when a control set button is clicked. Opens a new window showing
+        the controls.
+        """
         button = evt.GetEventObject()
 
         ctrl = button.GetName()
@@ -305,6 +410,11 @@ class CtrlsPanel(wx.Panel):
         self.main_frame.show_ctrls(self.main_frame.controls[group][ctrl])
 
     def add_ctrl(self, label):
+        """
+        This adds a new control to the group (tab).
+
+        :param str label: The label for the control set (button).
+        """
         rows = self.grid_sizer.GetRows()
         cols = self.grid_sizer.GetCols()
         nitems = self.grid_sizer.GetItemCount()
@@ -320,12 +430,18 @@ class CtrlsPanel(wx.Panel):
         self.main_frame.save_layout()
 
     def _onRightMouseClick(self, event):
+        """Opens a context menu on right click on the panel (but not a button)."""
         if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
             wx.CallAfter(self._showPopupMenu)
         else:
             self._showPopupMenu()
 
     def _showPopupMenu(self):
+        """
+        Shows the palen context menu. Allows users to make modifications to the
+        order of the control sets (tabs) and control groups (buttons), or remove
+        some entirely.
+        """
         menu = wx.Menu()
 
         menu.Append(1, 'Remove/reorder control sets')
@@ -336,6 +452,13 @@ class CtrlsPanel(wx.Panel):
         menu.Destroy()
 
     def _onPopupMenuChoice(self, evt):
+        """
+        This handles making modification to the control sets (tabs) and control
+        groups (buttons) after the users makes a choice in the context menu.
+        It calls the :class:`RemoveCtrlDialog` for the user to make a choice,
+        an then handles making modifications to itself and/or the :class:MainFrame
+        as a result of the choice.
+        """
         choice = evt.GetId()
 
         if choice == 1:
@@ -382,12 +505,21 @@ class CtrlsPanel(wx.Panel):
         self.main_frame.save_layout()
 
     def _onBtnRightMouseClick(self, evt):
+        """
+        Called after a user right clicks on a button (but not the panel). Calls
+        :func:`_showBtnPopupMenu`
+        """
         if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
             wx.CallAfter(self._showBtnPopupMenu, evt.GetEventObject())
         else:
             self._showBtnPopupMenu(evt.GetEventObject())
 
     def _showBtnPopupMenu(self, btn):
+        """
+        Shows a button context menu. Allows user to modify the controls in the set.
+
+        :param wx.Button btn: The button that was clicked on.
+        """
         menu = wx.Menu()
 
         menu.Append(1, 'Modify controls')
@@ -397,6 +529,14 @@ class CtrlsPanel(wx.Panel):
         menu.Destroy()
 
     def _onBtnPopupMenuChoice(self, evt):
+        """
+        Handles users makign modifications to a control set (button). It calls
+        the :class:`AddCtrlDialog` to allow users to make modifications, and then
+        handles the results of that, including moving the button to a diferent
+        (possibly new) tab if necessary.
+
+        :returns: Nothing. Return used just to exit at various points in the function.
+        """
         button = evt.GetEventObject().GetInvokingWindow()
 
         ctrl = button.GetName()
@@ -473,6 +613,18 @@ class CtrlsPanel(wx.Panel):
         return
 
     def _showDupWarning(self, group, ctrl):
+        """
+        When adding or moving control sets (buttons) between groups (tabs),
+        this function checks whether there is already a set with the desired name
+        on that tab. If there is, it asks to confirm the overwritten.
+
+        :param str group: The group (tab) name on which the duplicate set appears.
+        :param str ctrl: The set (button) name which is being duplicated.
+
+        :returns: True if the user wants to overwrite the control. False
+            if the user doesn't want to overwrite the control.
+        :rtype: bool
+        """
         msg = ('Warning: Control group {} already has a control set named '
             '{}. This will be overwritten if you continue. Proceed and '
             'overwrite?'.format(group, ctrl))
@@ -488,7 +640,27 @@ class CtrlsPanel(wx.Panel):
             return False
 
 class CtrlsFrame(wx.Frame):
+    """
+    This is the base for a independent control window that actually shows the
+    controls to the user. It users the :mod:`ampcon` and :mod:`motorcon` modules
+    to generate the controls for amplifiers and motors respectively. All controls
+    are laid out in a grid with dimensions defined by the user.
+    """
     def __init__(self, ctrls, mx_db, *args, **kwargs):
+        """
+        Initializes the frame. Takes all the standard arguments of a wx.Frame
+        except title, which is generated from the control set name, plus those
+        listed below.
+
+        :param collections.OrderedDict ctrls: A dictionary of the controls. The
+            first value should contain entries for the settings: title, rows, cols.
+            The subsequent entries contain the controls: a key/value pair of control
+            name and control type (as defined in the :class:`MainFrame` ctrl_types
+            dictionary).
+
+        :param MP.RecordList mx_db: The MX database containing the records of
+            interest.
+        """
         wx.Frame.__init__(self, title=ctrls[0]['title'], *args, **kwargs)
 
         self._create_layout(ctrls, mx_db)
@@ -499,6 +671,18 @@ class CtrlsFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
     def _create_layout(self, ctrls, mx_db):
+        """
+        Creates the frame layout.
+
+        :param collections.OrderedDict ctrls: A dictionary of the controls. The
+            first value should contain entries for the settings: title, rows, cols.
+            The subsequent entries contain the controls: a key/value pair of control
+            name and control type (as defined in the :class:`MainFrame` ctrl_types
+            dictionary).
+
+        :param MP.RecordList mx_db: The MX database containing the records of
+            interest.
+        """
         settings = ctrls[0]
         ctrls = ctrls[1:]
         main_window = self.GetParent()
@@ -520,6 +704,10 @@ class CtrlsFrame(wx.Frame):
         self.SetSizer(grid_sizer)
 
     def _on_closewindow(self, evt):
+        """
+        Closes the window. In an attempt to minimize trouble with MX it
+        stops and then restarts the MX timer while it destroys the controls.
+        """
         main_frame = self.GetParent()
         main_frame.mx_timer.Stop()
         wx.CallLater(1000, main_frame.start_timer)
@@ -527,7 +715,24 @@ class CtrlsFrame(wx.Frame):
 
 
 class AddCtrlDialog(wx.Dialog):
+    """
+    This dialog allows users to add a new control set(button) or modify the
+    controls in a control set (button). If they are adding a new set of controls
+    they have to provide a group (tab) and a name for the set (button label).
+    They then provide one or more controls to go in the group, providing the
+    mx record name and the type of control. If they first set the control
+    type using the drop down menu, then they can select from a list generated
+    by the text control autocomplete function as to the control type they want.
+
+    The actual list of controls is handled by the :class:`ControlList`.
+    """
     def __init__(self, set_group=True, *args, **kwargs):
+        """
+        Initializes the dialog.
+
+        :param bool set_group: If True, the group field is displayed in the
+            control. If False, it is not.
+        """
         wx.Dialog.__init__(self, *args, **kwargs)
         self._set_group = set_group
         self._create_layout()
@@ -536,6 +741,7 @@ class AddCtrlDialog(wx.Dialog):
         self.Fit()
 
     def _create_layout(self):
+        """ Creates the dialog layout."""
         info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         if self._set_group:
             self.group_ctrl = wx.TextCtrl(self)
@@ -586,9 +792,20 @@ class AddCtrlDialog(wx.Dialog):
         self.SetSizer(top_sizer)
 
     def _on_add(self, evt):
+        """Called when the Add control buttion is used. Calls :func:`_add`"""
         self._add()
 
     def _add(self):
+        """
+        Adds a new control to the ControlList. The user then needs to set the
+        control name and type. The type is automatically set equal to the previous
+        control in the list (if any). The name can be set by text auto completion,
+        typing the full record name, or using the '...' button to list all available
+        records of the selected type.
+
+        :returns: The index of the newly added control in the list.
+        :rtype: int
+        """
         index = self.list_ctrl.InsertStringItem(sys.maxint, '')
         main_frame = self.GetParent()
 
@@ -642,6 +859,7 @@ class AddCtrlDialog(wx.Dialog):
         return index
 
     def _on_remove(self, evt):
+        """Called by the Remove control button, removes a control."""
         selected = self.list_ctrl.GetFirstSelected()
 
         while selected != -1:
@@ -651,6 +869,14 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.DoLayout()
 
     def _on_ok(self, evt):
+        """
+        Called by the Ok button. When the user attempst to exit the control it
+        checks that everything is set appropriately, and, if it is, sets the
+        control_data list that is later grabbed to see what contorls the user
+        selected.
+
+        :returns: Nothing. Return is just used to exit at various points.
+        """
         rows = int(self.rows.GetValue())
         cols = int(self.cols.GetValue())
 
@@ -703,6 +929,18 @@ class AddCtrlDialog(wx.Dialog):
         return
 
     def populate_ctrls(self, ctrl_data, group):
+        """
+        If the dialog is being used to modify a control set, this function
+        populates the control values of the existing set.
+
+        :param collections.OrderedDict ctrl_data: A dictionary of the controls. The
+            first value should contain entries for the settings: title, rows, cols.
+            The subsequent entries contain the controls: a key/value pair of control
+            name and control type (as defined in the :class:`MainFrame` ctrl_types
+            dictionary).
+
+        :param str group: The name of the control group.
+        """
         info = ctrl_data[0]
         ctrls = ctrl_data[1:]
 
@@ -724,6 +962,11 @@ class AddCtrlDialog(wx.Dialog):
             type_ctrl.SetStringSelection(ctrl[1])
 
     def _show_motors(self, evt):
+        """
+        Called when the user presses the '...' button for a control. It
+        shows a popup menu with a list of all the motors or amplifiers in the
+        mx database, depending on if the control type is 'Motor' or 'Amplifier'.
+        """
         index =evt.GetId()
         button = evt.GetEventObject()
         main_frame = self.GetParent()
@@ -746,6 +989,10 @@ class AddCtrlDialog(wx.Dialog):
         menu.Destroy()
 
     def _on_motor_menu_choice(self, evt):
+        """
+        When a record is selected in the popup menu, this sets it as the record
+        for the item in the control list.
+        """
         button = evt.GetEventObject().GetInvokingWindow()
         index = button.GetId()
         main_frame = self.GetParent()
@@ -765,6 +1012,10 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.SetValue(main_frame.amp_list[choice])
 
     def _on_typechange(self, evt):
+        """
+        Called when the control type is changed for an item in the control list.
+        This changes the textctrl autocompletion dictionary.
+        """
         index =evt.GetId()
         main_frame = self.GetParent()
 
@@ -781,12 +1032,25 @@ class AddCtrlDialog(wx.Dialog):
 
 
 class RemoveCtrlDialog(wx.Dialog):
+    """
+    This dialog is used to modify order of and/or remove items from a control
+    group (in which case the items are control sets), or from the list of control
+    groups (in which case the items are control groups).
+    """
     def __init__(self, params, *args, **kwargs):
+        """
+        Initializes the  dialog. It takes all of the arguments for a wx.Dialog
+        and also the following arguments.
+
+        :param collections.OrderedDict params: A dictionary where the keys
+            are the names of the control items of interest.
+        """
         wx.Dialog.__init__(self, *args, **kwargs)
         self._params = params
         self._create_layout()
 
     def _create_layout(self):
+        """Creates the layout for the dialog."""
 
         self.list_ctrl = wx.ListCtrl(self, style=wx.LC_REPORT)
         self.list_ctrl.InsertColumn(0, 'Control')
@@ -821,6 +1085,7 @@ class RemoveCtrlDialog(wx.Dialog):
         self.SetSizer(top_sizer)
 
     def _on_remove(self, evt):
+        """Called when the Remove button is clicked. Removes the item."""
         selected = self.list_ctrl.GetFirstSelected()
 
         while selected != -1:
@@ -828,6 +1093,7 @@ class RemoveCtrlDialog(wx.Dialog):
             selected = self.list_ctrl.GetFirstSelected()
 
     def _on_up(self, evt):
+        """Called when the Up button is clicked. Moves the selected item(s) up."""
         selected_items = []
         selected = self.list_ctrl.GetFirstSelected()
 
@@ -849,6 +1115,9 @@ class RemoveCtrlDialog(wx.Dialog):
                 self.list_ctrl.Select(0, True)
 
     def _on_down(self, evt):
+        """
+        Called when the Down button is clicked. Moves the selected item(s) down.
+        """
         selected_items = []
         selected = self.list_ctrl.GetFirstSelected()
 
@@ -880,6 +1149,10 @@ class RemoveCtrlDialog(wx.Dialog):
                 self.list_ctrl.Select(nitems-1, True)
 
     def _on_ok(self, evt):
+        """
+        Called when Ok is selected to close the control. Gathers values so
+        that the controls can be modified.
+        """
         nitems = self.list_ctrl.GetItemCount()
         self.keys = [self.list_ctrl.GetItemText(i) for i in range(nitems)]
         if self.GetTitle() == 'Modify Control Groups':
@@ -890,26 +1163,27 @@ class RemoveCtrlDialog(wx.Dialog):
         self.EndModal(wx.ID_OK)
 
 class ControlList(ULC.UltimateListCtrl, listmix.ListCtrlAutoWidthMixin):
+    """
+    A ControlList, which is an AGW ultimate list control with a the list control
+    auto width mixin added.
+    """
     def __init__(self, *args, **kwargs):
+        """
+        Initializes the list. Takes all arguments that the wx.agw.UltimateListCtrl
+        takes.
+        """
         ULC.UltimateListCtrl.__init__(self, *args, **kwargs)
         listmix.ListCtrlAutoWidthMixin.__init__(self)
 
-class MyTextCtrl(wx.TextCtrl):
-    def __init__(self, *args, **kwargs):
-        wx.TextCtrl.__init__(self, *args, **kwargs)
-
-        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
-        self.Bind(wx.EVT_RIGHT_DOWN, self.OnContextMenu)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnContextMenu)
-
-    def OnContextMenu(self, evt):
-        print('here!')
-        pass
-
-#This class goes with write header, and was lifted from:
+#This class was lifted from:
 #https://stackoverflow.com/questions/27050108/convert-numpy-type-to-python/27050186#27050186
 class MyEncoder(json.JSONEncoder):
+    """
+    A json.JSONEncoder that converts np types into normal types so that
+    they can be properly saved in json format.
+    """
     def default(self, obj):
+        """A json encoder."""
         if isinstance(obj, np.integer):
             return int(obj)
         elif isinstance(obj, np.floating):
@@ -949,8 +1223,10 @@ def setup_thread_excepthook():
 
 
 class MyApp(wx.App):
+    """The top level wx.App that we subclass to add an exceptionhook."""
 
     def OnInit(self):
+        """Initializes the app. Calls the :class:`MainFrame`"""
 
         # sys.excepthook = self.ExceptionHook
         if len(sys.argv) > 1:
@@ -964,16 +1240,21 @@ class MyApp(wx.App):
         return True
 
     def BringWindowToFront(self):
+        """
+        Overwrites this default method to deal with the possibility that it
+        is called when the frame is closed.
+        """
         try: # it's possible for this event to come when the frame is closed
             self.GetTopWindow().Raise()
         except:
             pass
 
-    #########################
-    # Here's some stuff to inform users of unhandled errors. From
-    # http://apprize.info/python/wxpython/10.html
-
     def ExceptionHook(self, errType, value, trace):
+        """
+        Creates an exception hook that catches all uncaught exceptions and informs
+        users of them, instead of letting the program crash. From
+        http://apprize.info/python/wxpython/10.html
+        """
         err = traceback.format_exception(errType, value, trace)
         errTxt = "\n".join(err)
         msg = ("An unexpected error has occurred, please report it to the "
@@ -989,7 +1270,9 @@ class MyApp(wx.App):
     def HandleError(self, error):
         """
         Override in subclass to handle errors
-        @return: True to allow program to continue running withou showing error
+
+        :return: True to allow program to continue running without showing error.
+            False to show the error.
         """
         return False
 

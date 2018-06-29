@@ -1,7 +1,7 @@
 Utilities
 =============
 
-This module provides widgets to support control of the Mp software.
+This module provides utilities to support control of the Mp software.
 
 :mod:`utils` Module
 ---------------------------

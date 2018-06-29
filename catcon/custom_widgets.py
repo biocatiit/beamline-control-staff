@@ -34,45 +34,26 @@ import MpWx as mpwx
 import MpWxCa as mpwxca
 
 
-class FuncValueEntry(wx.TextCtrl):
-    """
-    Based on the ValueEntry in mpwx, but without callbacks. Meant to work
-    when the mp record itself has a get/set function, like get/set speed
-    for motors.
-    """
-    def __init__( self, parent, record, getter, setter, **kwargs):
-
-        if 'style' in kwargs:
-            style = kwargs['style'] | wx.TE_PROCESS_ENTER
-            del kwargs[style]
-        else:
-            style = wx.TE_PROCESS_ENTER
-
-        wx.TextCtrl.__init__(self, parent, value=getter(), style=style, **kwargs)
-
-        self.record = record
-        self.getter = getter
-        self.setter = setter
-
-        self.Bind(wx.EVT_TEXT, self.OnText)
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
-
-    def OnText(self, event):
-        self.SetBackgroundColour("yellow")
-
-    def OnEnter(self, event):
-        value = self.GetValue().strip()
-
-        self.setter(value)
-
-        self.SetBackgroundColour(wx.NullColour)
-
-
 class CustomEpicsValue(wx.StaticText):
+    """
+    This is a customization of the :class:`MpWxCa.Value` class. In particular,
+    it additionally takes the local MX record scale and offset as arguments,
+    and passes those to the callback funciton, so that the network record is
+    appropriate scaled as set by the local database.
+    """
 
     def __init__(self, parent, pv_name, function, scale, offset, id=-1,
         pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
         name=wx.StaticTextNameStr, base=None):
+        """
+        Initializes the widget. Accepts the usual wx.StaticText values as well
+        as the following parameters.
+
+        :param str pv_name: The EPICS PV name of the MX record.
+        :param function function: The callback function.
+        :param float scale: The local record scale factor.
+        :param float offset: The local record offset.
+        """
 
         wx.StaticText.__init__(self, parent, id=id, label="-----", pos=pos,
             size=size, style=style, name=name )
@@ -88,7 +69,7 @@ class CustomEpicsValue(wx.StaticText):
 
         args = (self.pv, self, scale, offset)
 
-        self.callback = self.pv.add_callback( mpca.DBE_VALUE, function, args )
+        self.callback = self.pv.add_callback(mpca.DBE_VALUE, function, args)
 
         try:
             self.pv.caget()
@@ -103,16 +84,35 @@ class CustomEpicsValue(wx.StaticText):
         self.SetForegroundColour("blue")
 
     def OnUpdate(self, event):
+        """
+        The function called to update the displayed value when a change in
+        the mx network value is detected.
+        """
         value = event.args
 
         self.SetLabel(value)
         self.SetSize(self.GetBestSize())
 
 class CustomEpicsValueEntry(wx.TextCtrl):
+    """
+    This is a customization of the :class:`MpWxCa.ValueEntry` class. In particular,
+    it additionally takes the local MX record scale and offset as arguments,
+    and passes those to the callback funciton, so that the network record is
+    appropriate scaled as set by the local database.
+    """
 
-    def __init__(self, parent, pv_name,function, scale, offset, id=-1,
+    def __init__(self, parent, pv_name, function, scale, offset, id=-1,
         pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
         name=wx.TextCtrlNameStr, validator=wx.DefaultValidator):
+        """
+        Initializes the widget. Accepts the usual wx.TextCtrl values as well
+        as the following parameters.
+
+        :param str pv_name: The EPICS PV name of the MX record.
+        :param function function: The callback function.
+        :param float scale: The local record scale factor.
+        :param float offset: The local record offset.
+        """
 
         # Adding wx.TE_PROCESS_ENTER to the style causes the
         # widget to generate wx.EVT_TEXT_ENTER events when
@@ -156,21 +156,36 @@ class CustomEpicsValueEntry(wx.TextCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
 
     def OnText(self, event):
+        """
+        Called when text is changed in the box. Changes the background
+        color of the text box to indicate there are unset changes.
+        """
         self.SetBackgroundColour("yellow")
 
     def OnEnter(self, event):
+        """
+        When enter is pressed in the box, it sets the value in EPICS.
+        """
         value = float(self.GetValue().strip())
         value = str((value-self.offset)/self.scale)
         self.pv.caput(value, wait=False)
         self.SetBackgroundColour(wx.NullColour)
 
     def OnUpdate(self, event):
+        """
+        The function called to update the displayed value when a change in
+        the mx network value is detected.
+        """
         value = event.args
         self.SetValue(value)
         self.SetBackgroundColour(wx.NullColour)
 
 
 def on_epics_limit(callback, args):
+    """
+    This is a callback function that alerts the user if you hit a software
+    limit for an EPICS motor.
+    """
     pv, widget = args
     value = pv.get_local()
 
@@ -179,7 +194,11 @@ def on_epics_limit(callback, args):
         wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
 def network_value_callback(nf, widget, args, value):
-
+    """
+    This is a callback function that sets the value of an MX network variable.
+    It is modified from the one in :mod:`MpWx` to use the local record scale
+    and offset.
+    """
     scale, offset = args
 
     if isinstance(value, list):
@@ -202,6 +221,11 @@ def network_value_callback(nf, widget, args, value):
     widget.Refresh()
 
 def epics_value_callback(callback, args):
+    """
+    This is a callback function that sets the value of an MX EPICS network variable.
+    It is modified from the one in :mod:`MpWxCa` to use the local record scale
+    and offset.
+    """
 
     pv, widget, scale, offset = args
 
