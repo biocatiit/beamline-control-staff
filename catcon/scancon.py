@@ -59,7 +59,7 @@ class ScanProcess(multiprocessing.Process):
 
     def __init__(self, command_queue, return_queue, abort_event):
         """
-        Initializes the thread.
+        Initializes the Process.
 
         :param multiprocessing.Manager.Queue command_queue: This queue is used
             to pass commands to the scan process.
@@ -623,7 +623,10 @@ class ScanPanel(wx.Panel):
         scan_params = self._get_params()
 
         if scan_params is not None:
-            self.plot.set_xlim(scan_params['start'], scan_params['stop'])
+            if scan_params['start'] < scan_params['stop']:
+                self.plot.set_xlim(scan_params['start'], scan_params['stop'])
+            else:
+                self.plot.set_xlim(scan_params['stop'], scan_params['start'])
 
             self.initial_position = self.device.get_position()
             self.scan_timer.Start(10)
@@ -652,10 +655,17 @@ class ScanPanel(wx.Panel):
         else:
             offset = self.device.get_position()
         try:
+            start = float(self.start.GetValue())+offset
+            stop = float(self.stop.GetValue())+offset
+
+            if start < stop:
+                step = abs(float(self.step.GetValue()))
+            else:
+                step = -abs(float(self.step.GetValue()))
             scan_params = {'device'     : self.device_name,
-                        'start'         : float(self.start.GetValue())+offset,
-                        'stop'          : float(self.stop.GetValue())+offset,
-                        'step'          : float(self.step.GetValue()),
+                        'start'         : start,
+                        'stop'          : stop,
+                        'step'          : step,
                         'scalers'       : [self.scaler.GetStringSelection()],
                         'dwell_time'    : float(self.count_time.GetValue()),
                         'timer'         : self.timer.GetStringSelection(),
