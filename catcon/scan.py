@@ -78,11 +78,16 @@ class ScanProcess(multiprocessing.Process):
         self._abort_event = abort_event
         self._stop_event = multiprocessing.Event()
 
+        self.motor_name = ''
+
         mp.set_user_interrupt_function(self._stop_scan)
 
         self._commands = {'start_mxdb'      : self._start_mxdb,
                         'set_scan_params'   : self._set_scan_params,
                         'scan'              : self._scan,
+                        'get_devices'       : self._get_devices,
+                        'get_position'      : self._get_position,
+                        'move_abs'          : self._move_abs,
                         }
 
     def run(self):
@@ -111,6 +116,7 @@ class ScanProcess(multiprocessing.Process):
                     self._commands[cmd](*args, **kwargs)
                     self.working=False
                 except Exception as e:
+                    print(e)
                     self.working=False
 
         if self._stop_event.is_set():
@@ -127,6 +133,46 @@ class ScanProcess(multiprocessing.Process):
         self.db_path = db_path
         self.mx_database = mp.setup_database(self.db_path)
         self.mx_database.set_plot_enable(2)
+
+    def _get_devices(self):
+        """
+        Gets a list of all of the relevant devices and returns them to populate
+        the scan GUI.
+
+        :param list scaler_fields: A list of the scaler record types to return.
+            Defined in the mxmap_config file.
+        :param list det_fields: A list of the detector record types to return.
+            Defined in the mxmap_config file.
+        """
+        scalers = []
+        timers = []
+        motors = []
+        for r in self.mx_database.get_all_records():
+            mx_class = r.get_field('mx_class')
+
+            if mx_class == 'scaler':
+                scalers.append(r.name)
+            elif mx_class == 'timer':
+                timers.append(r.name)
+            elif mx_class == 'motor':
+                motors.append(r.name)
+
+        motors = sorted(motors, key=str.lower)
+        timers = sorted(timers, key=str.lower)
+        scalers = sorted(scalers, key=str.lower)
+
+        self.return_queue.put_nowait([motors, scalers, timers])
+
+    def _get_position(self, motor_name):
+        if motor_name != self.motor_name:
+            self.motor_name = motor_name
+            self.motor = self.mx_database.get_record(motor_name)
+
+        pos = self.motor.get_position()
+        self.return_queue.put_nowait([pos])
+
+    def _move_abs(self, position):
+        self.motor.move_absolute(position)
 
     def _set_scan_params(self, device, start, stop, step, scalers,
         dwell_time, timer, detector=None, file_name=None, dir_path=None):
@@ -274,7 +320,7 @@ class ScanPanel(wx.Panel):
     various parameters (COM, FWHM), and allows the user to move to those positions
     or to any point in the scan.
     """
-    def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
+    def __init__(self, mx_database, *args, **kwargs):
         """
         Initializes the scan panel. Accepts the usual wx.Panel arguments plus
         the following.
@@ -288,13 +334,7 @@ class ScanPanel(wx.Panel):
         """
         wx.Panel.__init__(self, *args, **kwargs)
 
-        self.device_name = device_name
         self.mx_database = mx_database
-        self.device = device
-        self.server_record = server_record
-        self.type = self.device.get_field('mx_type')
-        self.scale = float(self.device.get_field('scale'))
-        self.offset = float(self.device.get_field('offset'))
 
         self.manager = multiprocessing.Manager()
         self.cmd_q = self.manager.Queue()
@@ -306,58 +346,36 @@ class ScanPanel(wx.Panel):
         self.scan_timer = wx.Timer()
         self.scan_timer.Bind(wx.EVT_TIMER, self._on_scantimer)
 
+        self.update_timer = wx.Timer()
+        self.update_timer.Bind(wx.EVT_TIMER, self._on_updatetimer)
+
         self.live_plt_evt = threading.Event()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
+        self._start_scan_mxdb()
+        self._get_devices()
         self._initialize_variables()
         self._create_layout()
-
-        self._start_scan_mxdb()
 
     def _create_layout(self):
         """Creates the layout of both the controls and the plots."""
 
-        if self.type == 'network_motor':
-            # server_record_name = self.device.get_field("server_record")
-            # server_record = self.mx_database.get_record(server_record_name) #Invokes MX bug
-            remote_record_name = self.device.get_field("remote_record_name")
+        self.motor = wx.Choice(self, choices=self.motors)
+        self.motor.Bind(wx.EVT_CHOICE, self._on_motorchoice)
 
-            pos_name = "{}.position".format(remote_record_name)
-            pos = mpwx.Value(self, self.server_record, pos_name,
-                function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
-            dname = wx.StaticText(self, label=self.device_name)
-
-        elif self.type == 'epics_motor':
-            pv = self.device.get_field('epics_record_name')
-
-            pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
-                custom_widgets.epics_value_callback, self.scale, self.offset)
-            self.pos = wx.StaticText(self, label='{}'.format(self.device.get_position()))
-            dname = wx.StaticText(self, label='{} ({})'.format(self.device_name, pv))
+        self.pos = wx.StaticText(self, label='')
+        self.pos_label = wx.StaticText(self, label='Current position:')
 
         info_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        info_grid.Add(wx.StaticText(self, label='Device name:'))
-        info_grid.Add(dname)
-        info_grid.Add(wx.StaticText(self, label='Current position ({}):'.format(self.device.get_field('units'))))
-        info_grid.Add(pos)
+        info_grid.Add(wx.StaticText(self, label='Device:'))
+        info_grid.Add(self.motor)
+        info_grid.Add(self.pos_label)
+        info_grid.Add(self.pos)
 
         info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
             wx.VERTICAL)
         info_sizer.Add(info_grid, wx.EXPAND)
-
-        scalers = []
-        timers = []
-        detectors = ['None']
-        for r in self.mx_database.get_all_records():
-            mx_class = r.get_field('mx_class')
-
-            if mx_class == 'scaler':
-                scalers.append(r.name)
-            elif mx_class == 'timer':
-                timers.append(r.name)
-            elif mx_class == 'area_detector':
-                detectors.append(r.name)
 
         self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
         self.scan_type.SetSelection(1)
@@ -365,8 +383,8 @@ class ScanPanel(wx.Panel):
         self.stop = wx.TextCtrl(self, value='', size=(80, -1))
         self.step = wx.TextCtrl(self, value='', size=(80, -1))
         self.count_time = wx.TextCtrl(self, value='0.1')
-        self.scaler = wx.Choice(self, choices=scalers)
-        self.timer = wx.Choice(self, choices=timers)
+        self.scaler = wx.Choice(self, choices=self.scalers)
+        self.timer = wx.Choice(self, choices=self.timers)
         # self.detector = wx.Choice(self, choices=detectors)
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
@@ -563,11 +581,11 @@ class ScanPanel(wx.Panel):
 
         self.plot = self.fig.add_subplot(self.plt_gs2[0], title='Scan')
         self.plot.set_ylabel('Scaler counts')
-        self.plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
+        self.plot.set_xlabel('Position')
 
         self.der_plot = self.fig.add_subplot(self.plt_gs2[1], title='Derivative', sharex=self.plot)
         self.der_plot.set_ylabel('Derivative')
-        self.der_plot.set_xlabel('Position ({})'.format(self.device.get_field('units')))
+        self.der_plot.set_xlabel('Position')
 
         self.der_plot.set_visible(False)
         self.plot.set_position(self.plt_gs[0].get_position(self.fig))
@@ -613,6 +631,22 @@ class ScanPanel(wx.Panel):
         self.com = None
         self.der_com = None
 
+    def _get_devices(self):
+        self.cmd_q.put_nowait(['get_devices', [], {}])
+        self.motors, self.scalers, self.timers = self.return_q.get()
+
+    def _on_motorchoice(self, evt):
+        self.motor_name = self.motor.GetStringSelection()
+
+        if not self.update_timer.IsRunning() and not self.scan_timer.IsRunning():
+            self.update_timer.Start(100)
+
+    def _on_updatetimer(self, evt):
+        self.cmd_q.put_nowait(['get_position', [self.motor_name], {}])
+        pos = self.return_q.get()[0]
+
+        self.pos.SetLabel(str(pos))
+
     def _on_start(self, evt):
         """
         Called when the start scan button is pressed. It gets the scan
@@ -621,6 +655,18 @@ class ScanPanel(wx.Panel):
         self.start_btn.Disable()
         self.stop_btn.Enable()
         scan_params = self._get_params()
+        self.update_timer.Stop()
+        while True:
+            try:
+                self.return_q.get_nowait()
+            except queue.Empty:
+                break
+
+        while True:
+            try:
+                self.cmd_q.get_nowait()
+            except queue.Empty:
+                break
 
         if scan_params is not None:
             if scan_params['start'] < scan_params['stop']:
@@ -628,7 +674,7 @@ class ScanPanel(wx.Panel):
             else:
                 self.plot.set_xlim(scan_params['stop'], scan_params['start'])
 
-            self.initial_position = self.device.get_position()
+            self.initial_position = float(self.pos.GetLabel())
             self.scan_timer.Start(10)
 
             self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
@@ -653,7 +699,7 @@ class ScanPanel(wx.Panel):
         if self.scan_type.GetStringSelection() == 'Absolute':
             offset = 0
         else:
-            offset = self.device.get_position()
+            offset = float(self.pos.GetLabel())
         try:
             start = float(self.start.GetValue())+offset
             stop = float(self.stop.GetValue())+offset
@@ -662,7 +708,7 @@ class ScanPanel(wx.Panel):
                 step = abs(float(self.step.GetValue()))
             else:
                 step = -abs(float(self.step.GetValue()))
-            scan_params = {'device'     : self.device_name,
+            scan_params = {'device'     : self.motor_name,
                         'start'         : start,
                         'stop'          : stop,
                         'step'          : step,
@@ -684,10 +730,8 @@ class ScanPanel(wx.Panel):
 
     def _start_scan_mxdb(self):
         """Loads the mx database in the scan process"""
-        mxdir = utils.get_mxdir()
-        database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
-        database_filename = os.path.normpath(database_filename)
-        self.cmd_q.put_nowait(['start_mxdb', [database_filename], {}])
+
+        self.cmd_q.put_nowait(['start_mxdb', [self.mx_database], {}])
 
     def _on_scantimer(self, evt):
         """
@@ -715,15 +759,21 @@ class ScanPanel(wx.Panel):
             self.scan_timer.Stop()
             self.live_plt_evt.set()
             self._update_results()
-            self.device.move_absolute(self.initial_position)
+
             #This is a hack
             self.scan_proc.stop()
             self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
             self.scan_proc.start()
             self._start_scan_mxdb()
 
+            self.cmd_q.put_nowait(['get_position', [self.motor_name], {}])
+            pos = self.return_q.get()[0]
+
+            self.cmd_q.put_nowait(['move_abs', [self.initial_position], {}])
+
             self.start_btn.Enable()
             self.stop_btn.Disable()
+            self.update_timer.Start(100)
 
     def _ax_redraw(self, widget=None):
         """Redraw plots on window resize event."""
@@ -1103,7 +1153,7 @@ class ScanPanel(wx.Panel):
 
         :param float position: The position the user selected.
         """
-        self.device.move_absolute(position)
+        self.cmd_q.put_nowait(['move_abs', [position], {}])
 
     def _on_showder(self, event):
         """
@@ -1456,7 +1506,7 @@ class ScanPanel(wx.Panel):
                 pos = self.der_com
 
         if pos is not None:
-            self.device.move_absolute(pos)
+            self.cmd_q.put_nowait(['move_abs', [pos], {}])
 
     def _on_saveresults(self, event):
         """
@@ -1564,7 +1614,7 @@ class ScanFrame(wx.Frame):
     """
     A lightweight scan frame that holds the :mod:`ScanPanel`.
     """
-    def __init__(self, device_name, device, server_record, mx_database, *args, **kwargs):
+    def __init__(self, mx_database, *args, **kwargs):
         """
         Initializes the scan frame. Takes all the usual wx.Frame arguments and
         also the following.
@@ -1578,11 +1628,11 @@ class ScanFrame(wx.Frame):
         """
         wx.Frame.__init__(self, *args, **kwargs)
 
-        self._create_layout(device_name, device, server_record, mx_database)
+        self._create_layout(mx_database)
 
         self.Fit()
 
-    def _create_layout(self, device_name, device, server_record, mx_database):
+    def _create_layout(self, mx_database):
         """
         Creates the layout, by calling mod:`ScanPanel`.
 
@@ -1593,7 +1643,7 @@ class ScanFrame(wx.Frame):
         :param Mp.RecordList mx_database: The Mp record list representing the
             MX database being used.
         """
-        scan_panel = ScanPanel(device_name, device, server_record, mx_database, parent=self)
+        scan_panel = ScanPanel(mx_database, parent=self)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(scan_panel, 1, wx.EXPAND)
@@ -1612,18 +1662,9 @@ if __name__ == '__main__':
         database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
         database_filename = os.path.normpath(database_filename)
 
-    mx_database = mp.setup_database(database_filename)
-    mx_database.set_plot_enable(2)
-    device = mx_database.get_record('mtr1')
-    if device.get_field('mx_type') == 'network_motor':
-        server_record_name = device.get_field("server_record")
-        server_record = mx_database.get_record(server_record_name)
-    else:
-        server_record = None
-
     app = wx.App()
 
-    frame = ScanFrame('mtr1', device, server_record, mx_database, parent=None, title='Test Scan Control')
+    frame = ScanFrame(database_filename, parent=None, title='Scan Control')
     frame.Show()
     app.MainLoop()
 
