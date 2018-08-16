@@ -387,6 +387,11 @@ class ScanPanel(wx.Panel):
         self.timer = wx.Choice(self, choices=self.timers)
         # self.detector = wx.Choice(self, choices=detectors)
 
+        if 'i0' in self.scalers:
+            self.scaler.SetStringSelection('i0')
+        if 'timer1' in self.timers:
+            self.timer.SetStringSelection('timer1')
+
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
         type_sizer.Add(self.scan_type, border=5, flag=wx.LEFT)
@@ -1048,7 +1053,7 @@ class ScanPanel(wx.Panel):
         self.com = None
         self.der_com = None
 
-        self.update_plot() #Is this threadsafe?
+        wx.CallAfter(self.update_plot) #Is this threadsafe?
         wx.CallAfter(self._update_results)
         wx.Yield()
 
@@ -1081,7 +1086,7 @@ class ScanPanel(wx.Panel):
                         self._calc_fwhm('der', False)
                         self._calc_com('der', False)
 
-                    self.update_plot() #Is this threadsafe?
+                    wx.CallAfter(self.update_plot) #Is this threadsafe?
                     wx.CallAfter(self._update_results)
                     wx.Yield()
 
@@ -1104,12 +1109,10 @@ class ScanPanel(wx.Panel):
 
         Called when the scan window is closed.
         """
-        print('in _on_closewindow!!!!!\n\n\n\n\n\n')
         self.scan_timer.Stop()
         self.scan_proc.stop()
 
         while self.scan_proc.is_alive():
-            print('here')
             time.sleep(.01)
 
         self.Destroy()
@@ -1630,7 +1633,10 @@ class ScanFrame(wx.Frame):
 
         self._create_layout(mx_database)
 
+        self.Layout()
         self.Fit()
+        self.Layout()
+        self.SetSizeHints(-1, 750)
 
     def _create_layout(self, mx_database):
         """
@@ -1647,6 +1653,10 @@ class ScanFrame(wx.Frame):
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(scan_panel, 1, wx.EXPAND)
+
+        scan_panel.Layout()
+        scan_panel.Fit()
+        scan_panel.Layout()
 
         self.SetSizer(top_sizer)
 
