@@ -369,6 +369,11 @@ class ScanPanel(wx.Panel):
         self.timer = wx.Choice(self, choices=timers)
         # self.detector = wx.Choice(self, choices=detectors)
 
+        if 'i0' in scalers:
+            self.scaler.SetStringSelection('i0')
+        if 'timer1' in timers:
+            self.timer.SetStringSelection('timer1')
+
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
         type_sizer.Add(self.scan_type, border=5, flag=wx.LEFT)
@@ -998,7 +1003,7 @@ class ScanPanel(wx.Panel):
         self.com = None
         self.der_com = None
 
-        self.update_plot() #Is this threadsafe?
+        wx.CallAfter(self.update_plot)
         wx.CallAfter(self._update_results)
         wx.Yield()
 
@@ -1031,7 +1036,7 @@ class ScanPanel(wx.Panel):
                         self._calc_fwhm('der', False)
                         self._calc_com('der', False)
 
-                    self.update_plot() #Is this threadsafe?
+                    wx.CallAfter(self.update_plot)
                     wx.CallAfter(self._update_results)
                     wx.Yield()
 
