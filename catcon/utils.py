@@ -26,6 +26,7 @@ from io import open
 
 import os
 import time
+import sys
 
 import wx
 
@@ -49,12 +50,14 @@ def get_mpdir():
 
 def set_mppath():
     """Puts the mp directory in the system path, if it isn't already."""
-    path = os.environ['PATH']
+    os.environ['PATH']
 
     mp_dir = get_mpdir()
 
-    if mp_dir not in path:
+    if mp_dir not in os.environ['PATH']:
         os.environ["PATH"] = mp_dir+os.pathsep+os.environ["PATH"]
+    if mp_dir not in sys.path:
+        sys.path.append(mp_dir)
 
 
 def file_follow(the_file, stop_event):
