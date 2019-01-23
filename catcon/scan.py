@@ -257,7 +257,7 @@ class ScanProcess(multiprocessing.Process):
             standard_paths = wx.StandardPaths.Get()
             tmpdir = standard_paths.GetTempDir()
             fname = tempfile.NamedTemporaryFile(dir=tmpdir).name
-            fname=os.path.normpath('./{}'.format(os.path.split(fname)[-1]))
+            fname=os.path.normpath(os.path.expanduser('~/{}'.format(os.path.split(fname)[-1])))
         else:
             fname = os.path.join(self.out_path, self.out_name)
 
@@ -390,7 +390,7 @@ class ScanPanel(wx.Panel):
         if 'i0' in self.scalers:
             self.scaler.SetStringSelection('i0')
         if 'timer1' in self.timers:
-            self.timer.SetStringSelection('timer1')
+            self.timer.SetStringSelection('joerger_timer')
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
@@ -1059,6 +1059,7 @@ class ScanPanel(wx.Panel):
 
         if not os.path.exists(filename):
             time.sleep(0.1)
+        time.sleep(2)
 
         with open(filename) as thefile:
             data = utils.file_follow(thefile, self.live_plt_evt)
