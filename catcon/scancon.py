@@ -47,6 +47,7 @@ import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
+import MpWx as mpwx
 
 class ScanProcess(multiprocessing.Process):
     """
@@ -323,7 +324,7 @@ class ScanPanel(wx.Panel):
             remote_record_name = self.device.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = custom_widgets.CustomValue(self, self.server_record, pos_name,
+            pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             dname = wx.StaticText(self, label=self.device_name)
 

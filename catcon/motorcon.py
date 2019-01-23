@@ -35,6 +35,7 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpCa as mpca
+import MpWx as mpwx
 
 
 class MotorPanel(wx.Panel):
@@ -108,14 +109,14 @@ class MotorPanel(wx.Panel):
             remote_record_name = self.motor.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = custom_widgets.CustomValue(self, self.server_record, pos_name,
+            pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             # local_server_record = self.mx_database.get_record('localhost')
-            # low_limit = custom_widgets.CustomValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
-            # high_limit = custom_widgets.CustomValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
+            # low_limit = mpwx.ValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
+            # high_limit = mpwx.ValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
             mname = wx.StaticText(self, label=self.motor.name)
 
         elif self.mtr_type == 'epics_motor':
@@ -210,7 +211,7 @@ class MotorPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, custom_widgets.CustomValue)
+            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
                 or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
@@ -316,7 +317,7 @@ class MotorPanel(wx.Panel):
             self._enabled = True
 
         for item in self.GetChildren():
-            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
                 and not isinstance(item, custom_widgets.CustomEpicsValue) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
