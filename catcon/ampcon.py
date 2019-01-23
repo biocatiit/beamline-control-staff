@@ -34,8 +34,7 @@ import wx
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
-import MpWx as mpwx
-import MpWxCa as mpwxca
+import custom_widgets
 
 class AmpPanel(wx.Panel):
     """
@@ -93,14 +92,14 @@ class AmpPanel(wx.Panel):
             '1e+08', '1e+09', '1e+10']
 
         gain_name = "{}.gain".format(self.remote_record_name)
-        gain = mpwx.Choice(self, self.server_record, gain_name,
+        gain = custom_widgets.CustomChoice(self, self.server_record, gain_name,
             choices=amp_choices, function=self._choice_update)
 
         offset_name = "{}.offset".format(self.remote_record_name)
-        offset = mpwx.ValueEntry(self, self.server_record, offset_name)
+        offset = custom_widgets.CustomValueEntry(self, self.server_record, offset_name)
 
         timec_name = "{}.time_constant".format(self.remote_record_name)
-        timec = mpwx.ValueEntry(self, self.server_record, timec_name)
+        timec = custom_widgets.CustomValueEntry(self, self.server_record, timec_name)
 
         control_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
         control_grid.Add(wx.StaticText(self, label='Amplifier name:'), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -122,8 +121,8 @@ class AmpPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, mpwxca.Value) or isinstance(item, wx.StaticBox)):
+            if (isinstance(item, wx.StaticText) or isinstance(item, custom_widgets.CustomValue)
+                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
@@ -179,8 +178,8 @@ class AmpPanel(wx.Panel):
             self._enabled = True
 
         for item in self.GetChildren():
-            if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
-                and not isinstance(item, mpwxca.Value) and not
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
+                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 

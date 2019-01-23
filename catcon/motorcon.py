@@ -35,9 +35,6 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpCa as mpca
-import MpWx as mpwx
-import MpWxCa as mpwxca
-
 
 
 class MotorPanel(wx.Panel):
@@ -111,14 +108,14 @@ class MotorPanel(wx.Panel):
             remote_record_name = self.motor.get_field("remote_record_name")
 
             pos_name = "{}.position".format(remote_record_name)
-            pos = mpwx.Value(self, self.server_record, pos_name,
+            pos = custom_widgets.CustomValue(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
             low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             # local_server_record = self.mx_database.get_record('localhost')
-            # low_limit = mpwx.ValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
-            # high_limit = mpwx.ValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
+            # low_limit = custom_widgets.CustomValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
+            # high_limit = custom_widgets.CustomValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
             mname = wx.StaticText(self, label=self.motor.name)
 
         elif self.mtr_type == 'epics_motor':
@@ -161,8 +158,8 @@ class MotorPanel(wx.Panel):
         stop_btn = buttons.ThemedGenButton(self, label='Abort', size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
         stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
 
-        scan_btn = buttons.ThemedGenButton(self, label='Scan', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
-        scan_btn.Bind(wx.EVT_BUTTON, self._on_scan)
+        # scan_btn = buttons.ThemedGenButton(self, label='Scan', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
+        # scan_btn.Bind(wx.EVT_BUTTON, self._on_scan)
 
         pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=5, rows=2)
         pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -194,7 +191,7 @@ class MotorPanel(wx.Panel):
         mrel_sizer.Add(tp_btn, border=2, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
         ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
+        # ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
         ctrl_btn_sizer.AddStretchSpacer(1)
         ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT|wx.ALIGN_RIGHT)
 
@@ -213,8 +210,8 @@ class MotorPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, mpwxca.Value) or isinstance(item, wx.StaticBox)):
+            if (isinstance(item, wx.StaticText) or isinstance(item, custom_widgets.CustomValue)
+                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
@@ -319,8 +316,8 @@ class MotorPanel(wx.Panel):
             self._enabled = True
 
         for item in self.GetChildren():
-            if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
-                and not isinstance(item, mpwxca.Value) and not
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
+                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 

@@ -34,6 +34,71 @@ import MpWx as mpwx
 import MpWxCa as mpwxca
 
 
+class CustomValue(mpwx.Value):
+
+    def __init__( self, *args, **kwargs):
+
+        super(CustomValue, self).__init__(*args, **kwargs)
+
+        self.function = kwargs['function']
+
+    def __del__(self):
+        self.nf.remove_from_value_changed_list(self, self.function)
+
+        super(CustomValue, self).__del__()
+
+class CustomValueEntry(mpwx.ValueEntry):
+
+    def __init__( self, *args, **kwargs):
+
+        super(CustomValueEntry, self).__init__(*args, **kwargs)
+
+        self.function = kwargs['function']
+
+    def __del__(self):
+        self.nf.remove_from_value_changed_list(self, self.function)
+
+        super(CustomValueEntry, self).__del__()
+
+class CustomChoice(mpwx.Choice):
+
+    def __init__( self, *args, **kwargs):
+
+        super(CustomChoice, self).__init__(*args, **kwargs)
+
+        self.function = kwargs['function']
+
+    def __del__(self):
+        self.nf.remove_from_value_changed_list(self, self.function)
+
+        super(CustomChoice, self).__del__()
+
+class CustomRadioBox(mpwx.RadioBox):
+
+    def __init__( self, *args, **kwargs):
+
+        super(CustomRadioBox, self).__init__(*args, **kwargs)
+
+        self.function = kwargs['function']
+
+    def __del__(self):
+        self.nf.remove_from_value_changed_list(self, self.function)
+
+        super(CustomRadioBox, self).__del__()
+
+class CustomButton(mpwx.Button):
+
+    def __init__( self, *args, **kwargs):
+
+        super(CustomButton, self).__init__(*args, **kwargs)
+
+        self.function = kwargs['function']
+
+    def __del__(self):
+        self.nf.remove_from_value_changed_list(self, self.function)
+
+        super(CustomButton, self).__del__()
+
 class CustomEpicsValue(wx.StaticText):
     """
     This is a customization of the :class:`MpWxCa.Value` class. In particular,

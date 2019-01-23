@@ -43,11 +43,9 @@ import numpy as np
 import scipy.optimize
 import scipy.interpolate
 
-import custom_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
-import MpWx as mpwx
 
 class ScanProcess(multiprocessing.Process):
     """
@@ -193,6 +191,7 @@ class ScanProcess(multiprocessing.Process):
         :param str dir_path: The directory path where the scan file will be
             saved. Currently not used.
         """
+        print('in set scan parameters')
         self.out_path = dir_path
         self.out_name = file_name
 
@@ -212,6 +211,7 @@ class ScanProcess(multiprocessing.Process):
         communicates with the :mod:`ScanPanel` to send the filename for live
         plotting of the scan.
         """
+        print('in scan')
         all_names = [r.name for r in self.mx_database.get_all_records()]
 
         if self.out_name is not None:
@@ -840,7 +840,7 @@ class ScanPanel(wx.Panel):
         if self.fwhm_line is None:
             if self.fwhm is not None and self.show_fwhm.IsChecked() and self.fwhm[1] != self.fwhm[2]:
                 self.fwhm_line = self.plot.axvspan(self.fwhm[1], self.fwhm[2],
-                    facecolor='g', alpha=0., animated=True)
+                    facecolor='g', alpha=0.5, animated=True)
 
                 get_plt_bkg = True
 
