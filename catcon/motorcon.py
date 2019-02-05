@@ -93,6 +93,21 @@ class MotorPanel(wx.Panel):
             self.limit_pv = mpca.PV("{}.LVIO".format(pv))
             self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, custom_widgets.on_epics_limit, (self.limit_pv, self))
 
+        self.is_slit_mtr = False
+
+        if self.mtr_type == 'network_motor':
+            server_record_name = self.motor.get_field('server_record')
+            remote_record_name = self.motor.get_field('remote_record_name')
+            server_record = mx_database.get_record(server_record_name)
+            remote_type_name = '{}.mx_type'.format(remote_det_name)
+            det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+
+            remote_type = mp.Net(server_record, remote_type_name)
+
+            if remote_type.get() == 'slit_motor':
+                self.is_slit_mtr == True
+                self.remote_offset = mp.Net(server_record, '{}.offset')
+
         self.SetSizer(top_sizer)
 
     def _create_layout(self):
@@ -242,10 +257,28 @@ class MotorPanel(wx.Panel):
         pval = self.pos_ctrl.GetValue()
 
         if self._is_num(pval):
-            self.motor.set_position(float(pval))
+            pval = float(pval)
         else:
             msg = 'Position has to be numeric.'
             wx.MessageBox(msg, 'Error setting position')
+            return
+
+        if self.is_slit_mtr:
+            remote_offset = float(self.remote_offset.get())
+            current_pos = float(self.motor.get_position())
+
+            remote_current_pos = (current_pos-self.offset)/self.scale
+            remote_target_pos = (pval-self.offset)/self.scale
+
+            delta =  remote_target_pos - remote_current_pos
+            new_remote_offset = remote_offset + delta
+
+            self.remote_offset.put(new_remote_offset)
+
+        else:
+            self.motor.set_position(pval)
+
+        return
 
     def _on_mrel(self, evt):
         """

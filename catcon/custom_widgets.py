@@ -30,7 +30,6 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpCa as mpca
-import MpWx as mpwx
 import MpWxCa as mpwxca
 
 class CustomEpicsValue(wx.StaticText):
