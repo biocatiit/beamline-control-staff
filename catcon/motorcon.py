@@ -99,14 +99,13 @@ class MotorPanel(wx.Panel):
             server_record_name = self.motor.get_field('server_record')
             remote_record_name = self.motor.get_field('remote_record_name')
             server_record = mx_database.get_record(server_record_name)
-            remote_type_name = '{}.mx_type'.format(remote_det_name)
-            det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+            remote_type_name = '{}.mx_type'.format(remote_record_name)
 
             remote_type = mp.Net(server_record, remote_type_name)
 
             if remote_type.get() == 'slit_motor':
-                self.is_slit_mtr == True
-                self.remote_offset = mp.Net(server_record, '{}.offset')
+                self.is_slit_mtr = True
+                self.remote_offset = mp.Net(server_record, '{}.offset'.format(remote_record_name))
 
         self.SetSizer(top_sizer)
 
