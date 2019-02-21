@@ -103,7 +103,7 @@ class MotorPanel(wx.Panel):
 
             remote_type = mp.Net(server_record, remote_type_name)
 
-            if remote_type.get() == 'slit_motor':
+            if str(remote_type.get()) == 'slit_motor':
                 self.is_slit_mtr = True
                 self.remote_offset = mp.Net(server_record, '{}.offset'.format(remote_record_name))
 

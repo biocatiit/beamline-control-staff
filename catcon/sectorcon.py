@@ -80,7 +80,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
-        self.mx_timer.Start(100)
+        self.mx_timer.Start(10)
 
         if int(wx.__version__.split('.')[0]) > 3:
             self.SetSizeHints((440,300))
