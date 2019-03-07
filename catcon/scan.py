@@ -145,6 +145,8 @@ class ScanProcess(multiprocessing.Process):
         scalers = []
         timers = []
         motors = []
+        detectors = []
+
         for r in self.mx_database.get_all_records():
             mx_class = r.get_field('mx_class')
 
@@ -154,12 +156,15 @@ class ScanProcess(multiprocessing.Process):
                 timers.append(r.name)
             elif mx_class == 'motor':
                 motors.append(r.name)
+            elif mx_class == 'area_detector':
+                detectors.append(r.name)
 
         motors = sorted(motors, key=str.lower)
         timers = sorted(timers, key=str.lower)
         scalers = sorted(scalers, key=str.lower)
+        detectors = sorted(detectors, key=str.lower)
 
-        self.return_queue.put_nowait([motors, scalers, timers])
+        self.return_queue.put_nowait([motors, scalers, timers, detectors])
 
     def _get_position(self, motor_name):
         if motor_name != self.motor_name:
@@ -191,7 +196,6 @@ class ScanProcess(multiprocessing.Process):
         :param str dir_path: The directory path where the scan file will be
             saved. Currently not used.
         """
-        print('in set scan parameters')
         self.out_path = dir_path
         self.out_name = file_name
 
@@ -211,7 +215,87 @@ class ScanProcess(multiprocessing.Process):
         communicates with the :mod:`ScanPanel` to send the filename for live
         plotting of the scan.
         """
-        print('in scan')
+        if self.detector is not None:
+            self._my_scan()
+        else:
+            self._mx_scan()
+
+    def _my_scan(self):
+        det = self.mx_database.get_record(self.detector)
+        det.set_trigger_mode(1)
+
+        server_record_name = det.get_field('server_record')
+        remote_det_name = det.get_field('remote_record_name')
+        server_record = self.mx_database.get_record(server_record_name)
+        det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
+        det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+
+        det_datadir = mp.Net(server_record, det_datadir_name)
+        det_filename = mp.Net(server_record, det_datafile_name)
+
+
+        timer = self.mx_database.get_record(self.timer)
+        scaler = self.mx_database.get_record(self.scalers[0])
+
+        start = float(self.start)
+        stop = float(self.stop)
+        step = abs(float(self.step))
+
+        if start < stop:
+            print('in here')
+            mtr1_positions = np.arange(start, stop+step, step)
+        else:
+            print('in here 2')
+            mtr1_positions = np.arange(stop, start+step, step)
+            mtr1_positions = mtr1_positions[::-1]
+
+        if self._abort_event.is_set():
+            self.return_queue.put_nowait(['stop_live_plotting'])
+            return
+
+        print (mtr1_positions)
+
+        self.motor.move_absolute(mtr1_positions[0])
+
+        for num, mtr1_pos in enumerate(mtr1_positions):
+            if mtr1_pos != mtr1_positions[0]:
+                # logger.info('Moving motor 1 position to {}'.format(mtr1_pos))
+                self.motor.move_absolute(mtr1_pos)
+            # mtr1.wait_for_motor_stop()
+            while self.motor.is_busy():
+                time.sleep(0.01)
+                if self._abort_event.is_set():
+                    self.motor.stop()
+                    self.return_queue.put_nowait(['stop_live_plotting'])
+                    return
+
+            det_filename.put('scan_{:03}.tif'.format(num))
+            scaler.clear()
+            timer.clear()
+            timer.stop()
+            timer.start(self.dwell_time)
+
+            while timer.is_busy() != 0:
+                time.sleep(.01)
+                if self._abort_event.is_set():
+                    timer.stop()
+                    self.return_queue.put_nowait(['stop_live_plotting'])
+                    return
+
+            result = scaler.read()
+            print('Position: {}'.format(mtr1_pos))
+            print('Intensity: {}'.format(result))
+            print('Image number: {}\n'.format(num))
+
+            if self._abort_event.is_set():
+                self.return_queue.put_nowait(['stop_live_plotting'])
+                return
+
+        self.return_queue.put_nowait(['stop_live_plotting'])
+        return
+
+
+    def _mx_scan(self):
         all_names = [r.name for r in self.mx_database.get_all_records()]
 
         if self.out_name is not None:
@@ -385,12 +469,13 @@ class ScanPanel(wx.Panel):
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=self.scalers)
         self.timer = wx.Choice(self, choices=self.timers)
-        # self.detector = wx.Choice(self, choices=detectors)
+        self.detector = wx.Choice(self, choices=self.detectors)
 
         if 'i0' in self.scalers:
             self.scaler.SetStringSelection('i0')
         if 'timer1' in self.timers:
             self.timer.SetStringSelection('joerger_timer')
+        self.detector.SetStringSelection('None')
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
@@ -412,8 +497,8 @@ class ScanPanel(wx.Panel):
         count_grid.Add(self.timer)
         count_grid.Add(wx.StaticText(self, label='Scaler:'))
         count_grid.Add(self.scaler)
-        # count_grid.Add(wx.StaticText(self, label='Detector:'))
-        # count_grid.Add(self.detector)
+        count_grid.Add(wx.StaticText(self, label='Detector:'))
+        count_grid.Add(self.detector)
         count_grid.AddGrowableCol(1)
 
         self.start_btn = wx.Button(self, label='Start')
@@ -638,7 +723,8 @@ class ScanPanel(wx.Panel):
 
     def _get_devices(self):
         self.cmd_q.put_nowait(['get_devices', [], {}])
-        self.motors, self.scalers, self.timers = self.return_q.get()
+        self.motors, self.scalers, self.timers, self.detectors = self.return_q.get()
+        self.detectors.insert(0, 'None')
 
     def _on_motorchoice(self, evt):
         self.motor_name = self.motor.GetStringSelection()
@@ -720,8 +806,8 @@ class ScanPanel(wx.Panel):
                         'scalers'       : [self.scaler.GetStringSelection()],
                         'dwell_time'    : float(self.count_time.GetValue()),
                         'timer'         : self.timer.GetStringSelection(),
-                        # 'detector'      : self.detector.GetStringSelection(),
-                        'detector'      : 'None'
+                        'detector'      : self.detector.GetStringSelection(),
+                        # 'detector'      : 'None'
                         }
         except ValueError:
             msg = 'All of start, stop, step, and count time must be numbers.'

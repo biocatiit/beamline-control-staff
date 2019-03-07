@@ -367,7 +367,7 @@ class ScanPanel(wx.Panel):
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=scalers)
         self.timer = wx.Choice(self, choices=timers)
-        # self.detector = wx.Choice(self, choices=detectors)
+        self.detector = wx.Choice(self, choices=detectors)
 
         if 'i0' in scalers:
             self.scaler.SetStringSelection('i0')
@@ -394,8 +394,8 @@ class ScanPanel(wx.Panel):
         count_grid.Add(self.timer)
         count_grid.Add(wx.StaticText(self, label='Scaler:'))
         count_grid.Add(self.scaler)
-        # count_grid.Add(wx.StaticText(self, label='Detector:'))
-        # count_grid.Add(self.detector)
+        count_grid.Add(wx.StaticText(self, label='Detector:'))
+        count_grid.Add(self.detector)
         count_grid.AddGrowableCol(1)
 
         self.start_btn = wx.Button(self, label='Start')
@@ -674,8 +674,8 @@ class ScanPanel(wx.Panel):
                         'scalers'       : [self.scaler.GetStringSelection()],
                         'dwell_time'    : float(self.count_time.GetValue()),
                         'timer'         : self.timer.GetStringSelection(),
-                        # 'detector'      : self.detector.GetStringSelection(),
-                        'detector'      : 'None'
+                        'detector'      : self.detector.GetStringSelection(),
+                        # 'detector'      : 'None'
                         }
         except ValueError:
             msg = 'All of start, stop, step, and count time must be numbers.'
