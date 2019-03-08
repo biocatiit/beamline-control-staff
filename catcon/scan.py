@@ -32,8 +32,10 @@ import math
 import threading
 import time
 import platform
+import glob
 
 import wx
+import wx.lib.agw.genericmessagedialog as GMD
 import matplotlib
 matplotlib.rcParams['backend'] = 'WxAgg'
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
@@ -55,7 +57,7 @@ class ScanProcess(multiprocessing.Process):
     running.
     """
 
-    def __init__(self, command_queue, return_queue, abort_event):
+    def __init__(self, command_queue, return_queue, return_val_q, abort_event):
         """
         Initializes the Process.
 
@@ -65,6 +67,9 @@ class ScanProcess(multiprocessing.Process):
         :param multiprocessing.Manager.Queue return_queue: This queue is used
             to return values from the scan process.
 
+        :param multiprocessing.Manager.Queue return_val_q: This queue is used
+            to return counter values from a detector scan.
+
         :param multiprocessing.Manager.Event abort_event: This event is set when
             a scan needs to be aborted.
         """
@@ -73,6 +78,7 @@ class ScanProcess(multiprocessing.Process):
 
         self.command_queue = command_queue
         self.return_queue = return_queue
+        self.return_val_q = return_val_q
         self._abort_event = abort_event
         self._stop_event = multiprocessing.Event()
 
@@ -86,6 +92,7 @@ class ScanProcess(multiprocessing.Process):
                         'get_devices'       : self._get_devices,
                         'get_position'      : self._get_position,
                         'move_abs'          : self._move_abs,
+                        'get_det_params'    : self._get_det_params,
                         }
 
     def run(self):
@@ -209,6 +216,22 @@ class ScanProcess(multiprocessing.Process):
         self.timer = timer
         self.detector = detector
 
+        if self.detector is not None:
+            self.det = self.mx_database.get_record(self.detector)
+            self.det.set_trigger_mode(1)
+
+            server_record_name = self.det.get_field('server_record')
+            remote_det_name = self.det.get_field('remote_record_name')
+            server_record = self.mx_database.get_record(server_record_name)
+            det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
+            det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+
+            self.det_datadir = mp.Net(server_record, det_datadir_name)
+            self.det_filename = mp.Net(server_record, det_datafile_name)
+
+    def _get_det_params(self):
+        self.return_queue.put((self.det_datadir.get(), ))
+
     def _scan(self):
         """
         Constructs and MX scan record and then carries out the scan. It also
@@ -221,39 +244,23 @@ class ScanProcess(multiprocessing.Process):
             self._mx_scan()
 
     def _my_scan(self):
-        det = self.mx_database.get_record(self.detector)
-        det.set_trigger_mode(1)
-
-        server_record_name = det.get_field('server_record')
-        remote_det_name = det.get_field('remote_record_name')
-        server_record = self.mx_database.get_record(server_record_name)
-        det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
-        det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
-
-        det_datadir = mp.Net(server_record, det_datadir_name)
-        det_filename = mp.Net(server_record, det_datafile_name)
-
 
         timer = self.mx_database.get_record(self.timer)
-        scaler = self.mx_database.get_record(self.scalers[0])
+        scalers = [self.mx_database.get_record(scl) for scl in self.scalers]
 
         start = float(self.start)
         stop = float(self.stop)
         step = abs(float(self.step))
 
         if start < stop:
-            print('in here')
             mtr1_positions = np.arange(start, stop+step, step)
         else:
-            print('in here 2')
             mtr1_positions = np.arange(stop, start+step, step)
             mtr1_positions = mtr1_positions[::-1]
 
         if self._abort_event.is_set():
             self.return_queue.put_nowait(['stop_live_plotting'])
             return
-
-        print (mtr1_positions)
 
         self.motor.move_absolute(mtr1_positions[0])
 
@@ -269,8 +276,9 @@ class ScanProcess(multiprocessing.Process):
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
 
-            det_filename.put('scan_{:03}.tif'.format(num))
-            scaler.clear()
+            self.det_filename.put('scan_{:03}.tif'.format(num))
+            for scaler in scalers:
+                scaler.clear()
             timer.clear()
             timer.stop()
             timer.start(self.dwell_time)
@@ -282,9 +290,10 @@ class ScanProcess(multiprocessing.Process):
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
 
-            result = scaler.read()
+            result = [scaler.read() for scaler in scalers]
+            self.self.return_val_q.put_nowait((mtr1_pos, result[0]))
             print('Position: {}'.format(mtr1_pos))
-            print('Intensity: {}'.format(result))
+            print('Intensity: {}'.format(', '.join(result)))
             print('Image number: {}\n'.format(num))
 
             if self._abort_event.is_set():
@@ -423,8 +432,10 @@ class ScanPanel(wx.Panel):
         self.manager = multiprocessing.Manager()
         self.cmd_q = self.manager.Queue()
         self.return_q = self.manager.Queue()
+        self.return_val_q = self.manager.Queue()
         self.abort_event = self.manager.Event()
-        self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
+        self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.return_val_q,
+            self.abort_event)
         self.scan_proc.start()
 
         self.scan_timer = wx.Timer()
@@ -721,6 +732,8 @@ class ScanPanel(wx.Panel):
         self.com = None
         self.der_com = None
 
+        self.det_scan = False
+
     def _get_devices(self):
         self.cmd_q.put_nowait(['get_devices', [], {}])
         self.motors, self.scalers, self.timers, self.detectors = self.return_q.get()
@@ -765,11 +778,24 @@ class ScanPanel(wx.Panel):
             else:
                 self.plot.set_xlim(scan_params['stop'], scan_params['start'])
 
-            self.initial_position = float(self.pos.GetLabel())
-            self.scan_timer.Start(10)
+            if scan_params['detector'] is not None:
+                self.det_scan = True
+            else:
+                self.det_scan = False
 
-            self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
-            self.cmd_q.put_nowait(['scan', [], {}])
+            if self.det_scan:
+                self.cmd_q.put_nowait(['get_det_params', [], {}])
+                det_dir = self.return_q.get()
+                cont = self._check_data_dir(det_dir)
+            else:
+                cont = True
+
+            if cont:
+                self.initial_position = float(self.pos.GetLabel())
+                self.scan_timer.Start(10)
+
+                self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
+                self.cmd_q.put_nowait(['scan', [], {}])
 
     def _on_stop(self, evt):
         """
@@ -823,6 +849,32 @@ class ScanPanel(wx.Panel):
         """Loads the mx database in the scan process"""
 
         self.cmd_q.put_nowait(['start_mxdb', [self.mx_database], {}])
+
+    def _check_data_dir(self, det_datadir):
+        scan_prefix = 'scan_'
+
+        files = glob.glob(os.path.join(det_datadir, scan_prefix)+'*')
+
+        if len(files) > 0:
+            msg = ('Warning, there are other scan files in the selected '
+                'directory ({}) that may be overwritten by this scan. '
+                'Please select an action.')
+
+            dialog = GMD(self, msg, 'Scan images already exist',
+                style=wx.YES_NO|wx.CANCEL)
+            dialog.SetYesNoCancelLabels('Overwrite', 'Remove old scan', 'Abort')
+            result = dialog.ShowModal()
+
+            if result == wx.ID_OK:
+                cont = True
+            elif result == wx.ID_NO:
+                cont = True
+                for f in files:
+                    os.remove(f)
+            else:
+                cont = False
+
+            return cont
 
     def _on_scantimer(self, evt):
         """
@@ -1147,37 +1199,51 @@ class ScanPanel(wx.Panel):
             time.sleep(0.1)
         time.sleep(2)
 
-        with open(filename) as thefile:
-            data = utils.file_follow(thefile, self.live_plt_evt)
-            for val in data:
-                if self.live_plt_evt.is_set():
-                    break
-                if val.startswith('#'):
-                    self.scan_header = self.scan_header + val
-                else:
-                    x, y = val.strip().split()
-                    self.plt_x.append(float(x))
-                    self.plt_y.append(float(y))
-                    self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
-                    self._calc_fwhm('plt', False)
-                    self._calc_com('plt', False)
+        if not self.det_scan:
+            with open(filename) as thefile:
+                data = utils.file_follow(thefile, self.live_plt_evt)
+                for val in data:
+                    if self.live_plt_evt.is_set():
+                        break
+                    if val.startswith('#'):
+                        self.scan_header = self.scan_header + val
+                    else:
+                        x, y = val.strip().split()
+                        self._update_plot(x, y)
+        else:
+            try:
+                val = self.return_val_q.get_nowait()
+            except queue.Empty:
+                val = None
 
-                    if len(self.plt_y) > 1:
-                        self.der_y_orig = np.gradient(self.plt_y, self.plt_x)
-                        self.der_y_orig[np.isnan(self.der_y_orig)] = 0
-                        if self.flip_der.IsChecked():
-                            self.der_y = self.der_y_orig*-1
-                        else:
-                            self.der_y = self.der_y_orig
-                        self._calc_fit('der', self.der_fit.GetStringSelection(), False)
-                        self._calc_fwhm('der', False)
-                        self._calc_com('der', False)
+            if val is not None:
+                x, y = val
+                self._update_plot(x, y)
 
-                    wx.CallAfter(self.update_plot) #Is this threadsafe?
-                    wx.CallAfter(self._update_results)
-                    wx.Yield()
 
         os.remove(filename)
+
+    def _update_plot(self, x, y):
+        self.plt_x.append(float(x))
+        self.plt_y.append(float(y))
+        self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
+        self._calc_fwhm('plt', False)
+        self._calc_com('plt', False)
+
+        if len(self.plt_y) > 1:
+            self.der_y_orig = np.gradient(self.plt_y, self.plt_x)
+            self.der_y_orig[np.isnan(self.der_y_orig)] = 0
+            if self.flip_der.IsChecked():
+                self.der_y = self.der_y_orig*-1
+            else:
+                self.der_y = self.der_y_orig
+            self._calc_fit('der', self.der_fit.GetStringSelection(), False)
+            self._calc_fwhm('der', False)
+            self._calc_com('der', False)
+
+        wx.CallAfter(self.update_plot) #Is this threadsafe?
+        wx.CallAfter(self._update_results)
+        wx.Yield()
 
     def _on_mousemotion(self, event):
         """
