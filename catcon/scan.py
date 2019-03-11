@@ -448,8 +448,6 @@ class ScanPanel(wx.Panel):
 
         self.live_plt_evt = threading.Event()
 
-        self.Bind(wx.EVT_CLOSE, self._on_closewindow)
-
         self._start_scan_mxdb()
         self._get_devices()
         self._initialize_variables()
@@ -1272,19 +1270,12 @@ class ScanPanel(wx.Panel):
         else:
             self.toolbar.set_status('')
 
-    def _on_closewindow(self, event):
-        """
-        .. todo:: This doesn't seem to work as expected. Investigate.
-
-        Called when the scan window is closed.
-        """
+    def exit(self):
+        self.update_timer.Stop()
         self.scan_timer.Stop()
         self.scan_proc.stop()
 
-        while self.scan_proc.is_alive():
-            time.sleep(.01)
-
-        self.Destroy()
+        self.scan_proc.join()
 
     def _on_pickevent(self, event):
         """
@@ -1807,6 +1798,8 @@ class ScanFrame(wx.Frame):
         self.Layout()
         self.SetSizeHints(-1, 750)
 
+        self.Bind(wx.EVT_CLOSE, self._on_close)
+
     def _create_layout(self, mx_database):
         """
         Creates the layout, by calling mod:`ScanPanel`.
@@ -1818,16 +1811,20 @@ class ScanFrame(wx.Frame):
         :param Mp.RecordList mx_database: The Mp record list representing the
             MX database being used.
         """
-        scan_panel = ScanPanel(mx_database, parent=self)
+        self.scan_panel = ScanPanel(mx_database, parent=self)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        top_sizer.Add(scan_panel, 1, wx.EXPAND)
+        top_sizer.Add(self.scan_panel, 1, wx.EXPAND)
 
-        scan_panel.Layout()
-        scan_panel.Fit()
-        scan_panel.Layout()
+        self.scan_panel.Layout()
+        self.scan_panel.Fit()
+        self.scan_panel.Layout()
 
         self.SetSizer(top_sizer)
+
+    def _on_close(self, evt):
+        self.scan_panel.exit()
+        self.Destroy()
 
 
 if __name__ == '__main__':
