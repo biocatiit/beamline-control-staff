@@ -33,6 +33,7 @@ import threading
 import time
 import platform
 import glob
+import traceback
 
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
@@ -120,8 +121,8 @@ class ScanProcess(multiprocessing.Process):
                     self.working=True
                     self._commands[cmd](*args, **kwargs)
                     self.working=False
-                except Exception as e:
-                    print(e)
+                except Exception:
+                    traceback.print_exc()
                     self.working=False
 
         if self._stop_event.is_set():
@@ -244,7 +245,6 @@ class ScanProcess(multiprocessing.Process):
             self._mx_scan()
 
     def _my_scan(self):
-
         timer = self.mx_database.get_record(self.timer)
         scalers = [self.mx_database.get_record(scl) for scl in self.scalers]
 
@@ -263,6 +263,8 @@ class ScanProcess(multiprocessing.Process):
             return
 
         self.motor.move_absolute(mtr1_positions[0])
+
+        self.return_queue.put_nowait(('dummy',))
 
         for num, mtr1_pos in enumerate(mtr1_positions):
             if mtr1_pos != mtr1_positions[0]:
@@ -290,8 +292,8 @@ class ScanProcess(multiprocessing.Process):
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
 
-            result = [scaler.read() for scaler in scalers]
-            self.self.return_val_q.put_nowait((mtr1_pos, result[0]))
+            result = [str(scaler.read()) for scaler in scalers]
+            self.return_val_q.put_nowait((mtr1_pos, float(result[0])))
             print('Position: {}'.format(mtr1_pos))
             print('Intensity: {}'.format(', '.join(result)))
             print('Image number: {}\n'.format(num))
@@ -783,10 +785,12 @@ class ScanPanel(wx.Panel):
             else:
                 self.det_scan = False
 
+            self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
+
             if self.det_scan:
                 self.cmd_q.put_nowait(['get_det_params', [], {}])
                 det_dir = self.return_q.get()
-                cont = self._check_data_dir(det_dir)
+                cont = self._check_data_dir(det_dir[0])
             else:
                 cont = True
 
@@ -794,8 +798,12 @@ class ScanPanel(wx.Panel):
                 self.initial_position = float(self.pos.GetLabel())
                 self.scan_timer.Start(10)
 
-                self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
                 self.cmd_q.put_nowait(['scan', [], {}])
+
+            else:
+                self.start_btn.Enable()
+                self.stop_btn.Disable()
+                self.update_timer.Start()
 
     def _on_stop(self, evt):
         """
@@ -853,19 +861,21 @@ class ScanPanel(wx.Panel):
     def _check_data_dir(self, det_datadir):
         scan_prefix = 'scan_'
 
+        det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
+
         files = glob.glob(os.path.join(det_datadir, scan_prefix)+'*')
 
         if len(files) > 0:
             msg = ('Warning, there are other scan files in the selected '
                 'directory ({}) that may be overwritten by this scan. '
-                'Please select an action.')
+                'Please select an action.'.format(det_datadir))
 
-            dialog = GMD(self, msg, 'Scan images already exist',
-                style=wx.YES_NO|wx.CANCEL)
+            dialog = GMD.GenericMessageDialog(self, msg, 'Scan images already exist',
+                agwStyle=wx.ICON_EXCLAMATION|wx.YES_NO|wx.CANCEL, wrap=500)
             dialog.SetYesNoCancelLabels('Overwrite', 'Remove old scan', 'Abort')
             result = dialog.ShowModal()
 
-            if result == wx.ID_OK:
+            if result == wx.ID_YES:
                 cont = True
             elif result == wx.ID_NO:
                 cont = True
@@ -875,6 +885,8 @@ class ScanPanel(wx.Panel):
                 cont = False
 
             return cont
+        else:
+            return True
 
     def _on_scantimer(self, evt):
         """
@@ -905,7 +917,8 @@ class ScanPanel(wx.Panel):
 
             #This is a hack
             self.scan_proc.stop()
-            self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.abort_event)
+            self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.return_val_q,
+                self.abort_event)
             self.scan_proc.start()
             self._start_scan_mxdb()
 
@@ -1211,17 +1224,20 @@ class ScanPanel(wx.Panel):
                         x, y = val.strip().split()
                         self._update_plot(x, y)
         else:
-            try:
-                val = self.return_val_q.get_nowait()
-            except queue.Empty:
-                val = None
+            while True:
+                if self.live_plt_evt.is_set():
+                    break
+                try:
+                    val = self.return_val_q.get_nowait()
+                except queue.Empty:
+                    val = None
 
-            if val is not None:
-                x, y = val
-                self._update_plot(x, y)
+                if val is not None:
+                    x, y = val
+                    self._update_plot(x, y)
 
-
-        os.remove(filename)
+        if not self.det_scan:
+            os.remove(filename)
 
     def _update_plot(self, x, y):
         self.plt_x.append(float(x))
