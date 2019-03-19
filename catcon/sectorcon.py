@@ -383,7 +383,7 @@ class CtrlsPanel(wx.Panel):
         """
         nitems = len(panel_data.keys())
 
-        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=2, vgap=5, hgap=5)
+        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=3, vgap=5, hgap=5)
 
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)

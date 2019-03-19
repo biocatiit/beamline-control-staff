@@ -84,6 +84,7 @@ class ScanProcess(multiprocessing.Process):
         self._stop_event = multiprocessing.Event()
 
         self.motor_name = ''
+        self.motor_name2 = ''
 
         mp.set_user_interrupt_function(self._stop_scan)
 
@@ -92,6 +93,7 @@ class ScanProcess(multiprocessing.Process):
                         'scan'              : self._scan,
                         'get_devices'       : self._get_devices,
                         'get_position'      : self._get_position,
+                        'get_position2'     : self._get_position2,
                         'move_abs'          : self._move_abs,
                         'get_det_params'    : self._get_det_params,
                         }
@@ -182,21 +184,35 @@ class ScanProcess(multiprocessing.Process):
         pos = self.motor.get_position()
         self.return_queue.put_nowait([pos])
 
+    def _get_position2(self, motor_name):
+        if motor_name != self.motor_name2:
+            self.motor_name2 = motor_name
+            self.motor2 = self.mx_database.get_record(motor_name)
+
+        pos = self.motor2.get_position()
+        self.return_queue.put_nowait([pos])
+
     def _move_abs(self, position):
         self.motor.move_absolute(position)
 
-    def _set_scan_params(self, device, start, stop, step, scalers,
-        dwell_time, timer, detector=None, file_name=None, dir_path=None):
+    def _set_scan_params(self, device, start, stop, step, device2, start2,
+        stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
+        file_name=None, dir_path=None):
         """
         Sets the parameters for the scan.
 
-        :param str device: The MX record name.
-        :param float start: The absolute start position of the scan.
-        :param float stop: The absolute stop position of the scan.
-        :param float step: The step size of the scan.
+        :param str device: The MX record name for motor 1.
+        :param float start: The absolute start position of the scan for motor 1.
+        :param float stop: The absolute stop position of the scan for motor 1.
+        :param float step: The step size of the scan for motor 1.
+        :param str device2: The MX record name for motor 2.
+        :param float start2: The absolute start position of the scan for motor 2.
+        :param float stop2: The absolute stop position of the scan for motor 2.
+        :param float step2: The step size of the scan for motor 2.
         :param list scalers: A list of the scalers for the scan.
         :param float dwell_time: The count time at each point in the scan.
         :param str timer: The name of the timer to be used for the scan.
+        :param str scan_dim: The scan dimension (1D or 2D).
         :param str detector: Currently not used. The name of the detector
             to be used for the scan.
         :param str file_name: The scan name (and output name) for the scan.
@@ -212,6 +228,12 @@ class ScanProcess(multiprocessing.Process):
         self.stop = stop
         self.step = step
 
+        self.device2 = device2
+        self.start2 = start2
+        self.stop2 = stop2
+        self.step2 = step2
+
+        self.scan_dim = scan_dim
         self.scalers = scalers
         self.dwell_time = dwell_time
         self.timer = timer
@@ -258,6 +280,17 @@ class ScanProcess(multiprocessing.Process):
             mtr1_positions = np.arange(stop, start+step, step)
             mtr1_positions = mtr1_positions[::-1]
 
+        if self.scan_dim == '2D':
+            start2 = float(self.start2)
+            stop2 = float(self.stop2)
+            step2 = abs(float(self.step2))
+
+            if start2 < stop2:
+                mtr2_positions = np.arange(start2, stop2+step2, step2)
+            else:
+                mtr2_positions = np.arange(stop2, start2+step2, step2)
+                mtr2_positions = mtr2_positions[::-1]
+
         if self._abort_event.is_set():
             self.return_queue.put_nowait(['stop_live_plotting'])
             return
@@ -278,25 +311,29 @@ class ScanProcess(multiprocessing.Process):
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
 
-            self.det_filename.put('scan_{:03}.tif'.format(num))
-            for scaler in scalers:
-                scaler.clear()
-            timer.clear()
-            timer.stop()
-            timer.start(self.dwell_time)
+            if self.scan_dim == '1D':
+                self._measure(scalers, timer, mtr1_pos, num)
 
-            while timer.is_busy() != 0:
-                time.sleep(.01)
-                if self._abort_event.is_set():
-                    timer.stop()
-                    self.return_queue.put_nowait(['stop_live_plotting'])
-                    return
+            elif self.scan_dim == '2D':
+                self.motor2.move_absolute(mtr2_positions[0])
 
-            result = [str(scaler.read()) for scaler in scalers]
-            self.return_val_q.put_nowait((mtr1_pos, float(result[0])))
-            print('Position: {}'.format(mtr1_pos))
-            print('Intensity: {}'.format(', '.join(result)))
-            print('Image number: {}\n'.format(num))
+                for num2, mtr2_pos in enumerate(mtr2_positions):
+                    if mtr2_pos != mtr2_positions[0]:
+                        self.motor2.move_absolute(mtr2_pos)
+                    # mtr1.wait_for_motor2_stop()
+                    while self.motor2.is_busy():
+                        time.sleep(0.01)
+                        if self._abort_event.is_set():
+                            self.motor2.stop()
+                            self.return_queue.put_nowait(['stop_live_plotting'])
+                            return
+
+                    self._measure(scalers, timer, mtr1_pos, num, mtr2_pos, num2)
+
+                    if self._abort_event.is_set():
+                        self.return_queue.put_nowait(['stop_live_plotting'])
+                        return
+
 
             if self._abort_event.is_set():
                 self.return_queue.put_nowait(['stop_live_plotting'])
@@ -304,6 +341,42 @@ class ScanProcess(multiprocessing.Process):
 
         self.return_queue.put_nowait(['stop_live_plotting'])
         return
+
+    def _measure(self, scalers, timer, mtr1_pos, num, mtr2_pos=0, num2=0):
+
+        if self.scan_dim == '1D':
+            image_name = 'scan_{:03}.tif'.format(num)
+            self.det_filename.put(image_name)
+        elif self.scan_dim == '2D':
+            image_name = 'scan_{:03}_{:03}.tif'.format(num, num2)
+            self.det_filename.put(image_name)
+
+        for scaler in scalers:
+            scaler.clear()
+        timer.clear()
+        timer.stop()
+        timer.start(self.dwell_time)
+
+        while timer.is_busy() != 0:
+            time.sleep(.01)
+            if self._abort_event.is_set():
+                timer.stop()
+                self.return_queue.put_nowait(['stop_live_plotting'])
+                return
+
+        result = [str(scaler.read()) for scaler in scalers]
+
+        if self.scan_dim == '1D':
+            self.return_val_q.put_nowait((mtr1_pos, float(result[0])))
+        elif self.scan_dim == '2D':
+            self.return_val_q.put_nowait((mtr1_pos, mtr2_pos, float(result[0])))
+
+        print('Position 1: {}'.format(mtr1_pos))
+        if self.scan_dim == '2D':
+            print('Position 2: {}'.format(mtr2_pos))
+        print('Intensity: {}'.format(', '.join(result)))
+        print('Image name: {}\n'.format(image_name))
+
 
 
     def _mx_scan(self):
@@ -324,11 +397,18 @@ class ScanProcess(multiprocessing.Process):
         description = ('{} scan linear_scan motor_scan "" "" '.format(scan_name))
 
         num_scans = 1
-        num_motors = 1
+
+        if self.scan_dim == '1D':
+            num_motors = 1
+        elif self.scan_dim == '2D':
+            num_motors = 2
         num_independent_variables = num_motors
 
         description = description + ("{} {} {} {} ".format(num_scans,
             num_independent_variables, num_motors, str(self.device)))
+
+        if self.scan_dim == '2D':
+            description = description + "{} ".format(str(self.device2))
 
         scalers_detector = list(self.scalers)
 
@@ -364,10 +444,21 @@ class ScanProcess(multiprocessing.Process):
         description = description + (
                 "%s %s %s %s " % (datafile_description, datafile_name, plot_description, plot_arguments))
 
-        description = description + ("{} {} ".format(self.start, self.step))
+        if self.scan_dim == '1D':
+            description = description + ("{} {} ".format(self.start, self.step))
 
-        num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
-        description = description + ("{} ".format(num_measurements))
+            num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
+            description = description + ("{} ".format(num_measurements))
+
+        elif self.scan_dim == '2D':
+            description = description + ("{} {} {} {} ".format(self.start,
+                self.start2, self.step, self.step2))
+
+            num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
+            num_measurements2 = int(abs(math.floor((self.stop2 - self.start2)/self.step2)))+1
+
+            description = description + ("{} {} ".format(num_measurements,
+                num_measurements2))
 
         self.mx_database.create_record_from_description(description)
 
@@ -462,21 +553,41 @@ class ScanPanel(wx.Panel):
         self.pos = wx.StaticText(self, label='')
         self.pos_label = wx.StaticText(self, label='Current position:')
 
+        self.motor2 = wx.Choice(self, choices=self.motors)
+        self.motor2.Bind(wx.EVT_CHOICE, self._on_motorchoice)
+
+        self.pos2 = wx.StaticText(self, label='')
+        self.pos_label2 = wx.StaticText(self, label='Current position:')
+
         info_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        info_grid.Add(wx.StaticText(self, label='Device:'))
+        info_grid.Add(wx.StaticText(self, label='Device 1:'))
         info_grid.Add(self.motor)
         info_grid.Add(self.pos_label)
         info_grid.Add(self.pos)
 
-        info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
+        self.info_grid2 = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        self.info_grid2.Add(wx.StaticText(self, label='Device 2:'))
+        self.info_grid2.Add(self.motor2)
+        self.info_grid2.Add(self.pos_label2)
+        self.info_grid2.Add(self.pos2)
+
+        self.info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
             wx.VERTICAL)
-        info_sizer.Add(info_grid, wx.EXPAND)
+        self.info_sizer.Add(info_grid, flag=wx.EXPAND|wx.ALL, border=5)
+        self.info_sizer.Add(self.info_grid2, flag=wx.EXPAND|wx.ALL, border=5)
+        self.info_sizer.Hide(self.info_grid2, recursive=True)
 
         self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
         self.scan_type.SetSelection(1)
+        self.scan_dim = wx.Choice(self, choices=['1D', '2D'])
+        self.scan_dim.SetSelection(0)
+        self.scan_dim.Bind(wx.EVT_CHOICE, self._on_dimension)
         self.start = wx.TextCtrl(self, value='', size=(80, -1))
         self.stop = wx.TextCtrl(self, value='', size=(80, -1))
         self.step = wx.TextCtrl(self, value='', size=(80, -1))
+        self.start2 = wx.TextCtrl(self, value='', size=(80, -1))
+        self.stop2 = wx.TextCtrl(self, value='', size=(80, -1))
+        self.step2 = wx.TextCtrl(self, value='', size=(80, -1))
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=self.scalers)
         self.timer = wx.Choice(self, choices=self.timers)
@@ -491,14 +602,23 @@ class ScanPanel(wx.Panel):
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
         type_sizer.Add(wx.StaticText(self, label='Scan type:'))
         type_sizer.Add(self.scan_type, border=5, flag=wx.LEFT)
+        type_sizer.Add(self.scan_dim, border=5, flag=wx.LEFT)
 
-        mv_grid = wx.FlexGridSizer(rows=2, cols=3, vgap=5, hgap=5)
+        mv_grid = wx.FlexGridSizer(rows=2, cols=4, vgap=5, hgap=5)
+        mv_grid.AddSpacer(1)
         mv_grid.Add(wx.StaticText(self, label='Start'))
         mv_grid.Add(wx.StaticText(self, label='Stop'))
         mv_grid.Add(wx.StaticText(self, label='Step'))
+        mv_grid.Add(wx.StaticText(self, label='1:'))
         mv_grid.Add(self.start)
         mv_grid.Add(self.stop)
         mv_grid.Add(self.step)
+
+        self.mv_grid2 = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
+        self.mv_grid2.Add(wx.StaticText(self, label='2:'))
+        self.mv_grid2.Add(self.start2)
+        self.mv_grid2.Add(self.stop2)
+        self.mv_grid2.Add(self.step2)
 
 
         count_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
@@ -523,12 +643,15 @@ class ScanPanel(wx.Panel):
         ctrl_btn_sizer.Add(self.start_btn)
         ctrl_btn_sizer.Add(self.stop_btn, border=5, flag=wx.LEFT)
 
-        ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
+        self.ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
             wx.VERTICAL)
-        ctrl_sizer.Add(type_sizer)
-        ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
-        ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
-        ctrl_sizer.Add(ctrl_btn_sizer, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
+        self.ctrl_sizer.Add(type_sizer)
+        self.ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(self.mv_grid2, border=5, flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(ctrl_btn_sizer, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
+
+        self.ctrl_sizer.Hide(self.mv_grid2, recursive=True)
 
 
         self.show_der = wx.CheckBox(self, label='Show derivative')
@@ -665,8 +788,8 @@ class ScanPanel(wx.Panel):
 
 
         scan_sizer = wx.BoxSizer(wx.VERTICAL)
-        scan_sizer.Add(info_sizer, flag=wx.EXPAND)
-        scan_sizer.Add(ctrl_sizer, flag=wx.EXPAND)
+        scan_sizer.Add(self.info_sizer, flag=wx.EXPAND)
+        scan_sizer.Add(self.ctrl_sizer, flag=wx.EXPAND)
         scan_sizer.Add(plt_ctrl_sizer, flag=wx.EXPAND)
         scan_sizer.Add(self.scan_results_sizer, flag=wx.EXPAND)
 
@@ -733,6 +856,10 @@ class ScanPanel(wx.Panel):
         self.der_com = None
 
         self.det_scan = False
+        self.scan_dimension = 1
+
+        self.motor_name = ''
+        self.motor_name2 = ''
 
     def _get_devices(self):
         self.cmd_q.put_nowait(['get_devices', [], {}])
@@ -740,16 +867,38 @@ class ScanPanel(wx.Panel):
         self.detectors.insert(0, 'None')
 
     def _on_motorchoice(self, evt):
-        self.motor_name = self.motor.GetStringSelection()
+        if evt.GetEventObject() == self.motor:
+            self.motor_name = self.motor.GetStringSelection()
+        elif evt.GetEventObject() == self.motor2:
+            self.motor_name2 = self.motor2.GetStringSelection()
 
         if not self.update_timer.IsRunning() and not self.scan_timer.IsRunning():
             self.update_timer.Start(100)
 
-    def _on_updatetimer(self, evt):
-        self.cmd_q.put_nowait(['get_position', [self.motor_name], {}])
-        pos = self.return_q.get()[0]
+    def _on_dimension(self, evt):
+        choice = self.scan_dim.GetStringSelection()
 
-        self.pos.SetLabel(str(pos))
+        if choice == '1D':
+            self.info_sizer.Hide(self.info_grid2, recursive=True)
+            self.ctrl_sizer.Hide(self.mv_grid2, recursive=True)
+        elif choice == '2D':
+            self.info_sizer.Show(self.info_grid2, recursive=True)
+            self.ctrl_sizer.Show(self.mv_grid2, recursive=True)
+
+        self.Layout()
+
+    def _on_updatetimer(self, evt):
+        if self.motor_name != '':
+            self.cmd_q.put_nowait(['get_position', [self.motor_name], {}])
+            pos = self.return_q.get()[0]
+
+            self.pos.SetLabel(str(pos))
+
+        if self.motor_name2 != '':
+            self.cmd_q.put_nowait(['get_position2', [self.motor_name2], {}])
+            pos = self.return_q.get()[0]
+
+            self.pos2.SetLabel(str(pos))
 
     def _on_start(self, evt):
         """
@@ -777,6 +926,16 @@ class ScanPanel(wx.Panel):
                 self.plot.set_xlim(scan_params['start'], scan_params['stop'])
             else:
                 self.plot.set_xlim(scan_params['stop'], scan_params['start'])
+
+            if scan_params['scan_dim'] == '2D':
+                self.scan_dimension = 2
+
+                if scan_params['start2'] < scan_params['stop2']:
+                    self.plot.set_xlim(scan_params['start2'], scan_params['stop2'])
+                else:
+                    self.plot.set_xlim(scan_params['stop2'], scan_params['start2'])
+            else:
+                self.scan_dimension = 1
 
             if scan_params['detector'] is not None:
                 self.det_scan = True
@@ -821,8 +980,13 @@ class ScanPanel(wx.Panel):
         """
         if self.scan_type.GetStringSelection() == 'Absolute':
             offset = 0
+            offset2 = 0
         else:
             offset = float(self.pos.GetLabel())
+            offset2 = float(self.pos.GetLabel())
+
+        scan_dim = self.scan_dim.GetStringSelection()
+
         try:
             start = float(self.start.GetValue())+offset
             stop = float(self.stop.GetValue())+offset
@@ -831,15 +995,33 @@ class ScanPanel(wx.Panel):
                 step = abs(float(self.step.GetValue()))
             else:
                 step = -abs(float(self.step.GetValue()))
+
+            if scan_dim == '2D':
+                start2 = float(self.start2.GetValue())+offset2
+                stop2 = float(self.stop2.GetValue())+offset2
+
+                if start2 < stop2:
+                    step2 = abs(float(self.step2.GetValue()))
+                else:
+                    step2 = -abs(float(self.step2.GetValue()))
+            else:
+                start2 = 0
+                stop2 = 0
+                step2 = 0
+
             scan_params = {'device'     : self.motor_name,
+                        'device2'       : self.motor_name2,
                         'start'         : start,
                         'stop'          : stop,
                         'step'          : step,
+                        'start2'        : start2,
+                        'stop2'         : stop2,
+                        'step2'         : step2,
                         'scalers'       : [self.scaler.GetStringSelection()],
                         'dwell_time'    : float(self.count_time.GetValue()),
                         'timer'         : self.timer.GetStringSelection(),
                         'detector'      : self.detector.GetStringSelection(),
-                        # 'detector'      : 'None'
+                        'scan_dim'      : scan_dim,
                         }
         except ValueError:
             msg = 'All of start, stop, step, and count time must be numbers.'
@@ -949,6 +1131,13 @@ class ScanPanel(wx.Panel):
         elements and we blit all of them. It also accounts for the derivative
         plot sometimes being shown and sometimes not.
         """
+
+        if self.scan_dimension == 1:
+            self._update_plot_1d()
+        elif self.scan_dimension == 2:
+            self._update_plot_2d()
+
+    def _update_plot_1d(self):
         get_plt_bkg = False
         get_der_bkg = False
 
@@ -956,7 +1145,7 @@ class ScanPanel(wx.Panel):
             if (self.plt_x is not None and self.plt_y is not None and
                 len(self.plt_x) == len(self.plt_y)) and len(self.plt_x) > 0:
 
-                self.plt_pts, = self.plot.plot(self.plt_x, self.plt_y, 'bo', animated=True, picker=5)
+                self.plt_pts, = self.plot.plot(self.plt_x, self.plt_y, 'bo', animated=True, picker=10)
                 self.plt_line, = self.plot.plot(self.plt_x, self.plt_y, 'b-', animated=True)
 
                 get_plt_bkg = True
@@ -965,7 +1154,7 @@ class ScanPanel(wx.Panel):
             if (self.plt_x is not None and self.der_y is not None and
                 len(self.plt_x) == len(self.der_y) and len(self.plt_x) > 1):
 
-                self.der_pts, = self.der_plot.plot(self.plt_x, self.der_y, 'bo', animated=True, picker=5)
+                self.der_pts, = self.der_plot.plot(self.plt_x, self.der_y, 'bo', animated=True, picker=10)
                 self.der_line, = self.der_plot.plot(self.plt_x, self.der_y, 'b-', animated=True)
 
                 get_der_bkg = True
@@ -1140,6 +1329,9 @@ class ScanPanel(wx.Panel):
         if self.show_der.GetValue():
             self.canvas.blit(self.der_plot.bbox)
 
+    def _update_plot_2d(self):
+        pass
+
     def live_plot(self, filename):
         """
         This does the live plotting. It is intended to be run in its own
@@ -1219,8 +1411,12 @@ class ScanPanel(wx.Panel):
                     if val.startswith('#'):
                         self.scan_header = self.scan_header + val
                     else:
-                        x, y = val.strip().split()
-                        self._update_plot(x, y)
+                        if self.scan_dimension == 1:
+                            x, y = val.strip().split()
+                            self._update_plot(x, y)
+                        elif self.scan_dimension == 2:
+                            # x, y, z = val.strip().spilt()
+                            pass
         else:
             while True:
                 if self.live_plt_evt.is_set():
@@ -1231,8 +1427,11 @@ class ScanPanel(wx.Panel):
                     val = None
 
                 if val is not None:
-                    x, y = val
-                    self._update_plot(x, y)
+                    if self.scan_dimension == 1:
+                        x, y = val
+                        self._update_plot(x, y)
+                    else:
+                        x, y, z = val
 
         if not self.det_scan:
             os.remove(filename)
@@ -1289,11 +1488,7 @@ class ScanPanel(wx.Panel):
             x = artist.get_xdata()
             ind = event.ind
             position = x[ind[0]]
-
-            if int(wx.__version__.split('.')[0]) >= 3 and platform.system() == 'Darwin':
-                wx.CallAfter(self._show_popupmenu, position)
-            else:
-                self._show_popupmenu(position)
+            wx.CallAfter(self._show_popupmenu, position)
 
     def _show_popupmenu(self, position):
         """
