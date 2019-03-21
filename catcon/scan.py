@@ -34,6 +34,7 @@ import time
 import platform
 import glob
 import traceback
+import copy
 
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
@@ -95,6 +96,7 @@ class ScanProcess(multiprocessing.Process):
                         'get_position'      : self._get_position,
                         'get_position2'     : self._get_position2,
                         'move_abs'          : self._move_abs,
+                        'move_abs2'         : self._move_abs2,
                         'get_det_params'    : self._get_det_params,
                         }
 
@@ -194,6 +196,9 @@ class ScanProcess(multiprocessing.Process):
 
     def _move_abs(self, position):
         self.motor.move_absolute(position)
+
+    def _move_abs2(self, position):
+        self.motor2.move_absolute(position)
 
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
@@ -402,13 +407,17 @@ class ScanProcess(multiprocessing.Process):
             num_motors = 1
         elif self.scan_dim == '2D':
             num_motors = 2
+
         num_independent_variables = num_motors
 
-        description = description + ("{} {} {} {} ".format(num_scans,
-            num_independent_variables, num_motors, str(self.device)))
+        if self.scan_dim == '1D':
+            description = description + ("{} {} {} {} ".format(num_scans,
+                num_independent_variables, num_motors, str(self.device)))
 
-        if self.scan_dim == '2D':
-            description = description + "{} ".format(str(self.device2))
+        elif self.scan_dim == '2D':
+            description = description + ("{} {} {} {} {} ".format(num_scans,
+                num_independent_variables, num_motors, str(self.device2),
+                str(self.device)))
 
         scalers_detector = list(self.scalers)
 
@@ -451,14 +460,14 @@ class ScanProcess(multiprocessing.Process):
             description = description + ("{} ".format(num_measurements))
 
         elif self.scan_dim == '2D':
-            description = description + ("{} {} {} {} ".format(self.start,
-                self.start2, self.step, self.step2))
+            description = description + ("{} {} {} {} ".format(self.start2,
+                self.start, self.step2, self.step))
 
             num_measurements = int(abs(math.floor((self.stop - self.start)/self.step)))+1
             num_measurements2 = int(abs(math.floor((self.stop2 - self.start2)/self.step2)))+1
 
-            description = description + ("{} {} ".format(num_measurements,
-                num_measurements2))
+            description = description + ("{} {} ".format(num_measurements2,
+                num_measurements))
 
         self.mx_database.create_record_from_description(description)
 
@@ -814,6 +823,9 @@ class ScanPanel(wx.Panel):
         self.der_plot.set_visible(False)
         self.plot.set_position(self.plt_gs[0].get_position(self.fig))
 
+        self.plot.set_zorder(2)
+        self.der_plot.set_zorder(1)
+
         self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
         self.canvas.mpl_connect('motion_notify_event', self._on_mousemotion)
         self.canvas.mpl_connect('pick_event', self._on_pickevent)
@@ -832,8 +844,10 @@ class ScanPanel(wx.Panel):
         """Initializes the variables related to plotting and fitting."""
         self.plt_line = None
         self.der_line = None
-        self.plt_y = None
+        self.plt_image = None
         self.plt_x = None
+        self.plt_y = None
+        self.plt_z = None
         self.der_y_orig = None
         self.der_y = None
 
@@ -922,20 +936,48 @@ class ScanPanel(wx.Panel):
                 break
 
         if scan_params is not None:
-            if scan_params['start'] < scan_params['stop']:
-                self.plot.set_xlim(scan_params['start'], scan_params['stop'])
-            else:
-                self.plot.set_xlim(scan_params['stop'], scan_params['start'])
-
             if scan_params['scan_dim'] == '2D':
                 self.scan_dimension = 2
-
-                if scan_params['start2'] < scan_params['stop2']:
-                    self.plot.set_xlim(scan_params['start2'], scan_params['stop2'])
-                else:
-                    self.plot.set_xlim(scan_params['stop2'], scan_params['start2'])
             else:
                 self.scan_dimension = 1
+
+            if self.scan_dimension == 1:
+                if scan_params['start'] < scan_params['stop']:
+                    self.plot.set_xlim(scan_params['start'], scan_params['stop'])
+                else:
+                    self.plot.set_xlim(scan_params['stop'], scan_params['start'])
+
+            else:
+                start = scan_params['start']
+                step = scan_params['step']
+                stop = scan_params['stop']
+                num_pos = int(abs(math.floor((stop - start)/step)))+1
+
+                start2 = scan_params['start2']
+                step2 = scan_params['step2']
+                stop2 = scan_params['stop2']
+                num_pos2 = int(abs(math.floor((stop2 - start2)/step2)))+1
+
+                if start < stop:
+                    self.x_pos = np.array([start+i*step for i in range(num_pos+1)]) #Need 1 extra point for pcolormesh
+                else:
+                    self.x_pos = np.array([stop-i*step for i in range(num_pos+1)])
+
+                if start2 < stop2:
+                    self.y_pos = np.array([start2+i*step2 for i in range(num_pos2+1)])
+                else:
+                    self.y_pos = np.array([stop2-i*step2 for i in range(num_pos2+1)])
+
+                self.x_pos = self.x_pos - step/2.
+                self.y_pos = self.y_pos - step2/2.
+
+                self.plot.set_xlim(self.x_pos[0], self.x_pos[-1])
+                self.plot.set_ylim(self.y_pos[0], self.y_pos[-1])
+
+                self.grid = np.meshgrid(self.x_pos, self.y_pos)
+                self.total_points = num_pos*num_pos2
+                self.x_points = num_pos
+                self.y_points = num_pos2
 
             if scan_params['detector'] is not None:
                 self.det_scan = True
@@ -953,6 +995,7 @@ class ScanPanel(wx.Panel):
 
             if cont:
                 self.initial_position = float(self.pos.GetLabel())
+                self.initial_position2 = float(self.pos2.GetLabel())
                 self.scan_timer.Start(10)
 
                 self.cmd_q.put_nowait(['scan', [], {}])
@@ -983,7 +1026,7 @@ class ScanPanel(wx.Panel):
             offset2 = 0
         else:
             offset = float(self.pos.GetLabel())
-            offset2 = float(self.pos.GetLabel())
+            offset2 = float(self.pos2.GetLabel())
 
         scan_dim = self.scan_dim.GetStringSelection()
 
@@ -1030,6 +1073,8 @@ class ScanPanel(wx.Panel):
 
         if scan_params['detector'] == 'None':
             scan_params['detector'] = None
+
+        self.current_scan_params = scan_params
 
         return scan_params
 
@@ -1106,6 +1151,12 @@ class ScanPanel(wx.Panel):
             pos = self.return_q.get()[0]
 
             self.cmd_q.put_nowait(['move_abs', [self.initial_position], {}])
+
+            if self.scan_dimension == 2:
+                self.cmd_q.put_nowait(['get_position2', [self.motor_name2], {}])
+                pos = self.return_q.get()[0]
+
+                self.cmd_q.put_nowait(['move_abs2', [self.initial_position2], {}])
 
             self.start_btn.Enable()
             self.stop_btn.Disable()
@@ -1290,10 +1341,7 @@ class ScanPanel(wx.Panel):
                 redraw = True
 
         if redraw:
-            self.canvas.mpl_disconnect(self.cid)
-            self.canvas.draw()
-            self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
-
+            self._safe_draw()
 
         if self.plt_line is not None:
             self.canvas.restore_region(self.background)
@@ -1330,7 +1378,45 @@ class ScanPanel(wx.Panel):
             self.canvas.blit(self.der_plot.bbox)
 
     def _update_plot_2d(self):
-        pass
+
+        self.z_grid_data = copy.copy(self.plt_z)
+        extra_vals = self.total_points - len(self.z_grid_data)
+
+        if extra_vals != 0:
+            self.z_grid_data.extend([np.nan for i in range(extra_vals)])
+
+        #This should work but it doesn't
+        # if self.plt_image is None:
+        #     self.z_grid_data = np.array(self.z_grid_data, dtype=float).reshape((self.y_points, self.x_points))
+
+        #     self.plt_image = self.plot.pcolormesh(self.grid[0], self.grid[1],
+        #         self.z_grid_data, animated=True)
+
+        #     self._safe_draw()
+        #     self.background = self.canvas.copy_from_bbox(self.plot.bbox)
+        # else:
+        #     self.plt_image.set_array(np.array(self.z_grid_data, dtype=float))
+
+        # self.canvas.restore_region(self.background)
+        # self.plot.draw_artist(self.plt_image)
+        # self.canvas.blit(self.plot.bbox)
+
+        self.z_grid_data = np.array(self.z_grid_data, dtype=float).reshape((self.y_points, self.x_points))
+
+        if self.current_scan_params['start'] > self.current_scan_params['stop']:
+            self.z_grid_data = self.z_grid_data[:,::-1]
+        if self.current_scan_params['start2'] > self.current_scan_params['stop2']:
+            self.z_grid_data = self.z_grid_data[::-1,:]
+
+        if self.plt_image is not None:
+            self.plt_image.remove()
+            self.plt_image = None
+
+        self.plt_image = self.plot.pcolormesh(self.grid[0], self.grid[1],
+                self.z_grid_data)
+
+
+        self._safe_draw()
 
     def live_plot(self, filename):
         """
@@ -1377,8 +1463,13 @@ class ScanPanel(wx.Panel):
             self.der_com_line.remove()
             self.der_com_line = None
 
+        if self.plt_image is not None:
+            self.plt_image.remove()
+            self.plt_image = None
+
         self.plt_x = []
         self.plt_y = []
+        self.plt_z = []
         self.der_y_orig = []
         self.der_y = []
         self.plt_fit_x = []
@@ -1394,7 +1485,7 @@ class ScanPanel(wx.Panel):
         self.com = None
         self.der_com = None
 
-        wx.CallAfter(self.update_plot) #Is this threadsafe?
+        wx.CallAfter(self.update_plot)
         wx.CallAfter(self._update_results)
         wx.Yield()
 
@@ -1413,10 +1504,10 @@ class ScanPanel(wx.Panel):
                     else:
                         if self.scan_dimension == 1:
                             x, y = val.strip().split()
-                            self._update_plot(x, y)
+                            self._update_plot_vals(x, y)
                         elif self.scan_dimension == 2:
-                            # x, y, z = val.strip().spilt()
-                            pass
+                            x, y, z = val.strip().split()
+                            self._update_plot_vals(x, y, z)
         else:
             while True:
                 if self.live_plt_evt.is_set():
@@ -1429,32 +1520,38 @@ class ScanPanel(wx.Panel):
                 if val is not None:
                     if self.scan_dimension == 1:
                         x, y = val
-                        self._update_plot(x, y)
+                        self._update_plot_vals(x, y)
                     else:
                         x, y, z = val
+                        self._update_plot_vals(x, y, z)
 
         if not self.det_scan:
             os.remove(filename)
 
-    def _update_plot(self, x, y):
+    def _update_plot_vals(self, x, y, z=None):
         self.plt_x.append(float(x))
         self.plt_y.append(float(y))
-        self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
-        self._calc_fwhm('plt', False)
-        self._calc_com('plt', False)
 
-        if len(self.plt_y) > 1:
-            self.der_y_orig = np.gradient(self.plt_y, self.plt_x)
-            self.der_y_orig[np.isnan(self.der_y_orig)] = 0
-            if self.flip_der.IsChecked():
-                self.der_y = self.der_y_orig*-1
-            else:
-                self.der_y = self.der_y_orig
-            self._calc_fit('der', self.der_fit.GetStringSelection(), False)
-            self._calc_fwhm('der', False)
-            self._calc_com('der', False)
+        if z is not None:
+            self.plt_z.append(float(z))
 
-        wx.CallAfter(self.update_plot) #Is this threadsafe?
+        if self.scan_dimension == 1:
+            self._calc_fit('plt', self.plt_fit.GetStringSelection(), False)
+            self._calc_fwhm('plt', False)
+            self._calc_com('plt', False)
+
+            if len(self.plt_y) > 1:
+                self.der_y_orig = np.gradient(self.plt_y, self.plt_x)
+                self.der_y_orig[np.isnan(self.der_y_orig)] = 0
+                if self.flip_der.IsChecked():
+                    self.der_y = self.der_y_orig*-1
+                else:
+                    self.der_y = self.der_y_orig
+                self._calc_fit('der', self.der_fit.GetStringSelection(), False)
+                self._calc_fwhm('der', False)
+                self._calc_com('der', False)
+
+        wx.CallAfter(self.update_plot)
         wx.CallAfter(self._update_results)
         wx.Yield()
 
@@ -1465,7 +1562,35 @@ class ScanPanel(wx.Panel):
         """
         if event.inaxes:
             x, y = event.xdata, event.ydata
-            self.toolbar.set_status('x={}, y={}'.format(x, y))
+
+            if self.scan_dimension == 1:
+                self.toolbar.set_status('x={}, y={}'.format(x, y))
+            else:
+                try:
+                    all_xs = np.arange(len(self.x_pos))
+                    ind_x = min(all_xs, key=lambda i: abs(x-self.x_pos[i]))
+
+                    all_ys = np.arange(len(self.y_pos))
+                    ind_y = min(all_ys, key=lambda i: abs(y-self.y_pos[i]))
+
+                    print(ind_x)
+                    print(ind_y)
+
+                    if self.x_pos[ind_x] > x:
+                        ind_x -= 1
+                    if self.y_pos[ind_y] > y:
+                        ind_y -= 1
+
+                    if ind_y < self.y_points and ind_x < self.x_points and ind_y>=0 and ind_x>=0:
+                        z = self.z_grid_data[ind_y, ind_x]
+                    else:
+                        z = ''
+                except TypeError as e:
+                    print(e)
+                    z = ''
+
+                self.toolbar.set_status('x={}, y={}, z={}'.format(x, y, z))
+
         else:
             self.toolbar.set_status('')
 
@@ -1481,10 +1606,11 @@ class ScanPanel(wx.Panel):
         Called when a point on the plot is clicked on. If the click is a right
         click, it opens a context menu.
         """
+        print('in on_pickevent')
         artist = event.artist
         button = event.mouseevent.button
 
-        if button == 3:
+        if button == 3 and self.scan_dimension ==1:
             x = artist.get_xdata()
             ind = event.ind
             position = x[ind[0]]
@@ -1888,46 +2014,58 @@ class ScanPanel(wx.Panel):
 
             path=os.path.splitext(path)[0]+'.csv'
 
-            results = [self.plt_x, self.plt_y]
-
-            if self.show_der.IsChecked():
-                results.append(self.der_y)
-
-            with open(path, 'w') as f:
-                f.write('# Scan Results\n')
-                f.write(self.scan_header)
-                f.write('# Scan FWHM: {}\n'.format(self.fwhm[0]))
-                f.write('# Scan FWHM center: {}\n'.format((self.fwhm[2]+self.fwhm[1])/2.))
-                f.write('# Scan COM: {}\n'.format(self.com))
-
-                if self.plt_fit.GetStringSelection() == 'Gaussian':
-                    f.write('# Scan fit type: Gaussian\n')
-                    f.write('# Scan fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
-                    f.write('# Scan fit A: {}\n'.format(self.plt_fitparams[0][0]))
-                    f.write('# Scan fit cen: {}\n'.format(self.plt_fitparams[0][1]))
-                    f.write('# Scan fit std: {}\n'.format(self.plt_fitparams[0][2]))
+            if self.scan_dimension == 1:
+                results = [self.plt_x, self.plt_y]
 
                 if self.show_der.IsChecked():
-                    f.write('# Derivative FWHM: {}\n'.format(self.der_fwhm[0]))
-                    f.write('# Derivative FWHM center: {}\n'.format((self.der_fwhm[2]+self.der_fwhm[1])/2.))
-                    f.write('# Derivative COM: {}\n'.format(self.der_com))
+                    results.append(self.der_y)
 
-                if self.der_fit.GetStringSelection() == 'Gaussian':
-                    f.write('# Derivative fit type: Gaussian\n')
-                    f.write('# Derivative fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
-                    f.write('# Derivative fit A: {}\n'.format(self.der_fitparams[0][0]))
-                    f.write('# Derivative fit cen: {}\n'.format(self.der_fitparams[0][1]))
-                    f.write('# Derivative fit std: {}\n'.format(self.der_fitparams[0][2]))
+                with open(path, 'w') as f:
+                    f.write('# Scan Results\n')
+                    f.write(self.scan_header)
+                    f.write('# Scan FWHM: {}\n'.format(self.fwhm[0]))
+                    f.write('# Scan FWHM center: {}\n'.format((self.fwhm[2]+self.fwhm[1])/2.))
+                    f.write('# Scan COM: {}\n'.format(self.com))
 
-                f.write('scan_x, scan_y')
-                if self.show_der.IsChecked():
-                    f.write(', der_y\n')
-                else:
-                    f.write('\n')
+                    if self.plt_fit.GetStringSelection() == 'Gaussian':
+                        f.write('# Scan fit type: Gaussian\n')
+                        f.write('# Scan fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
+                        f.write('# Scan fit A: {}\n'.format(self.plt_fitparams[0][0]))
+                        f.write('# Scan fit cen: {}\n'.format(self.plt_fitparams[0][1]))
+                        f.write('# Scan fit std: {}\n'.format(self.plt_fitparams[0][2]))
 
-                for i in range(len(results[0])):
-                    data = ', '.join([str(results[j][i]) for j in range(len(results))])
-                    f.write('{}\n'.format(data))
+                    if self.show_der.IsChecked():
+                        f.write('# Derivative FWHM: {}\n'.format(self.der_fwhm[0]))
+                        f.write('# Derivative FWHM center: {}\n'.format((self.der_fwhm[2]+self.der_fwhm[1])/2.))
+                        f.write('# Derivative COM: {}\n'.format(self.der_com))
+
+                    if self.der_fit.GetStringSelection() == 'Gaussian':
+                        f.write('# Derivative fit type: Gaussian\n')
+                        f.write('# Derivative fit equation: A*exp(-(x-cen)**2/(2*std**2)\n')
+                        f.write('# Derivative fit A: {}\n'.format(self.der_fitparams[0][0]))
+                        f.write('# Derivative fit cen: {}\n'.format(self.der_fitparams[0][1]))
+                        f.write('# Derivative fit std: {}\n'.format(self.der_fitparams[0][2]))
+
+                    f.write('# scan_x, scan_y')
+                    if self.show_der.IsChecked():
+                        f.write(', der_y\n')
+                    else:
+                        f.write('\n')
+
+                    for i in range(len(results[0])):
+                        data = ', '.join([str(results[j][i]) for j in range(len(results))])
+                        f.write('{}\n'.format(data))
+            else:
+                results = [self.plt_x, self.plt_y, self.plt_z]
+
+                with open(path, 'w') as f:
+                    f.write('# Scan Results\n')
+                    f.write(self.scan_header)
+
+                    f.write('# scan_x, scan_y, scan_i\n')
+                    for i in range(len(results[0])):
+                        data = ', '.join([str(results[j][i]) for j in range(len(results))])
+                        f.write('{}\n'.format(data))
 
         return
 
