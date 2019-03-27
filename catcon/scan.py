@@ -995,7 +995,8 @@ class ScanPanel(wx.Panel):
 
             if cont:
                 self.initial_position = float(self.pos.GetLabel())
-                self.initial_position2 = float(self.pos2.GetLabel())
+                if self.scan_dimension == 2:
+                    self.initial_position2 = float(self.pos2.GetLabel())
                 self.scan_timer.Start(10)
 
                 self.cmd_q.put_nowait(['scan', [], {}])
@@ -1025,8 +1026,14 @@ class ScanPanel(wx.Panel):
             offset = 0
             offset2 = 0
         else:
-            offset = float(self.pos.GetLabel())
-            offset2 = float(self.pos2.GetLabel())
+            try:
+                offset = float(self.pos.GetLabel())
+            except ValueError:
+                offset = 0
+            try:
+                offset2 = float(self.pos2.GetLabel())
+            except ValueError:
+                offset2 = 0
 
         scan_dim = self.scan_dim.GetStringSelection()
 
