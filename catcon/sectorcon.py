@@ -45,6 +45,7 @@ import Mp as mp
 
 import motorcon as mc
 import ampcon as ac
+import diocon as dioc
 
 
 class MainFrame(wx.Frame):
@@ -68,6 +69,7 @@ class MainFrame(wx.Frame):
         self.controls = collections.OrderedDict()
         self.ctrl_types = {'Amplifier'  : ac.AmpPanel,
                         'Motor'         : mc.MotorPanel,
+                        'Digital IO'    : dioc.DIOPanel,
                         }
         self.ctrl_panels = {}
 
@@ -113,6 +115,7 @@ class MainFrame(wx.Frame):
 
         self.amp_list = []
         self.motor_list = []
+        self.dio_list = []
 
         for record in self.mx_db.get_all_records():
             try:
@@ -124,9 +127,12 @@ class MainFrame(wx.Frame):
                 self.amp_list.append(record.get_field('name'))
             elif class_name == 'motor':
                 self.motor_list.append(record.get_field('name'))
+            elif class_name == 'digital_input' or class_name == 'digital_output':
+                self.dio_list.append(record.get_field('name'))
 
         self.amp_list = sorted(self.amp_list, key=str.lower)
         self.motor_list = sorted(self.motor_list, key=str.lower)
+        self.dio_list = sorted(self.dio_list, key=str.lower)
 
     def _load_controls(self):
         """
@@ -838,6 +844,9 @@ class AddCtrlDialog(wx.Dialog):
             if prev_choice == 'Amplifier':
                 textctrl.AutoComplete(main_frame.amp_list)
 
+            elif prev_choice == 'Digital IO':
+                textctrl.AutoComplete(main_frame.dio_list)
+
         item.SetWindow(choice_ctrl)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
@@ -977,6 +986,8 @@ class AddCtrlDialog(wx.Dialog):
             records = main_frame.motor_list
         elif ctrl_type == 'Amplifier':
             records = main_frame.amp_list
+        elif ctrl_type == 'Digital IO':
+            records = main_frame.dio_list
 
         menu = wx.Menu()
         menu.Bind(wx.EVT_MENU, self._on_motor_menu_choice)
@@ -1010,6 +1021,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.SetValue(main_frame.motor_list[choice])
         elif ctrl_type == 'Amplifier':
             txtctrl.SetValue(main_frame.amp_list[choice])
+        elif ctrl_type == 'Digital IO':
+            txtctrl.SetValue(main_frame.dio_list[choice])
 
     def _on_typechange(self, evt):
         """
@@ -1029,6 +1042,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.AutoComplete(main_frame.motor_list)
         elif evt.GetString() == 'Amplifier':
             txtctrl.AutoComplete(main_frame.amp_list)
+        elif evt.GetString() == 'Digital IO':
+            txtctrl.AutoComplete(main_frame.dio_list)
 
 
 class RemoveCtrlDialog(wx.Dialog):
