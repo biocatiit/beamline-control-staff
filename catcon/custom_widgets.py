@@ -248,3 +248,85 @@ def epics_value_callback(callback, args):
         value = str(round(value, 4))
 
     wx.PostEvent(widget, mpwxca.UpdateEvent(value))
+
+class EpicsRadioBox(wx.RadioBox):
+
+    def __init__( self, parent, pv_name,
+                        server_record=None, field_name=None, nf=None, \
+            function=None, args=None, \
+            id=-1, label=wx.EmptyString, \
+            pos=wx.DefaultPosition, size=wx.DefaultSize, \
+            choices=None, reverse_order=False, \
+            majorDimension=0, style=wx.RA_HORIZONTAL, \
+            validator=wx.DefaultValidator, \
+            name=wx.RadioBoxNameStr ):
+
+        wx.RadioBox.__init__( self, parent, id=id, label=label, \
+            pos=pos, size=size, choices=choices, \
+            majorDimension=majorDimension, style=style, \
+            validator=validator, name=name )
+
+        self.parent = parent
+
+        self.choices = choices
+
+        self.reverse_order = reverse_order
+
+        # Arrange for automatic updates of the value.
+
+        if ( function == None ):
+            function = _RadioBox_update
+
+        args = ( self.pv, self )
+
+        self.callback = \
+            self.pv.add_callback( mpca.DBE_VALUE, function, args )
+
+        # Test for the existence of the PV.
+
+        try:
+            self.pv.caget()
+        except mp.Not_Found_Error:
+            self.Enable(False)
+            return
+
+        # Disable the widget if the PV is read only.
+
+        read_only = False
+
+        if ( read_only ):
+            self.Enable(False)
+
+        mpca.poll()
+
+        self.Bind( wx.EVT_RADIOBOX, self.OnRadioBox )
+
+    def OnRadioBox( self, event ):
+
+        value = self.GetSelection()
+
+        value = int( value )
+
+        if ( self.reverse_order ):
+            num_values = len(self.choices)
+            value = num_values - 1 - value
+
+        self.pv.caput(value, wait=False)
+
+#----
+
+def _RadioBox_update(callback, args):
+
+    pv, widget = args
+
+    value = pv.get_local()
+
+    if isinstance( value, list ):
+        if ( len(value) == 1 ):
+            value = value[0]
+
+    if ( widget.reverse_order ):
+        num_values = len(widget.choices)
+        value = num_values - 1 - value
+
+    widget.SetSelection( value )

@@ -87,6 +87,12 @@ class ScanProcess(multiprocessing.Process):
         self.motor_name = ''
         self.motor_name2 = ''
 
+        self.shutter1_name = 'avme944x_out9'
+        self.shutter2_name =  'avme944x_out6'
+
+        self.shutter1 = None
+        self.shutter2 = None
+
         mp.set_user_interrupt_function(self._stop_scan)
 
         self._commands = {'start_mxdb'      : self._start_mxdb,
@@ -98,6 +104,8 @@ class ScanProcess(multiprocessing.Process):
                         'move_abs'          : self._move_abs,
                         'move_abs2'         : self._move_abs2,
                         'get_det_params'    : self._get_det_params,
+                        'open_shutters'     : self._open_shutters,
+                        'close_shutters'    : self._close_shutters,
                         }
 
     def run(self):
@@ -199,6 +207,24 @@ class ScanProcess(multiprocessing.Process):
 
     def _move_abs2(self, position):
         self.motor2.move_absolute(position)
+
+    def _open_shutters(self):
+        if self.shutter1 is None:
+            self.shutter1 = self.mx_database.get_record(self.shutter1_name)
+        if self.shutter2 is None:
+            self.shutter2 = self.mx_database.get_record(self.shutter2_name)
+
+        self.shutter1.write(1)
+        self.shutter2.write(0)
+
+    def _close_shutters(self):
+        if self.shutter1 is None:
+            self.shutter1 = self.mx_database.get_record(self.shutter1_name)
+        if self.shutter2 is None:
+            self.shutter2 = self.mx_database.get_record(self.shutter2_name)
+
+        self.shutter1.write(0)
+        self.shutter2.write(1)
 
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
@@ -641,6 +667,10 @@ class ScanPanel(wx.Panel):
         count_grid.Add(self.detector)
         count_grid.AddGrowableCol(1)
 
+
+        self.shutter = wx.CheckBox(self, label='Scan actuates shutter')
+        self.shutter.SetValue(True)
+
         self.start_btn = wx.Button(self, label='Start')
         self.start_btn.Bind(wx.EVT_BUTTON, self._on_start)
 
@@ -658,6 +688,7 @@ class ScanPanel(wx.Panel):
         self.ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
         self.ctrl_sizer.Add(self.mv_grid2, border=5, flag=wx.EXPAND|wx.TOP)
         self.ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(self.shutter, border=5, flag=wx.EXPAND|wx.TOP)
         self.ctrl_sizer.Add(ctrl_btn_sizer, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
 
         self.ctrl_sizer.Hide(self.mv_grid2, recursive=True)
@@ -999,6 +1030,9 @@ class ScanPanel(wx.Panel):
                     self.initial_position2 = float(self.pos2.GetLabel())
                 self.scan_timer.Start(10)
 
+                if self.shutter.IsChecked():
+                    self.cmd_q.put_nowait(['open_shutters', [], {}])
+
                 self.cmd_q.put_nowait(['scan', [], {}])
 
             else:
@@ -1153,6 +1187,9 @@ class ScanPanel(wx.Panel):
                 self.abort_event)
             self.scan_proc.start()
             self._start_scan_mxdb()
+
+            if self.shutter.IsChecked():
+                self.cmd_q.put_nowait(['close_shutters', [], {}])
 
             self.cmd_q.put_nowait(['get_position', [self.motor_name], {}])
             pos = self.return_q.get()[0]
