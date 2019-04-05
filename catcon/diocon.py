@@ -81,7 +81,8 @@ class DIOPanel(wx.Panel):
 
         if self.dio_type.startswith('epics'):
             self.is_epics = True
-            self.pv = self.dio.get_field('epics_record_name')
+            pv_name = self.dio.get_field('epics_variable_name')
+            self.pv = mpca.PV(pv_name)
 
         else:
             self.is_epics = False
@@ -102,8 +103,8 @@ class DIOPanel(wx.Panel):
         """
 
         if not self.is_input:
-            self.off = wx.RadioButton(self, label='Off', style=wx.RB_SINGLE)
-            self.on = wx.RadioButton(self, label='On', style=wx.RB_SINGLE)
+            self.off = wx.RadioButton(self, label='Off', style=wx.RB_GROUP)
+            self.on = wx.RadioButton(self, label='On')
 
             self.off.Bind(wx.EVT_RADIOBUTTON, self._on_output)
             self.on.Bind(wx.EVT_RADIOBUTTON, self._on_output)
@@ -135,32 +136,33 @@ class DIOPanel(wx.Panel):
     def _initialize(self):
         if self.is_input:
             if self.is_epics:
-                self.pv.add_callback(mpca.DBE_VALUE, self._on_epics_input, (self.pv, self.state))
+                self.callback = self.pv.add_callback(mpca.DBE_VALUE, self._on_epics_input, (self.pv, self._update_status))
 
+                value = self.pv.caget()
+                self._on_epics_input(self.callback, (self.pv, self._update_status))
         else:
             if self.is_epics:
                 value = self.pv.caget()
 
                 if value:
                     self.on.SetValue(True)
-                    self.off.SetValue(False)
+                    # self.off.SetValue(False)
                 else:
-                    self.on.SetValue(False)
+                    # self.on.SetValue(False)
                     self.off.SetValue(True)
+
 
     def _on_output(self, event):
         if event.GetEventObject() == self.off:
             if self.is_epics:
-                self.on.SetValue(False)
                 self.pv.caput(0, wait=False)
         else:
             if self.is_epics:
-                self.off.SetValue(False)
                 self.pv.caput(1, wait=False)
 
     @staticmethod
     def _on_epics_input(callback, args):
-        pv, widget = args
+        pv, update_func = args
 
         value = pv.get_local()
 
@@ -168,11 +170,13 @@ class DIOPanel(wx.Panel):
             if ( len(value) == 1 ):
                 value = value[0]
 
-        if value:
-            widget.SetLabel('On')
-        else:
-            widget.SetLabel('Off')
+        wx.CallAfter(update_func, value)
 
+    def _update_status(self, value):
+        if value:
+            self.state.SetLabel('On')
+        else:
+            self.state.SetLabel('Off')
 
     def _on_rightclick(self, evt):
         """
@@ -243,6 +247,7 @@ class DIOFrame(wx.Frame):
         top_sizer = self._create_layout(dios, shape)
 
         self.SetSizer(top_sizer)
+        self.Layout()
         self.Fit()
         self.Raise()
 
