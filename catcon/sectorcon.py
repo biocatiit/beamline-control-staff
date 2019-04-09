@@ -278,7 +278,8 @@ class MainFrame(wx.Frame):
         self.mx_timer.Start()
 
     def make_custom_ctrl(self, ctrl_name, mx_db, parent):
-        self.custom_ctrl_type[ctrl_name](ctrl_name, mx_db, parent)
+        ctrl = self.custom_ctrl_type[ctrl_name](ctrl_name, mx_db, parent)
+        return ctrl
 
     def _on_addctrl(self, evt):
         """

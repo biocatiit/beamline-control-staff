@@ -77,11 +77,13 @@ class AttenuatorPanel(wx.Panel):
 
         self._enabled = True
 
-        self._initialize()
         self._create_layout()
+        self._initialize()
 
         if self.mx_database is not None:
             self._get_attenuators()
+            self.atten_ctrl.SetStringSelection(self.atten_factors_reverse[self.current_attenuation])
+            self.trans_ctrl.SetStringSelection(self.transmission_vals_reverse[self.current_attenuation])
 
 
     def _create_layout(self):
@@ -91,11 +93,11 @@ class AttenuatorPanel(wx.Panel):
         """
 
         self.energy_ctrl = wx.TextCtrl(self, size=(60, -1), style=wx.TE_PROCESS_ENTER,
-            value = '{}'.format(self.energy), validator=utils.CharValidator('float_te'))
+            validator=utils.CharValidator('float_te'))
         self.trans_ctrl = wx.ComboBox(self, size=(120,-1), style=wx.TE_PROCESS_ENTER,
-            choices=self.trans_choices, validator=utils.CharValidator('float_te'))
+            validator=utils.CharValidator('float_te'))
         self.atten_ctrl = wx.ComboBox(self, size=(120, -1), style=wx.TE_PROCESS_ENTER,
-            choices=self.atten_choices, validator=utils.CharValidator('float_te'))
+            validator=utils.CharValidator('float_te'))
 
         self.energy_ctrl.Bind(wx.EVT_TEXT_ENTER, self._on_energy_change)
         self.trans_ctrl.Bind(wx.EVT_TEXT_ENTER, self._on_trans_change)
@@ -131,11 +133,14 @@ class AttenuatorPanel(wx.Panel):
 
     def _initialize(self):
         self.setting_attenuation = False
+        self.current_attenuation = 1
 
         self.attenuator_thickness = [1, 2, 4, 8, 16, 32]
         self.energy = 12    #Energy in keV
 
-        self.atten_e_data, self.atten_len_data = np.loadtxt('./al_atten.txt', unpack=True)
+        root_dir = os.path.split(__file__)[0]
+
+        self.atten_e_data, self.atten_len_data = np.loadtxt(os.path.join(root_dir, './al_atten.txt'), unpack=True)
         self.get_atten_len = interp.interp1d(self.atten_e_data, self.atten_len_data)
 
         self.attenuator_combos = []
@@ -145,38 +150,56 @@ class AttenuatorPanel(wx.Panel):
 
         self._calc_attens()
 
+        self.trans_ctrl.Set(self.trans_choices)
+        self.atten_ctrl.Set(self.atten_choices)
+        self.energy_ctrl.ChangeValue(str(self.energy))
+
         if self.mx_database is not None:
             self.mx_attens = {
-                1   : self.mx_database.get_record('avme944x_out'),
-                2   : self.mx_database.get_record('avme944x_out'),
-                4   : self.mx_database.get_record('avme944x_out'),
-                8   : self.mx_database.get_record('avme944x_out'),
-                16  : self.mx_database.get_record('avme944x_out'),
-                32  : self.mx_database.get_record('avme944x_out'),
+                1   : self.mx_database.get_record('avme944x_out0'),
+                2   : self.mx_database.get_record('avme944x_out1'),
+                4   : self.mx_database.get_record('avme944x_out2'),
+                8   : self.mx_database.get_record('avme944x_out3'),
+                16  : self.mx_database.get_record('avme944x_out4'),
+                32  : self.mx_database.get_record('avme944x_out5'),
             }
 
-            self.mx_atten_outs = {
-                1   : self.mx_database.get_record('avme944x_in'),
-                2   : self.mx_database.get_record('avme944x_in'),
-                4   : self.mx_database.get_record('avme944x_in'),
-                8   : self.mx_database.get_record('avme944x_in'),
-                16  : self.mx_database.get_record('avme944x_in'),
-                32  : self.mx_database.get_record('avme944x_in'),
+            self.mx_attens_outs = {
+                1   : self.mx_database.get_record('avme944x_in8'),
+                2   : self.mx_database.get_record('avme944x_in1'),
+                4   : self.mx_database.get_record('avme944x_in2'),
+                8   : self.mx_database.get_record('avme944x_in3'),
+                16  : self.mx_database.get_record('avme944x_in4'),
+                32  : self.mx_database.get_record('avme944x_in5'),
             }
 
-            for atten_out in self.mx_attens_outs.values():
-                dio_type = atten_out.get_field('mx_type')
+            # for atten_out in self.mx_attens_outs.values():
+            #     dio_type = atten_out.get_field('mx_type')
 
-                if dio_type.startswith('epics'):
-                    self.callback_pvs = []
-                    self.callbacks = []
+            #     if dio_type.startswith('epics'):
+            #         self.callback_pvs = []
+            #         self.callbacks = []
 
-                    pv_name = atten_out.get_field('epics_variable_name')
-                    pv = mpca.PV(pv_name)
-                    self.callback_pvs.append(pv)
+            #         pv_name = atten_out.get_field('epics_variable_name')
+            #         pv = mpca.PV(pv_name)
+            #         self.callback_pvs.append(pv)
 
-                    callback = pv.add_callback(mpca.DBE_VALUE, self._atten_callback, pv)
-                    self.callbacks.append(callback)
+            #         callback = pv.add_callback(mpca.DBE_VALUE, self._atten_callback, pv)
+            #         self.callbacks.append(callback)
+
+            #         try:
+            #             pv.caget()
+            #         except mp.Not_Found_Error:
+            #             pass
+
+            #         mpca.poll()
+
+        self.get_atten_timer = wx.Timer()
+        self.get_atten_timer.Bind(wx.EVT_TIMER, self._atten_poll)
+
+        self.get_atten_timer.Start(1000)
+
+
 
     def _on_text(self, evt):
         widget = evt.GetEventObject()
@@ -252,7 +275,7 @@ class AttenuatorPanel(wx.Panel):
         self.attenuations = {1.0 : (None, 0, 0)}
 
         for combo in self.attenuator_combos:
-            length = sum(combo)*25 #length in microns
+            length = sum(combo)*20 #length in microns
             atten = math.exp(-length/self.atten_length)
 
             self.attenuations[atten] = (combo, length, atten)
@@ -295,32 +318,38 @@ class AttenuatorPanel(wx.Panel):
 
         used_attens = self.attenuations[attenuation][0]
 
-        for foil, mx_atten in self.mx_attens.items():
-            if foil in used_attens:
-                mx_atten.write(0)
-            else:
+        if used_attens is not None:
+            for foil, mx_atten in self.mx_attens.items():
+                if foil in used_attens:
+                    mx_atten.write(0)
+                else:
+                    mx_atten.write(1)
+        else:
+            for mx_atten in self.mx_attens.values():
                 mx_atten.write(1)
 
         self.setting_attenuation = False
 
-    def _atten_callback(self, evt, pv):
+    def _atten_poll(self, evt):
         if not self.setting_attenuation:
             self._get_attenuators()
 
     def _get_attenuators(self):
         length = 0
         for foil, atten_out in self.mx_attens_outs.items():
-            if atten_out.read():
+            if not atten_out.read():
                 length = length + foil
 
-        length = length*25
+        length = length*20
+        old_attenuation = self.current_attenuation
         self.current_attenuation = math.exp(-length/self.atten_length)
 
-        self.trans_ctrl.SetStringSelection(self.transmission_vals_reverse[self.current_attenuation])
-        self.atten_ctrl.SetStringSelection(self.atten_factors_reverse[self.current_attenuation])
+        if old_attenuation != self.current_attenuation:
+            self.trans_ctrl.SetStringSelection(self.transmission_vals_reverse[self.current_attenuation])
+            self.atten_ctrl.SetStringSelection(self.atten_factors_reverse[self.current_attenuation])
 
-        self.trans_ctrl.SetBackgroundColour(wx.NullColour)
-        self.atten_ctrl.SetBackgroundColour(wx.NullColour)
+            self.trans_ctrl.SetBackgroundColour(wx.NullColour)
+            self.atten_ctrl.SetBackgroundColour(wx.NullColour)
 
 
     def _on_rightclick(self, evt):
@@ -397,8 +426,8 @@ class AttenuatorFrame(wx.Frame):
         self.Fit()
         self.Raise()
 
-        # if timer:
-        #     self.mx_timer.Start(1000)
+        if timer:
+            self.mx_timer.Start(1000)
 
     def _create_layout(self):
         """
@@ -427,20 +456,20 @@ class AttenuatorFrame(wx.Frame):
         self.mx_database.wait_for_messages(0.01)
 
 if __name__ == '__main__':
-    # try:
-    #     # First try to get the name from an environment variable.
-    #     database_filename = os.environ["MXDATABASE"]
-    # except:
-    #     # If the environment variable does not exist, construct
-    #     # the filename for the default MX database.
-    #     mxdir = utils.get_mxdir()
-    #     database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
-    #     database_filename = os.path.normpath(database_filename)
+    try:
+        # First try to get the name from an environment variable.
+        database_filename = os.environ["MXDATABASE"]
+    except:
+        # If the environment variable does not exist, construct
+        # the filename for the default MX database.
+        mxdir = utils.get_mxdir()
+        database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
+        database_filename = os.path.normpath(database_filename)
 
-    # mx_database = mp.setup_database(database_filename)
-    # mx_database.set_plot_enable(2)
+    mx_database = mp.setup_database(database_filename)
+    mx_database.set_plot_enable(2)
 
-    mx_database = None
+    # mx_database = None
 
     app = wx.App()
     frame = AttenuatorFrame(None, mx_database, parent=None, title='Test Attenuator Control')
