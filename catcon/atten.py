@@ -55,7 +55,7 @@ class AttenuatorPanel(wx.Panel):
     and can be instanced several times, once for each amp. It communicates
     with the amps by calling ``Mp``, the python wrapper for ``MX``.
     """
-    def __init__(self, mx_database, parent, panel_id=wx.ID_ANY,
+    def __init__(self, name, mx_database, parent, panel_id=wx.ID_ANY,
         panel_name=''):
         """
         Initializes the custom panel. Important parameters here are the
@@ -80,7 +80,8 @@ class AttenuatorPanel(wx.Panel):
         self._initialize()
         self._create_layout()
 
-        self._get_attenuators()
+        if self.mx_database is not None:
+            self._get_attenuators()
 
 
     def _create_layout(self):
@@ -163,19 +164,19 @@ class AttenuatorPanel(wx.Panel):
                 32  : self.mx_database.get_record('avme944x_in'),
             }
 
-        for atten_out in self.mx_attens_outs.values():
-            dio_type = atten_out.get_field('mx_type')
+            for atten_out in self.mx_attens_outs.values():
+                dio_type = atten_out.get_field('mx_type')
 
-            if dio_type.startswith('epics'):
-                self.callback_pvs = []
-                self.callbacks = []
+                if dio_type.startswith('epics'):
+                    self.callback_pvs = []
+                    self.callbacks = []
 
-                pv_name = atten_out.get_field('epics_variable_name')
-                pv = mpca.PV(pv_name)
-                self.callback_pvs.append(pv)
+                    pv_name = atten_out.get_field('epics_variable_name')
+                    pv = mpca.PV(pv_name)
+                    self.callback_pvs.append(pv)
 
-                callback = pv.add_callback(mpca.DBE_VALUE, self._atten_callback, pv)
-                self.callbacks.append(callback)
+                    callback = pv.add_callback(mpca.DBE_VALUE, self._atten_callback, pv)
+                    self.callbacks.append(callback)
 
     def _on_text(self, evt):
         widget = evt.GetEventObject()
@@ -361,7 +362,7 @@ class AttenuatorFrame(wx.Frame):
     A lightweight amplifier frame designed to hold an arbitrary number of dios
     in an arbitrary grid pattern.
     """
-    def __init__(self, mx_database, timer=True, *args, **kwargs):
+    def __init__(self, name, mx_database, timer=True, *args, **kwargs):
         """
         Initializes the amp frame. This frame is designed to function either as
         a stand alone application, or as part of a larger application.
@@ -381,6 +382,8 @@ class AttenuatorFrame(wx.Frame):
             if this is standalone, hence why it can be turned on/off.
         """
         wx.Frame.__init__(self, *args, **kwargs)
+
+        self.name = name
 
         self.mx_database = mx_database
 
@@ -410,7 +413,7 @@ class AttenuatorFrame(wx.Frame):
             few dios.
         """
 
-        atten_panel = AttenuatorPanel(self.mx_database, self)
+        atten_panel = AttenuatorPanel(self.name, self.mx_database, self)
         atten_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Attenuator Controls'))
         atten_box_sizer.Add(atten_panel)
 
@@ -440,6 +443,6 @@ if __name__ == '__main__':
     mx_database = None
 
     app = wx.App()
-    frame = AttenuatorFrame(mx_database, parent=None, title='Test Attenuator Control')
+    frame = AttenuatorFrame(None, mx_database, parent=None, title='Test Attenuator Control')
     frame.Show()
     app.MainLoop()

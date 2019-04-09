@@ -46,6 +46,7 @@ import Mp as mp
 import motorcon as mc
 import ampcon as ac
 import diocon as dioc
+import atten
 
 
 class MainFrame(wx.Frame):
@@ -70,7 +71,12 @@ class MainFrame(wx.Frame):
         self.ctrl_types = {'Amplifier'  : ac.AmpPanel,
                         'Motor'         : mc.MotorPanel,
                         'Digital IO'    : dioc.DIOPanel,
+                        'Custom'        : self.make_custom_ctrl,
                         }
+
+        self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
+            }
+
         self.ctrl_panels = {}
 
         self._start_mxdatabase()
@@ -116,6 +122,8 @@ class MainFrame(wx.Frame):
         self.amp_list = []
         self.motor_list = []
         self.dio_list = []
+
+        self.custom_list = ['Attenuators']
 
         for record in self.mx_db.get_all_records():
             try:
@@ -268,6 +276,9 @@ class MainFrame(wx.Frame):
         ctrl_frame = CtrlsFrame(ctrl_data, self.mx_db, parent=self)
         ctrl_frame.Show()
         self.mx_timer.Start()
+
+    def make_custom_ctrl(self, ctrl_name, mx_db, parent):
+        self.custom_ctrl_type[ctrl_name](ctrl_name, mx_db, parent)
 
     def _on_addctrl(self, evt):
         """
@@ -847,6 +858,9 @@ class AddCtrlDialog(wx.Dialog):
             elif prev_choice == 'Digital IO':
                 textctrl.AutoComplete(main_frame.dio_list)
 
+            elif prev_choice == 'Custom':
+                textctrl.AutoComplete(main_frame.custom_list)
+
         item.SetWindow(choice_ctrl)
         item.SetAlign(ULC.ULC_FORMAT_LEFT)
         self.list_ctrl.SetItem(item)
@@ -923,13 +937,14 @@ class AddCtrlDialog(wx.Dialog):
             ctrl_name =name_ctrl.GetValue()
             ctrl_type = self.list_ctrl.GetItem(i, 1).GetWindow().GetStringSelection()
 
-            try:
-                mx_db.get_record(ctrl_name)
-            except mp.Not_Found_Error:
-                msg = ('The control name "{}" is not an mx record. Please '
-                    'fix this.'.format(ctrl_name))
-                wx.MessageBox(msg, 'Error adding controls')
-                return
+            if ctrl_type != 'Custom':
+                try:
+                    mx_db.get_record(ctrl_name)
+                except mp.Not_Found_Error:
+                    msg = ('The control name "{}" is not an mx record. Please '
+                        'fix this.'.format(ctrl_name))
+                    wx.MessageBox(msg, 'Error adding controls')
+                    return
 
             if ctrl_name != '':
                 self.ctrl_data.append((ctrl_name, ctrl_type))
@@ -988,6 +1003,8 @@ class AddCtrlDialog(wx.Dialog):
             records = main_frame.amp_list
         elif ctrl_type == 'Digital IO':
             records = main_frame.dio_list
+        elif ctrl_type == 'Custom':
+            records = main_frame.custom_list
 
         menu = wx.Menu()
         menu.Bind(wx.EVT_MENU, self._on_motor_menu_choice)
@@ -1023,6 +1040,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.SetValue(main_frame.amp_list[choice])
         elif ctrl_type == 'Digital IO':
             txtctrl.SetValue(main_frame.dio_list[choice])
+        elif ctrl_type == 'Custom':
+            txtctrl.SetValue(main_frame.custom_list[choice])
 
     def _on_typechange(self, evt):
         """
@@ -1044,6 +1063,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.AutoComplete(main_frame.amp_list)
         elif evt.GetString() == 'Digital IO':
             txtctrl.AutoComplete(main_frame.dio_list)
+        elif evt.GetString() == 'Custom':
+            txtctrl.AutoComplete(main_frame.custom_list)
 
 
 class RemoveCtrlDialog(wx.Dialog):
