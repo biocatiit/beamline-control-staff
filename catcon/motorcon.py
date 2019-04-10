@@ -86,8 +86,6 @@ class MotorPanel(wx.Panel):
         font = self.GetFont()
         self.vert_size = font.GetPixelSize()[1]+5
 
-        top_sizer = self._create_layout()
-
         if self.mtr_type == 'epics_motor':
             pv = self.motor.get_field('epics_record_name')
             self.limit_pv = mpca.PV("{}.LVIO".format(pv))
@@ -96,16 +94,22 @@ class MotorPanel(wx.Panel):
         self.is_slit_mtr = False
 
         if self.mtr_type == 'network_motor':
-            server_record_name = self.motor.get_field('server_record')
-            remote_record_name = self.motor.get_field('remote_record_name')
-            server_record = mx_database.get_record(server_record_name)
-            remote_type_name = '{}.mx_type'.format(remote_record_name)
+            print('here')
+            self.server_record_name = self.motor.get_field('server_record')
+            self.remote_record_name = self.motor.get_field('remote_record_name')
+            self.server_record = self.mx_database.get_record(self.server_record_name)
 
-            remote_type = mp.Net(server_record, remote_type_name)
+            self.remote_offset = mp.Net(self.server_record, '{}.offset'.format(self.remote_record_name))
+            self.remote_scale = mp.Net(self.server_record, '{}.scale'.format(self.remote_record_name))
+
+            remote_type_name = '{}.mx_type'.format(self.remote_record_name)
+            remote_type = mp.Net(self.server_record, remote_type_name)
 
             if str(remote_type.get()) == 'slit_motor':
                 self.is_slit_mtr = True
-                self.remote_offset = mp.Net(server_record, '{}.offset'.format(remote_record_name))
+
+
+        top_sizer = self._create_layout()
 
         self.SetSizer(top_sizer)
 
@@ -118,19 +122,26 @@ class MotorPanel(wx.Panel):
         """
 
         if self.mtr_type == 'network_motor':
-            server_record_name = self.motor.get_field("server_record")
-            self.server_record = self.mx_database.get_record(server_record_name)
-            remote_record_name = self.motor.get_field("remote_record_name")
-
-            pos_name = "{}.position".format(remote_record_name)
+            pos_name = "{}.position".format(self.remote_record_name)
             pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
-            low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
-            high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
-            # local_server_record = self.mx_database.get_record('localhost')
-            # low_limit = mpwx.ValueEntry(self, local_server_record, "{}.negative_limit".format(self.motor_name))
-            # high_limit = mpwx.ValueEntry(self, local_server_record, "{}.positive_limit".format(self.motor_name))
+            # low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
+            # high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
+            #
+            nlimit = "{}.negative_limit".format(self.remote_record_name)
+            plimit = "{}.positive_limit".format(self.remote_record_name)
+
+            low_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, nlimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+
+            high_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, plimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+
             mname = wx.StaticText(self, label=self.motor.name)
 
         elif self.mtr_type == 'epics_motor':
@@ -138,10 +149,12 @@ class MotorPanel(wx.Panel):
             self.sever_record = None #Needed to get around some MP bugs
             pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset)
+
             low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
             high_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.HLM".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
 
 

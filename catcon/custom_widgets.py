@@ -29,6 +29,7 @@ import wx
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
+import MpWx as mpwx
 import MpCa as mpca
 import MpWxCa as mpwxca
 
@@ -218,6 +219,27 @@ def network_value_callback(nf, widget, args, value):
     widget.SetSize(widget.GetBestSize())
     widget.Refresh()
 
+def limit_network_value_callback(nf, widget, args, value):
+    """
+    This is a callback function that sets the value of an MX network variable.
+    It is modified from the one in :mod:`MpWx` to use the local record scale
+    and offset.
+    """
+    local_scale, local_offset, remote_scale, remote_offset = args
+
+    if isinstance(value, list):
+        if len(value) == 1:
+            value = value[0]
+
+    value = value*remote_scale+remote_offset
+    value = value*local_scale+local_offset
+
+    value = str(round(value, 4))
+
+    widget.SetValue(value)
+    widget.SetBackgroundColour( wx.NullColour )
+    widget.Refresh()
+
 def epics_value_callback(callback, args):
     """
     This is a callback function that sets the value of an MX EPICS network variable.
@@ -330,3 +352,70 @@ def _RadioBox_update(callback, args):
         value = num_values - 1 - value
 
     widget.SetSelection( value )
+
+
+class CustomLimitValueEntry(wx.TextCtrl):
+
+    def __init__(self, parent, server_record=None, field_name=None, nf=None,
+        function=None, args=None, id=-1, pos=wx.DefaultPosition,
+        size=wx.DefaultSize, style=0, name=wx.TextCtrlNameStr,
+        validator=wx.DefaultValidator):
+
+        # Adding wx.TE_PROCESS_ENTER to the style causes the
+        # widget to generate wx.EVT_TEXT_ENTER events when
+        # the Enter key is pressed.
+
+        style = style | wx.TE_PROCESS_ENTER
+
+        wx.TextCtrl.__init__(self, parent, id=id, value=wx.EmptyString, pos=pos,
+            size=size, style=style, validator=validator)
+
+        self.parent = parent
+
+        if nf is None:
+            self.nf = mp.Net( server_record, field_name )
+        else:
+            self.nf = nf
+
+        # Test for the existence of the network field.
+        try:
+            self.nf.get()
+        except mp.Not_Found_Error:
+            self.SetValue( "NOT FOUND" )
+            self.Enable(False)
+            return
+
+        # Disable the widget if the network field is read only.
+        read_only = self.nf.get_attribute(mp.MXNA_READ_ONLY)
+
+        if read_only:
+            self.Enable(False)
+
+        # Arrange for automatic updates of the value.
+        if function is None:
+            function = mpwx._ValueEntry_update
+
+        self.nf.add_to_value_changed_list(self, function, args)
+
+        # Grab scaling values from callback args
+        self.local_scale, self.local_offset, self.remote_scale, self.remote_offset = args
+
+        # Typing keys in the entry field will change the color.
+        self.Bind(wx.EVT_TEXT, self.OnText)
+
+        # <Enter> keystrokes will change the value of the MX field.
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
+
+    def OnText(self, event):
+        self.SetBackgroundColour( "yellow" )
+
+    def OnEnter(self, event):
+        value = self.GetValue().strip()
+
+        value = float(value)
+        value = (value-self.local_offset)/self.local_scale
+        value = (value-self.remote_offset)/self.remote_scale
+
+        self.nf.put(str(value))
+
+        self.SetBackgroundColour(wx.NullColour)

@@ -30,6 +30,7 @@ if __name__ == "__main__" and __package__ is None:
 import os
 import itertools
 import math
+import time
 
 import wx
 import numpy as np
@@ -327,6 +328,8 @@ class AttenuatorPanel(wx.Panel):
         else:
             for mx_atten in self.mx_attens.values():
                 mx_atten.write(1)
+
+        time.sleep(0.5)
 
         self.setting_attenuation = False
 
