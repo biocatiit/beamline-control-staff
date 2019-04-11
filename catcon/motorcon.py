@@ -126,21 +126,21 @@ class MotorPanel(wx.Panel):
             pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
             # setting limits this way currently doesn't work. So making it a static text, not a text entry
-            # low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
-            # high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
+            self.low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
+            self.high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             #
-            nlimit = "{}.negative_limit".format(self.remote_record_name)
-            plimit = "{}.positive_limit".format(self.remote_record_name)
+            # nlimit = "{}.negative_limit".format(self.remote_record_name)
+            # plimit = "{}.positive_limit".format(self.remote_record_name)
 
-            low_limit = custom_widgets.CustomLimitValueEntry(self,
-                self.server_record, nlimit,
-                function=custom_widgets.limit_network_value_callback,
-                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+            # self.low_limit = custom_widgets.CustomLimitValueEntry(self,
+            #     self.server_record, nlimit,
+            #     function=custom_widgets.limit_network_value_callback,
+            #     args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
 
-            high_limit = custom_widgets.CustomLimitValueEntry(self,
-                self.server_record, plimit,
-                function=custom_widgets.limit_network_value_callback,
-                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+            # self.high_limit = custom_widgets.CustomLimitValueEntry(self,
+            #     self.server_record, plimit,
+            #     function=custom_widgets.limit_network_value_callback,
+            #     args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
 
             mname = wx.StaticText(self, label=self.motor.name)
 
@@ -150,9 +150,9 @@ class MotorPanel(wx.Panel):
             pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset)
 
-            low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
+            self.low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-            high_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.HLM".format(pv),
+            self.high_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.HLM".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
 
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
@@ -196,11 +196,11 @@ class MotorPanel(wx.Panel):
             flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.Add((1,1))
         pos_sizer.Add(wx.StaticText(self, label='High lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add(low_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add(self.low_limit, flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.Add((1,1))
         pos_sizer.Add(pos, flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.Add((1,1))
-        pos_sizer.Add(high_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        pos_sizer.Add(self.high_limit, flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.AddGrowableCol(1)
         pos_sizer.AddGrowableCol(3)
 
@@ -256,6 +256,15 @@ class MotorPanel(wx.Panel):
                 self.motor.move_absolute(float(pval))
             except mp.Would_Exceed_Limit_Error as e:
                 msg = str(e)
+                msg1, msg2 = msg.split('to')
+                pos, msg2 = msg2.split('would')
+                msg2 = msg2.split('limit')[0]
+
+                pos = float(pos.strip())
+                pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                pos = pos*self.scale + self.offset
+
+                msg = msg1 + ' {} '.format(pos) + msg2 + 'limit.'
                 wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Position has to be numeric.'
@@ -310,6 +319,19 @@ class MotorPanel(wx.Panel):
                 self.motor.move_relative(mult*float(pval))
             except mp.Would_Exceed_Limit_Error as e:
                 msg = str(e)
+                msg1, msg2 = msg.split('to')
+                pos, msg2 = msg2.split('would')
+                msg2 = msg2.split('limit')[0]
+
+                pos = float(pos.strip())
+                pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                pos = pos*self.scale + self.offset
+
+                if 'negative' in msg:
+                    limit_val = self.low_limit.GetValue()
+                else:
+                    limit_val = self.high_limit.GetValue()
+                msg = msg1 + ' {} '.format(pos) + msg2 + 'limit of {}.'.format(limit_val)
                 wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Step size has to be numeric.'
@@ -489,7 +511,7 @@ if __name__ == '__main__':
     mx_database.set_plot_enable(2)
 
     app = wx.App()
-    frame = MotorFrame(mx_database, ['mtr1', 'mtr2', 'mtr3', 'mtr4'],
+    frame = MotorFrame(mx_database, ['mtr1','mtr2','mtr3','mtr4'],
         (2,2), parent=None, title='Test Motor Control')
     frame.Show()
     app.MainLoop()
