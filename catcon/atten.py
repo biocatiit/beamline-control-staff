@@ -124,10 +124,10 @@ class AttenuatorPanel(wx.Panel):
 
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
-        # for item in self.GetChildren():
-        #     if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-        #         or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
-        #         item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+        for item in self.GetChildren():
+            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         self.SetSizer(top_sizer)
 
@@ -141,7 +141,7 @@ class AttenuatorPanel(wx.Panel):
 
         root_dir = os.path.split(__file__)[0]
 
-        self.atten_e_data, self.atten_len_data = np.loadtxt(os.path.join(root_dir, './al_atten.txt'), unpack=True)
+        self.atten_e_data, self.atten_len_data = np.loadtxt(os.path.join(root_dir, 'data/al_atten.txt'), unpack=True)
         self.get_atten_len = interp.interp1d(self.atten_e_data, self.atten_len_data)
 
         self.attenuator_combos = []

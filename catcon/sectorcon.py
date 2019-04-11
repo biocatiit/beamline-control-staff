@@ -47,6 +47,7 @@ import motorcon as mc
 import ampcon as ac
 import diocon as dioc
 import atten
+import ic_calc
 
 
 class MainFrame(wx.Frame):
@@ -75,6 +76,7 @@ class MainFrame(wx.Frame):
                         }
 
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
+            'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             }
 
         self.ctrl_panels = {}
@@ -123,7 +125,7 @@ class MainFrame(wx.Frame):
         self.motor_list = []
         self.dio_list = []
 
-        self.custom_list = ['Attenuators']
+        self.custom_list = ['Attenuators', 'Ion Chamber Calculator']
 
         for record in self.mx_db.get_all_records():
             try:
@@ -984,7 +986,12 @@ class AddCtrlDialog(wx.Dialog):
             type_ctrl = self.list_ctrl.GetItem(index, 1).GetWindow()
 
             name_ctrl.SetValue(ctrl[0])
-            type_ctrl.SetStringSelection(ctrl[1])
+            # test = type_ctrl.SetStringSelection(ctrl[1])
+            # SetStringSelection not working for 'Custom', here's a stupid workaround
+            for i in range(type_ctrl.GetCount()):
+                if type_ctrl.GetString(i) == ctrl[1]:
+                    type_ctrl.SetSelection(i)
+
 
     def _show_motors(self, evt):
         """
