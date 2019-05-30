@@ -128,22 +128,29 @@ class SWMonosPanel(wx.Panel):
         self.mono2_x2_para = mx_database.get_record('mono2_x2_para')
         self.mono2_x2_perp = mx_database.get_record('mono2_x2_perp')
         self.mono2_focus = mx_database.get_record('mono2_focus')
-        self.mono2_tune = mx_database.get_record('mono2_tune')
 
         self.abort_event = threading.Event()
         self.abort_event.clear()
 
     def on_one_to_two(self, evt):
+        self.abort_event.clear()
         cont = self.check_fe_shutter()
 
         if cont:
-            self.one_to_two()
+            t = threading.Thread(target=self.one_to_two)
+            t.daemon = True
+            t.start()
+            # self.one_to_two()
 
     def on_two_to_one(self, evt):
+        self.abort_event.clear()
         cont = self.check_fe_shutter()
 
         if cont:
-            self.two_to_one()
+            t = threading.Thread(target=self.two_to_one)
+            t.daemon = True
+            t.start()
+            # self.two_to_one()
 
     def check_fe_shutter(self, evt):
         if self.fe_shutter_pv.caget() == 0:
@@ -180,44 +187,60 @@ class SWMonosPanel(wx.Panel):
             self.cleanup()
             return
 
+        wx.CallAfter(self.output.AppendText, "\n\nSwitching Mono 1 to Mono 2\n")
+
         # Move mono 1 to bypass position
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 1 energy to 12 keV . . . ")
         self.mono1_energy.move_absolute(12.0)
 
         while self.mono1_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
+
+        wx.CallAfter(self.output.AppendText, "Done!\n")
 
         self.mono1_normal_enabled.write(0)
         self.mono1_parallel_enabled.write(0)
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 1 theta to 0 degrees . . . ")
         self.mono1_theta.move_absolute(0.0)
 
         while self.mono1_theta.is_busy():
             if self.abort_event.is_set():
+                self.mono1_theta.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 1 chi to 31000 urad. . . ")
         self.mono1_x1_chi.move_absolute(31000)
 
         while self.mono1_x1_chi.is_busy():
             if self.abort_event.is_set():
+                self.mono1_x1_chi.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
+
+        wx.CallAfter(self.output.AppendText, "Done!\n")
 
         # Move mono 2 to beam position
 
         self.mono2_normal_enabled.write(0)
         self.mono2_parallel_enabled.write(0)
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 energy 12 keV . . . ")
         self.mono2_energy.move_absolute(12.1)
 
         while self.mono2_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
@@ -229,17 +252,26 @@ class SWMonosPanel(wx.Panel):
 
         while self.mono2_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 chi to 0 . . . ")
         self.mono2_x1_chi.move_absolute(0)
 
         while self.mono2_x1_chi.is_busy():
             if self.abort_event.is_set():
+                self.mono2_x1_chi.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
+
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Mono 1 to 2 switch completed!\n")
 
         return
 
@@ -248,65 +280,93 @@ class SWMonosPanel(wx.Panel):
             self.cleanup()
             return
 
+        wx.CallAfter(self.output.AppendText, "\n\nSwitching Mono 2 to Mono 1\n")
+
         # Move mono 2 to bypass position
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 energy to 5 kev . . . ")
         self.mono2_energy.move_absolute(5)
 
         while self.mono2_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
+
+        wx.CallAfter(self.output.AppendText, "Done!\n")
 
         self.mono2_normal_enabled.write(0)
         self.mono2_parallel_enabled.write(0)
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 theta to 23 degrees . . . ")
         self.mono2_theta.move_absolute(23)
 
         while self.mono2_theta.is_busy():
             if self.abort_event.is_set():
+                self.mono2_theta.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 parallel (mtx) to 1280000 um . . . ")
         self.mono2_x2_para.move_absolute(128000)
 
         while self.mono2_x2_para.is_busy():
             if self.abort_event.is_set():
+                self.mono2_x2_para.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 perpendicular (mty) to 20000 um . . . ")
         self.mono2_x2_perp.move_absolute(20000)
 
         while self.mono2_x2_perp.is_busy():
             if self.abort_event.is_set():
+                self.mono2_x2_perp.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 chi to 0 urad . . . ")
         self.mono2_x1_chi.move_absolute(0)
 
         while self.mono2_x1_chi.is_busy():
             if self.abort_event.is_set():
+                self.mono2_x1_chi.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 focus to 0 um . . . ")
         self.mono2_focus.move_absolute(0.1)
 
         while self.mono2_focus.is_busy():
             if self.abort_event.is_set():
+                self.mono2_focus.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
         # Move mono 1 to beam position
 
+        wx.CallAfter(self.output.AppendText, "Moving Mono 1 energy to 12 keV . . . ")
         self.mono1_energy.move_absolute(12.1)
 
         while self.mono1_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
@@ -318,23 +378,35 @@ class SWMonosPanel(wx.Panel):
 
         while self.mono1_energy.is_busy():
             if self.abort_event.is_set():
+                self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
 
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Moving Mono 1 chi to 0 urad . . . ")
         self.mono1_x1_chi.move_absolute(0)
 
         while self.mono1_x1_chi.is_busy():
             if self.abort_event.is_set():
+                self.mono1_x1_chi.soft_abort()
                 self.cleanup()
                 return
             time.sleep(0.1)
+
+        wx.CallAfter(self.output.AppendText, "Done!\n")
+
+        wx.CallAfter(self.output.AppendText, "Mono 2 to 1 switch completed!\n")
+
+        return
 
     def on_abort(self, evt):
         self.abort_event.set()
 
     def cleanup(self):
         self.abort_event.clear()
+        wx.CallAfter(self.output.AppendText, "\n\nAborted!\n\n")
 
     def _on_rightclick(self, evt):
         """
