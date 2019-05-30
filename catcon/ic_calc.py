@@ -141,8 +141,8 @@ class ICCalcPanel(wx.Panel):
         flux_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Flux'),
             wx.HORIZONTAL)
         flux_sizer.Add(wx.StaticText(self, label='Flux [ph/s]:'),
-            flag=wx.ALIGN_CENTER_VERTICAL)
-        flux_sizer.Add(self.flux, border=3, flag=wx.ALIGN_CENTER_VERTICAL|wx.LEFT)
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=5)
+        flux_sizer.Add(self.flux, border=3, flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL)
         flux_sizer.AddStretchSpacer(1)
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),

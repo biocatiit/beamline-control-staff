@@ -715,13 +715,16 @@ class CtrlsFrame(wx.Frame):
         for i in range(settings['cols']):
             grid_sizer.AddGrowableCol(i)
 
+        for i in range(settings['rows']):
+            grid_sizer.AddGrowableRow(i)
+
         for ctrl_name, ctrl_type in ctrls:
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, self)
             box = wx.StaticBox(self, label='{} Control'.format(ctrl_name))
             box.SetOwnForegroundColour(wx.RED)
             box_sizer = wx.StaticBoxSizer(box)
             box_sizer.Add(ctrl_panel, 1, flag=wx.EXPAND)
-            grid_sizer.Add(box_sizer, flag=wx.EXPAND)
+            grid_sizer.Add(box_sizer, 1, flag=wx.EXPAND)
 
         self.SetSizer(grid_sizer)
 

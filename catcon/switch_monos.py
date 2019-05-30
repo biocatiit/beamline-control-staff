@@ -97,7 +97,8 @@ class SWMonosPanel(wx.Panel):
         control_sizer.Add(self.two_to_one_btn, border=5, flag=wx.ALL)
         control_sizer.Add(self.abort_btn, border=5, flag=wx.ALL)
 
-        self.output = wx.TextCtrl(self, style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_BESTWRAP)
+        self.output = wx.TextCtrl(self, size=(-1, 200),
+            style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_BESTWRAP)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(control_sizer, flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -115,20 +116,20 @@ class SWMonosPanel(wx.Panel):
     def _initialize(self):
         self.fe_shutter_pv = mpca.PV('FE:18:ID:FEshutter')
 
-        self.mono1_energy = mx_database.get_record('mono1_energy')
-        self.mono1_normal_enabled = mx_database.get_record('mono1_normal_enabled')
-        self.mono1_parallel_enabled = mx_database.get_record('mono1_parallel_enabled')
-        self.mono1_theta = mx_database.get_record('mono1_theta')
-        self.mono1_x1_chi = mx_database.get_record('mono1_x1_chi')
+        self.mono1_energy = self.mx_database.get_record('mono1_energy')
+        self.mono1_normal_enabled = self.mx_database.get_record('mono1_normal_enabled')
+        self.mono1_parallel_enabled = self.mx_database.get_record('mono1_parallel_enabled')
+        self.mono1_theta = self.mx_database.get_record('mono1_theta')
+        self.mono1_x1_chi = self.mx_database.get_record('mono1_x1_chi')
 
-        self.mono2_energy = mx_database.get_record('mono2_energy')
-        self.mono2_normal_enabled = mx_database.get_record('mono2_normal_enabled')
-        self.mono2_parallel_enabled = mx_database.get_record('mono2_parallel_enabled')
-        self.mono2_theta = mx_database.get_record('mono2_theta')
-        self.mono2_x1_chi = mx_database.get_record('mono2_x1_chi')
-        self.mono2_x2_para = mx_database.get_record('mono2_x2_para')
-        self.mono2_x2_perp = mx_database.get_record('mono2_x2_perp')
-        self.mono2_focus = mx_database.get_record('mono2_focus')
+        self.mono2_energy = self.mx_database.get_record('mono2_energy')
+        self.mono2_normal_enabled = self.mx_database.get_record('mono2_normal_enabled')
+        self.mono2_parallel_enabled = self.mx_database.get_record('mono2_parallel_enabled')
+        self.mono2_theta = self.mx_database.get_record('mono2_theta')
+        self.mono2_x1_chi = self.mx_database.get_record('mono2_x1_chi')
+        self.mono2_x2_para = self.mx_database.get_record('mono2_x2_para')
+        self.mono2_x2_perp = self.mx_database.get_record('mono2_x2_perp')
+        self.mono2_focus = self.mx_database.get_record('mono2_focus')
 
         self.abort_event = threading.Event()
         self.abort_event.clear()
