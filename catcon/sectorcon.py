@@ -48,6 +48,7 @@ import ampcon as ac
 import diocon as dioc
 import atten
 import ic_calc
+import switch_monos
 
 
 class MainFrame(wx.Frame):
@@ -77,6 +78,7 @@ class MainFrame(wx.Frame):
 
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
+            'Switch Monos'  : switch_monos.SWMonosPanel,
             }
 
         self.ctrl_panels = {}
@@ -125,7 +127,7 @@ class MainFrame(wx.Frame):
         self.motor_list = []
         self.dio_list = []
 
-        self.custom_list = ['Attenuators', 'Ion Chamber Calculator']
+        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos']
 
         for record in self.mx_db.get_all_records():
             try:
