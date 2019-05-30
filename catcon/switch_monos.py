@@ -84,23 +84,24 @@ class SWMonosPanel(wx.Panel):
 
         """
 
-        self.one_to_two = wx.Button(self, label='Mono 1 -> Mono 2')
-        self.two_to_one = wx.Button(self, label='Mono 2 -> Mono 1')
-        self.abort = wx.Button(self, label='Abort')
+        self.one_to_two_btn = wx.Button(self, label='Mono 1 -> Mono 2')
+        self.two_to_one_btn = wx.Button(self, label='Mono 2 -> Mono 1')
+        self.abort_btn = wx.Button(self, label='Abort')
 
-        self.one_to_two.Bind(wx.EVT_BUTTON, self.on_one_to_two)
-        self.two_to_one.Bind(wx.EVT_BUTTON, self.on_two_to_one)
-        self.abort.Bind(wx.EVT_BUTTON, self.on_abort)
+        self.one_to_two_btn.Bind(wx.EVT_BUTTON, self.on_one_to_two)
+        self.two_to_one_btn.Bind(wx.EVT_BUTTON, self.on_two_to_one)
+        self.abort_btn.Bind(wx.EVT_BUTTON, self.on_abort)
 
         control_sizer=wx.BoxSizer(wx.HORIZONTAL)
-        control_sizer.Add(self.one_to_two, border=5, flag=wx.ALL)
-        control_sizer.Add(self.two_to_one, border=5, flag=wx.ALL)
+        control_sizer.Add(self.one_to_two_btn, border=5, flag=wx.ALL)
+        control_sizer.Add(self.two_to_one_btn, border=5, flag=wx.ALL)
+        control_sizer.Add(self.abort_btn, border=5, flag=wx.ALL)
 
         self.output = wx.TextCtrl(self, style=wx.TE_READONLY|wx.TE_MULTILINE|wx.TE_BESTWRAP)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(control_sizer, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        top_sizer.Add(self.output, border=5, flag=wx.ALL|wx.EXPAND)
+        top_sizer.Add(self.output, proportion=1, border=5, flag=wx.ALL|wx.EXPAND)
 
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
@@ -111,8 +112,8 @@ class SWMonosPanel(wx.Panel):
 
         self.SetSizer(top_sizer)
 
-    def initialize(self):
-        self.fe_shutter_pv = mpca.PV(self.settings['fe_shutter_pv'])
+    def _initialize(self):
+        self.fe_shutter_pv = mpca.PV('FE:18:ID:FEshutter')
 
         self.mono1_energy = mx_database.get_record('mono1_energy')
         self.mono1_normal_enabled = mx_database.get_record('mono1_normal_enabled')
@@ -152,7 +153,7 @@ class SWMonosPanel(wx.Panel):
             t.start()
             # self.two_to_one()
 
-    def check_fe_shutter(self, evt):
+    def check_fe_shutter(self):
         if self.fe_shutter_pv.caget() == 0:
             fes = False
         else:
@@ -162,7 +163,7 @@ class SWMonosPanel(wx.Panel):
 
         while fes:
 
-            dlg = wx.MessageBox(self, msg, "Close Front End Shutter",
+            dlg = wx.MessageDialog(self, msg, "Close Front End Shutter",
                 wx.ICON_EXCLAMATION|wx.STAY_ON_TOP|wx.OK|wx.CANCEL)
 
             result = dlg.ShowModal()
@@ -180,14 +181,14 @@ class SWMonosPanel(wx.Panel):
         else:
             fes = True
 
-        return fes
+        return not fes
 
     def one_to_two(self):
         if self.abort_event.is_set():
             self.cleanup()
             return
 
-        wx.CallAfter(self.output.AppendText, "\n\nSwitching Mono 1 to Mono 2\n")
+        wx.CallAfter(self.output.AppendText, "Switching Mono 1 to Mono 2\n")
 
         # Move mono 1 to bypass position
 
@@ -199,7 +200,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -214,7 +215,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_theta.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -226,7 +227,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_x1_chi.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -243,7 +244,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         self.mono2_normal_enabled.write(1)
         self.mono2_parallel_enabled.write(1)
@@ -255,7 +256,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -267,11 +268,11 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_x1_chi.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
-        wx.CallAfter(self.output.AppendText, "Mono 1 to 2 switch completed!\n")
+        wx.CallAfter(self.output.AppendText, "Mono 1 to 2 switch completed!\n\n\n")
 
         return
 
@@ -280,7 +281,7 @@ class SWMonosPanel(wx.Panel):
             self.cleanup()
             return
 
-        wx.CallAfter(self.output.AppendText, "\n\nSwitching Mono 2 to Mono 1\n")
+        wx.CallAfter(self.output.AppendText, "Switching Mono 2 to Mono 1\n")
 
         # Move mono 2 to bypass position
 
@@ -292,14 +293,14 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
         self.mono2_normal_enabled.write(0)
         self.mono2_parallel_enabled.write(0)
 
-        wx.CallAfter(self.output.AppendText, "Moving Mono 2 theta to 23 degrees . . . ")
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 theta (mr) to 23 degrees . . . ")
         self.mono2_theta.move_absolute(23)
 
         while self.mono2_theta.is_busy():
@@ -307,11 +308,11 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_theta.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
-        wx.CallAfter(self.output.AppendText, "Moving Mono 2 parallel (mtx) to 1280000 um . . . ")
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 parallel (mtx) to 128000 um . . . ")
         self.mono2_x2_para.move_absolute(128000)
 
         while self.mono2_x2_para.is_busy():
@@ -319,7 +320,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_x2_para.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -331,7 +332,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_x2_perp.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -343,19 +344,19 @@ class SWMonosPanel(wx.Panel):
                 self.mono2_x1_chi.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
-        wx.CallAfter(self.output.AppendText, "Moving Mono 2 focus to 0 um . . . ")
-        self.mono2_focus.move_absolute(0.1)
+        wx.CallAfter(self.output.AppendText, "Moving Mono 2 focus to 100 um . . . ")
+        self.mono2_focus.move_absolute(100)
 
         while self.mono2_focus.is_busy():
             if self.abort_event.is_set():
                 self.mono2_focus.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -369,7 +370,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         self.mono1_normal_enabled.write(1)
         self.mono1_parallel_enabled.write(1)
@@ -381,7 +382,7 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_energy.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
@@ -393,11 +394,11 @@ class SWMonosPanel(wx.Panel):
                 self.mono1_x1_chi.soft_abort()
                 self.cleanup()
                 return
-            time.sleep(0.1)
+            time.sleep(0.5)
 
         wx.CallAfter(self.output.AppendText, "Done!\n")
 
-        wx.CallAfter(self.output.AppendText, "Mono 2 to 1 switch completed!\n")
+        wx.CallAfter(self.output.AppendText, "Mono 2 to 1 switch completed!\n\n\n")
 
         return
 
@@ -406,7 +407,7 @@ class SWMonosPanel(wx.Panel):
 
     def cleanup(self):
         self.abort_event.clear()
-        wx.CallAfter(self.output.AppendText, "\n\nAborted!\n\n")
+        wx.CallAfter(self.output.AppendText, "\n\nAborted!\n\n\n")
 
     def _on_rightclick(self, evt):
         """
@@ -503,7 +504,7 @@ class SWMonosFrame(wx.Frame):
 
         ic_calc_panel = SWMonosPanel(self.name, self.mx_database, self)
         ic_calc_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Switch Monos'))
-        ic_calc_box_sizer.Add(ic_calc_panel)
+        ic_calc_box_sizer.Add(ic_calc_panel, proportion=1, flag=wx.EXPAND)
 
         return ic_calc_box_sizer
 
