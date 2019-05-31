@@ -274,6 +274,7 @@ if __name__ == '__main__':
 
     mx_database = mp.setup_database(database_filename)
     mx_database.set_plot_enable(2)
+    mp.set_program_name("ampcon")
 
     app = wx.App()
     frame = AmpFrame(mx_database, ['keithley1', 'keithley2', 'keithley3', 'keithley4'],

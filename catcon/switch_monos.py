@@ -527,6 +527,7 @@ if __name__ == '__main__':
 
     mx_database = mp.setup_database(database_filename)
     mx_database.set_plot_enable(2)
+    mp.set_program_name("switch_monos")
 
     # mx_database = None
 

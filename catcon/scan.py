@@ -151,6 +151,7 @@ class ScanProcess(multiprocessing.Process):
         self.db_path = db_path
         self.mx_database = mp.setup_database(self.db_path)
         self.mx_database.set_plot_enable(2)
+        mp.set_program_name("scancon")
 
     def _get_devices(self):
         """
