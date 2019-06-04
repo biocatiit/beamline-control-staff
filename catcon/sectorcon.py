@@ -122,7 +122,7 @@ class MainFrame(wx.Frame):
 
         self.mx_db = mp.setup_database(database_filename)
         self.mx_db.set_plot_enable(2)
-        mp.set_program_name("sectorcon")
+        self.mx_db.set_program_name("sectorcon")
 
         self.amp_list = []
         self.motor_list = []
