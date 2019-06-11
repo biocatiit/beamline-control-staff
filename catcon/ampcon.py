@@ -89,7 +89,7 @@ class AmpPanel(wx.Panel):
         """
 
         #Don't know how to get possible amplifications from mx, if it even knows. So this instead.
-        amp_choices = ['1e+2', '1e+3', '1e+04', '1e+05', '1e+06', '1e+07',
+        amp_choices = ['1e+02', '1e+03', '1e+04', '1e+05', '1e+06', '1e+07',
             '1e+08', '1e+09', '1e+10']
 
         gain_name = "{}.gain".format(self.remote_record_name)
