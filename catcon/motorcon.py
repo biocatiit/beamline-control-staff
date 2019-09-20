@@ -286,11 +286,11 @@ class MotorPanel(wx.Panel):
             wx.MessageBox(msg, 'Error setting position')
             return
 
-        remote_offset = float(self.remote_offset.get())
-        remote_scale = float(self.remote_scale.get())
         current_pos = float(self.motor.get_position())
 
         if self.is_slit_mtr:
+            remote_offset = float(self.remote_offset.get())
+
             remote_current_pos = (current_pos-self.offset)/self.scale
             remote_target_pos = (pval-self.offset)/self.scale
 
