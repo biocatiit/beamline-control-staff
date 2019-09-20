@@ -120,27 +120,28 @@ class MotorPanel(wx.Panel):
         :returns: wx Sizer for the panel.
         :rtype: wx.Sizer
         """
-
         if self.mtr_type == 'network_motor':
             pos_name = "{}.position".format(self.remote_record_name)
             pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
-            # setting limits this way currently doesn't work. So making it a static text, not a text entry
-            self.low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
-            self.high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
+            # # setting limits this way currently doesn't work. So making it a static text, not a text entry
+            # self.low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
+            # self.high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             #
-            # nlimit = "{}.negative_limit".format(self.remote_record_name)
-            # plimit = "{}.positive_limit".format(self.remote_record_name)
+            nlimit = "{}.raw_negative_limit".format(self.remote_record_name)
+            plimit = "{}.raw_positive_limit".format(self.remote_record_name)
 
-            # self.low_limit = custom_widgets.CustomLimitValueEntry(self,
-            #     self.server_record, nlimit,
-            #     function=custom_widgets.limit_network_value_callback,
-            #     args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+            self.low_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, nlimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get())
+                )
 
-            # self.high_limit = custom_widgets.CustomLimitValueEntry(self,
-            #     self.server_record, plimit,
-            #     function=custom_widgets.limit_network_value_callback,
-            #     args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get()))
+            self.high_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, plimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get())
+                )
 
             mname = wx.StaticText(self, label=self.motor.name)
 
@@ -270,6 +271,7 @@ class MotorPanel(wx.Panel):
             msg = 'Position has to be numeric.'
             wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
+
     def _on_setto(self, evt):
         """
         Called when the user requests to set the motor position by pressing the
@@ -284,10 +286,11 @@ class MotorPanel(wx.Panel):
             wx.MessageBox(msg, 'Error setting position')
             return
 
-        if self.is_slit_mtr:
-            remote_offset = float(self.remote_offset.get())
-            current_pos = float(self.motor.get_position())
+        remote_offset = float(self.remote_offset.get())
+        remote_scale = float(self.remote_scale.get())
+        current_pos = float(self.motor.get_position())
 
+        if self.is_slit_mtr:
             remote_current_pos = (current_pos-self.offset)/self.scale
             remote_target_pos = (pval-self.offset)/self.scale
 
@@ -298,6 +301,22 @@ class MotorPanel(wx.Panel):
 
         else:
             self.motor.set_position(pval)
+
+        if self.mtr_type == 'network_motor':
+            pos_change = pval - current_pos
+
+            low_lim = float(self.low_limit.GetValue())
+            new_low_lim = low_lim + pos_change
+
+            high_lim = float(self.high_limit.GetValue())
+            new_high_lim = high_lim + pos_change
+
+            self.low_limit.SetValue(str(new_low_lim))
+            self.high_limit.SetValue(str(new_high_lim))
+
+            self.low_limit.OnEnter(None)
+            self.high_limit.OnEnter(None)
+
 
         return
 

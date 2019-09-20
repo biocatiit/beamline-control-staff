@@ -225,6 +225,8 @@ def limit_network_value_callback(nf, widget, args, value):
     It is modified from the one in :mod:`MpWx` to use the local record scale
     and offset.
     """
+
+    print (args)
     local_scale, local_offset, remote_scale, remote_offset = args
 
     if isinstance(value, list):
@@ -415,6 +417,7 @@ class CustomLimitValueEntry(wx.TextCtrl):
         value = float(value)
         value = (value-self.local_offset)/self.local_scale
         value = (value-self.remote_offset)/self.remote_scale
+        value = int(round(value))
 
         self.nf.put(str(value))
 
