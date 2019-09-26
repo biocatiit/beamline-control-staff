@@ -128,8 +128,12 @@ class MotorPanel(wx.Panel):
             # self.low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
             # self.high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
             #
-            nlimit = "{}.raw_negative_limit".format(self.remote_record_name)
-            plimit = "{}.raw_positive_limit".format(self.remote_record_name)
+            if self.scale*self.remote_scale.get() > 0:
+                nlimit = "{}.raw_negative_limit".format(self.remote_record_name)
+                plimit = "{}.raw_positive_limit".format(self.remote_record_name)
+            else:
+                nlimit = "{}.raw_positive_limit".format(self.remote_record_name)
+                plimit = "{}.raw_negative_limit".format(self.remote_record_name)
 
             self.low_limit = custom_widgets.CustomLimitValueEntry(self,
                 self.server_record, nlimit,
