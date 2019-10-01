@@ -226,7 +226,6 @@ def limit_network_value_callback(nf, widget, args, value):
     and offset.
     """
 
-    print (args)
     local_scale, local_offset, remote_scale, remote_offset = args
 
     if isinstance(value, list):
