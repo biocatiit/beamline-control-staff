@@ -177,7 +177,7 @@ def intensity_optimize(value, motor, pv, step_size, min_step_size,
 
     new_value = monitor_and_average([pv], average_time, average_time/10.)
 
-    if new_value <= value:
+    if new_value < value:
         osc_step = osc_step + 1
 
         if osc_step == 2:
@@ -188,14 +188,35 @@ def intensity_optimize(value, motor, pv, step_size, min_step_size,
 
             osc_step = 0
 
+        else:
+            new_step_size = step_size
+
         if abs(step_size) == min_step_size:
             stop_step = stop_step + 1
 
         new_step_size = -new_step_size
 
         if stop_step == 2:
-            logger.debug("Making move by %s", -step_size)
-            motor.mrel(-step_size)
+            logger.debug("Making move by %s", new_step_size)
+            motor.mrel(new_step_size)
+
+            start_time = time.time()
+
+            while pv.get() == value and time.time() - start_time < timeout:
+                time.sleep(0.001)
+
+            final_value = monitor_and_average([pv], average_time, average_time/10.)
+
+        else:
+            final_value = intensity_optimize(value, motor, pv, new_step_size, min_step_size, close,
+                timeout, average_time, osc_step, stop_step)
+
+    elif new_value == value:
+        stop_step = stop_step+1
+
+        if stop_step == 2:
+            logger.debug("Making move by %s", step_size)
+            motor.mrel(step_size)
 
             start_time = time.time()
 
