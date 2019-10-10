@@ -346,6 +346,10 @@ class ScanProcess(multiprocessing.Process):
             if self.scan_dim == '1D':
                 self._measure(scalers, timer, mtr1_pos, num)
 
+                if self._abort_event.is_set():
+                    self.return_queue.put_nowait(['stop_live_plotting'])
+                    return
+
             elif self.scan_dim == '2D':
                 self.motor2.move_absolute(mtr2_positions[0])
 
@@ -365,7 +369,6 @@ class ScanProcess(multiprocessing.Process):
                     if self._abort_event.is_set():
                         self.return_queue.put_nowait(['stop_live_plotting'])
                         return
-
 
             if self._abort_event.is_set():
                 self.return_queue.put_nowait(['stop_live_plotting'])
@@ -408,8 +411,6 @@ class ScanProcess(multiprocessing.Process):
             print('Position 2: {}'.format(mtr2_pos))
         print('Intensity: {}'.format(', '.join(result)))
         print('Image name: {}\n'.format(image_name))
-
-
 
     def _mx_scan(self):
         all_names = [r.name for r in self.mx_database.get_all_records()]
@@ -504,7 +505,10 @@ class ScanProcess(multiprocessing.Process):
 
         self.return_queue.put_nowait([datafile_name])
 
-        scan.perform_scan()
+        try:
+            scan.perform_scan()
+        except Exception:
+            pass
 
         self.return_queue.put_nowait(['stop_live_plotting'])
 
@@ -1057,8 +1061,6 @@ class ScanPanel(wx.Panel):
         plotting
         """
         self.abort_event.set()
-        time.sleep(0.5) #Wait for the process to abort before trying to reload the db
-        self.return_q.put_nowait(['stop_live_plotting'])
 
     def _get_params(self):
         """
@@ -1142,7 +1144,6 @@ class ScanPanel(wx.Panel):
 
     def _start_scan_mxdb(self):
         """Loads the mx database in the scan process"""
-
         self.cmd_q.put_nowait(['start_mxdb', [self.mx_database], {}])
 
     def _check_data_dir(self, det_datadir):
@@ -1204,6 +1205,10 @@ class ScanPanel(wx.Panel):
 
             #This is a hack
             self.scan_proc.stop()
+            self.cmd_q = self.manager.Queue()
+            self.return_q = self.manager.Queue()
+            self.return_val_q = self.manager.Queue()
+            self.abort_event = self.manager.Event()
             self.scan_proc = ScanProcess(self.cmd_q, self.return_q, self.return_val_q,
                 self.abort_event)
             self.scan_proc.start()
@@ -1526,15 +1531,8 @@ class ScanPanel(wx.Panel):
         old_der_ylim = self.der_plot.get_ylim()
 
         if self.current_scan_params is not None:
-            if self.current_scan_params['start'] < self.current_scan_params['stop']:
-                self.plot.set_xlim(self.current_scan_params['start'], self.current_scan_params['stop'])
-            else:
-                self.plot.set_xlim(self.current_scan_params['stop'], self.current_scan_params['start'])
-
-            if self.current_scan_params['start2'] < self.current_scan_params['stop2']:
-                self.plot.set_ylim(self.current_scan_params['start2'], self.current_scan_params['stop2'])
-            else:
-                self.plot.set_ylim(self.current_scan_params['stop2'], self.current_scan_params['start2'])
+            self.plot.set_xlim(self.x_pos[0], self.x_pos[-1])
+            self.plot.set_ylim(self.y_pos[0], self.y_pos[-1])
 
 
             # if self.show_der.GetValue():
@@ -1552,8 +1550,8 @@ class ScanPanel(wx.Panel):
             #         self.der_plot.set_ylim(min(self.der_y)*0.98, max(self.der_y)*1.02)
 
 
-        if (old_xlim != self.plot.get_xlim() or old_ylim != self.plot.get_ylim()):
-            # or old_der_xlim != self.der_plot.get_xlim() or old_der_ylim != self.der_plot.get_ylim()):
+        if (old_xlim != self.plot.get_xlim() or old_ylim != self.plot.get_ylim()
+            or old_der_xlim != self.der_plot.get_xlim() or old_der_ylim != self.der_plot.get_ylim()):
             redraw = True
 
         return redraw
