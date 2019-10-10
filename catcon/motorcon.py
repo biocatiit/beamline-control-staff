@@ -21,7 +21,7 @@
 #    along with this software.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from builtins import object, range, map
+from builtins import object, range, map, str
 from io import open
 
 import os
@@ -94,7 +94,6 @@ class MotorPanel(wx.Panel):
         self.is_slit_mtr = False
 
         if self.mtr_type == 'network_motor':
-            print('here')
             self.server_record_name = self.motor.get_field('server_record')
             self.remote_record_name = self.motor.get_field('remote_record_name')
             self.server_record = self.mx_database.get_record(self.server_record_name)
@@ -105,9 +104,14 @@ class MotorPanel(wx.Panel):
             remote_type_name = '{}.mx_type'.format(self.remote_record_name)
             remote_type = mp.Net(self.server_record, remote_type_name)
 
-            if str(remote_type.get()) == 'slit_motor':
-                self.is_slit_mtr = True
+            r_type = remote_type.get()
+            try:
+                str(r_type)
+            except Exception:
+                r_type = ''
 
+            if r_type == 'slit_motor':
+                self.is_slit_mtr = True
 
         top_sizer = self._create_layout()
 
@@ -155,9 +159,16 @@ class MotorPanel(wx.Panel):
             pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
                 custom_widgets.epics_value_callback, self.scale, self.offset)
 
-            self.low_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.LLM".format(pv),
+            if self.scale > 0:
+                nlimit = "{}.LLM".format(pv)
+                plimit = "{}.HLM".format(pv)
+            else:
+                nlimit = "{}.HLM".format(pv)
+                plimit = "{}.LLM".format(pv)
+
+            self.low_limit = custom_widgets.CustomEpicsValueEntry(self, nlimit,
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-            self.high_limit = custom_widgets.CustomEpicsValueEntry(self, "{}.HLM".format(pv),
+            self.high_limit = custom_widgets.CustomEpicsValueEntry(self, plimit,
                 custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
 
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
