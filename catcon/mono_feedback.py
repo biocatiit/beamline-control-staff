@@ -68,20 +68,122 @@ def monitor_and_average(pv_list, average_time, update_rate=None):
 
     return monitor_avgs
 
-def position_feedback(value, target, motor, pv, step_size, min_step_size, max_step_size,
-    close, timeout=0.25, average_time=0.5, osc_step=0, dark_step=0):
+# Tries to interpret what's going on based on results of move. I think it might fail
+# if things are changing too quickly, so moves don't necessarily have the expected
+# results
+# def position_feedback(value, target, motor, pv, step_size, min_step_size, max_step_size,
+#     close, timeout=0.25, average_time=0.5, osc_step=0, dark_step=0):
+#     abs_diff = abs(target-value)
+
+#     if abs_diff > close:
+#         logger.debug('Starting position %s', value)
+#         logger.debug('Starting distance %s', abs_diff)
+
+#         if value < target:
+#             logger.debug("Making positive move by %s", step_size)
+#             motor.move_relative(step_size)
+#         elif value >  target:
+#             logger.debug("Making negative move by %s", step_size)
+#             motor.move_relative(-step_size)
+
+#         while motor.is_busy():
+#             time.sleep(0.01)
+
+#         start_time = time.time()
+
+#         while pv.get() == value and time.time() - start_time < timeout:
+#             time.sleep(0.001)
+
+#         time.sleep(1)
+
+#         new_value = monitor_and_average([pv], average_time, 0.1)[0]
+
+#         new_abs_diff = abs(target-new_value)
+#         move_abs_diff = abs(value - new_value)
+
+#         logger.debug('Absolute moved by %s', move_abs_diff)
+#         logger.debug('Absolute distance to target %s', new_abs_diff)
+#         logger.debug('Target: %s', target)
+#         logger.debug('Current: %s', new_value)
+
+#         if abs(target-new_value) > close and osc_step < 3 and dark_step == 0:
+#             if value == new_value:
+#                 logger.debug("Failed to change feedback value")
+#                 #Case where we don't move at all
+#                 new_step_size = min(abs(step_size*2), max_step_size)
+
+#                 if step_size < 0:
+#                     new_step_size = -new_step_size
+
+#                 if abs(new_step_size) == max_step_size:
+#                     dark_step = dark_step+1
+
+#             elif (((value < target and new_value < target) or (value > target and new_value > target))
+#                 and new_abs_diff > abs_diff):
+#                 #Case where we moved away from target value
+#                 logger.debug("Moved away from target")
+
+#                 new_step_size = -step_size
+
+#             elif (((value < target and new_value < target) or (value > target and new_value > target))
+#                 and new_abs_diff <= abs_diff):
+#                 #Case where we moved towards but not past target value
+#                 logger.debug("Moved towards but not past target")
+
+#                 new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
+#                 new_step_size = min(new_step_size, max_step_size)
+
+#                 if step_size < 0:
+#                     new_step_size = -new_step_size
+
+#             elif (value < target and new_value > target) or (value > target and new_value < target):
+#                 #Case where we moved towards and past target value
+#                 logger.debug("Moved towards and past target")
+
+#                 new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
+#                 new_step_size = min(new_step_size, max_step_size)
+
+#                 if step_size < 0:
+#                     new_step_size = -new_step_size
+
+#                 if abs(new_step_size) == min_step_size:
+#                     osc_step = osc_step + 1
+
+#             logger.debug("New step size: %s", new_step_size)
+
+#             position_feedback(new_value, target, motor, pv, new_step_size, min_step_size,
+#                 max_step_size, close, timeout, average_time, osc_step)
+
+#         elif abs(target-new_value) > close:
+#             logger.debug('Feedback finished successfully')
+#         elif osc_step == 3:
+#             logger.debug(("Feedback failed, oscillating about position. Try "
+#                 "reducing min_step_size."))
+#         elif dark_step == 1:
+#             logger.debug(("Feedback failed, motor not changing target value. "
+#                 "Check if A shutter is open, and verify the correct motor "
+#                 "is being used."))
+
+#     else:
+#         logger.debug('Position is already within tolerance of target, no feedback necessary.')
+
+
+# This is based on assuming motor motion is consistent, so all you have to do if
+# a move doesn't get the right result is make another move. Any discrepancies are
+# coming from motion not caused by the motor (i.e. incident beam motion)
+def position_feedback(value, target, motor, pv, step_calibration, min_step_size,
+    max_step_size, close, timeout=0.25, average_time=0.5, osc_step=0, dark_step=0):
+    step_size = calc_position_step(target, value, step_calibration, min_step_size,
+        max_step_size)
+
     abs_diff = abs(target-value)
 
     if abs_diff > close:
         logger.debug('Starting position %s', value)
         logger.debug('Starting distance %s', abs_diff)
 
-        if value < target:
-            logger.debug("Making positive move by %s", step_size)
-            motor.move_relative(step_size)
-        elif value >  target:
-            logger.debug("Making negative move by %s", step_size)
-            motor.move_relative(-step_size)
+        logger.debug("Making positive move by %s", step_size)
+        motor.move_relative(step_size)
 
         while motor.is_busy():
             time.sleep(0.01)
@@ -103,81 +205,163 @@ def position_feedback(value, target, motor, pv, step_size, min_step_size, max_st
         logger.debug('Target: %s', target)
         logger.debug('Current: %s', new_value)
 
-        if abs(target-new_value) > close and osc_step < 3 and dark_step == 0:
-            if value == new_value:
-                logger.debug("Failed to change feedback value")
-                #Case where we don't move at all
-                new_step_size = min(abs(step_size*2), max_step_size)
+        if abs(target-new_value) > close and osc_step < 2:
 
-                if step_size < 0:
-                    new_step_size = -new_step_size
-
-                if abs(new_step_size) == max_step_size:
-                    dark_step = dark_step+1
-
-            elif (((value < target and new_value < target) or (value > target and new_value > target))
-                and new_abs_diff > abs_diff):
-                #Case where we moved away from target value
-                logger.debug("Moved away from target")
-
-                new_step_size = -step_size
-
-            elif (((value < target and new_value < target) or (value > target and new_value > target))
-                and new_abs_diff <= abs_diff):
-                #Case where we moved towards but not past target value
-                logger.debug("Moved towards but not past target")
-
-                new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
-                new_step_size = min(new_step_size, max_step_size)
-
-                if step_size < 0:
-                    new_step_size = -new_step_size
-
-            elif (value < target and new_value > target) or (value > target and new_value < target):
+            if (value < target and new_value > target) or (value > target and new_value < target):
                 #Case where we moved towards and past target value
                 logger.debug("Moved towards and past target")
 
-                new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
-                new_step_size = min(new_step_size, max_step_size)
-
-                if step_size < 0:
-                    new_step_size = -new_step_size
+                new_step_size = calc_position_step(target, value, step_calibration,
+                    min_step_size, max_step_size)
 
                 if abs(new_step_size) == min_step_size:
                     osc_step = osc_step + 1
 
-            logger.debug("New step size: %s", new_step_size)
-
-            position_feedback(new_value, target, motor, pv, new_step_size, min_step_size,
-                max_step_size, close, timeout, average_time, osc_step)
+            position_feedback(new_value, target, motor, pv, step_calibration,
+                min_step_size, max_step_size, close, timeout, average_time, osc_step)
 
         elif abs(target-new_value) > close:
             logger.debug('Feedback finished successfully')
-        elif osc_step == 3:
+        elif osc_step == 2:
             logger.debug(("Feedback failed, oscillating about position. Try "
                 "reducing min_step_size."))
-        elif dark_step == 1:
-            logger.debug(("Feedback failed, motor not changing target value. "
-                "Check if A shutter is open, and verify the correct motor "
-                "is being used."))
 
     else:
         logger.debug('Position is already within tolerance of target, no feedback necessary.')
 
-def intensity_feedback(value, target, motor, pv, step_size, min_step_size,
-    close, timeout=0.25, average_time=0.2):
-    if value < target-close:
 
-        target = intensity_optimize(value, target, motor, pv, step_size,
+def calc_position_step(target, value, step_calibration, min_step, max_step):
+    step = (target-value)*step_calibration
+    if abs(step) < min_step:
+        if step > 0:
+            step = min_step
+        else:
+            step = -min_step
+
+    elif abs(step) > max_step:
+        if step > 0:
+            step = max_step
+        else:
+            step = -max_step
+
+    return step
+
+
+# This is based on feathering the tune to determine which way to go
+
+# def intensity_feedback(value, target, motor, pv, step_size, min_step_size,
+#     close, timeout=0.25, average_time=0.2):
+#     if value < target-close:
+
+#         target = intensity_optimize(value, target, motor, pv, step_size,
+#             min_step_size, close, timeout, average_time)
+
+#     else:
+#         logger.debug('Intensity is already within tolerance of target, no feedback necessary.')
+
+#     return target
+
+# def intensity_optimize(value, start_val, motor, pv, step_size, min_step_size,
+#     close, timeout=0.25, average_time=0.2, osc_step=0, stop_step=0):
+#     logger.debug("Making move by %s", step_size)
+#     motor.move_relative(step_size)
+
+#     while motor.is_busy():
+#         time.sleep(0.01)
+
+#     start_time = time.time()
+
+#     while pv.get() == value and time.time() - start_time < timeout:
+#         time.sleep(0.001)
+
+#     new_value = monitor_and_average([pv], average_time, average_time/10.)[0]
+
+#     if new_value < value:
+#         osc_step = osc_step + 1
+
+#         if osc_step == 2:
+#             new_step_size = min(abs(step_size)/2., min_step_size)
+
+#             if step_size < 0:
+#                 new_step_size = -new_step_size
+
+#             osc_step = 0
+
+#         else:
+#             new_step_size = step_size
+
+#         if abs(step_size) == min_step_size:
+#             stop_step = stop_step + 1
+
+#         new_step_size = -new_step_size
+
+#         if stop_step == 2:
+#             logger.debug("Making move by %s", new_step_size)
+#             motor.move_relative(new_step_size)
+
+#             start_time = time.time()
+
+#             while pv.get() == value and time.time() - start_time < timeout:
+#                 time.sleep(0.001)
+
+#             final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
+
+#         else:
+#             final_value = intensity_optimize(value, start_val, motor, pv, new_step_size, min_step_size, close,
+#                 timeout, average_time, osc_step, stop_step)
+
+#     elif new_value == value:
+#         stop_step = stop_step+1
+
+#         if stop_step == 2:
+#             logger.debug("Making move by %s", step_size)
+#             motor.move_relative(step_size)
+
+#             start_time = time.time()
+
+#             while pv.get() == value and time.time() - start_time < timeout:
+#                 time.sleep(0.001)
+
+#             final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
+
+#         else:
+#             final_value = intensity_optimize(value, motor, pv, step_size, min_step_size, close,
+#                 timeout, average_time, osc_step, stop_step)
+
+#     else:
+#         final_value = intensity_optimize(value, start_val, motor, pv, step_size, min_step_size, close,
+#                 timeout, average_time, osc_step, stop_step)
+
+#     return final_value
+
+# This is based on using bpm x and y values to know which way to move the intensity
+
+def intensity_feedback(value, target, motor, pv, bpm_x_target, bpm_x_pv,
+    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size, close,
+    timeout=0.25, average_time=0.2):
+
+    scale = current_pv.get()/current_start
+    if value*scale < target-close:
+
+        target, current_target = intensity_optimize(value, target, motor, pv, bpm_x_target,
+            bpm_x_pv, bpm_y_target, bpm_y_pv, current_start, current_pv,
             min_step_size, close, timeout, average_time)
 
     else:
         logger.debug('Intensity is already within tolerance of target, no feedback necessary.')
 
-    return target
+    return target, current_target
 
-def intensity_optimize(value, start_val, motor, pv, step_size, min_step_size,
+def intensity_optimize(value, start_val, motor, pv, bpm_x_target, bpm_x_pv,
+    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size,
     close, timeout=0.25, average_time=0.2, osc_step=0, stop_step=0):
+
+    bpm_x_val, bpm_y_val = monitor_and_average([bpm_x_pv, bpm_y_pv],
+        average_time, average_time/10.)[0]
+
+    step_size = calc_intensity_step(value, start_val, min_step_size, bpm_x_val,
+        bpm_x_target, bpm_y_val, bpm_y_target)
+
     logger.debug("Making move by %s", step_size)
     motor.move_relative(step_size)
 
@@ -189,68 +373,51 @@ def intensity_optimize(value, start_val, motor, pv, step_size, min_step_size,
     while pv.get() == value and time.time() - start_time < timeout:
         time.sleep(0.001)
 
-    new_value = monitor_and_average([pv], average_time, average_time/10.)[0]
+    bpm_x_val, bpm_y_val, new_value = monitor_and_average([bpm_x_pv, bpm_y_pv, pv],
+        average_time, average_time/10.)[0]
 
-    if new_value < value:
-        osc_step = osc_step + 1
+    current = current_pv.get()
+    scale = current/current_start
+    if new_value*scale < start_val-close:
+
+        new_step_size = calc_intensity_step(value, start_val, min_step_size,
+            bpm_x_val, bpm_x_target, bpm_y_val, bpm_y_target)
+
+        if new_step_size/step_size < 0 and abs(new_step_size) == min_step_size:
+            osc_step = osc_step + 1
 
         if osc_step == 2:
-            new_step_size = min(abs(step_size)/2., min_step_size)
-
-            if step_size < 0:
-                new_step_size = -new_step_size
-
-            osc_step = 0
+            final_value = new_value
 
         else:
-            new_step_size = step_size
-
-        if abs(step_size) == min_step_size:
-            stop_step = stop_step + 1
-
-        new_step_size = -new_step_size
-
-        if stop_step == 2:
-            logger.debug("Making move by %s", new_step_size)
-            motor.move_relative(new_step_size)
-
-            start_time = time.time()
-
-            while pv.get() == value and time.time() - start_time < timeout:
-                time.sleep(0.001)
-
-            final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
-
-        else:
-            final_value = intensity_optimize(value, start_val, motor, pv, new_step_size, min_step_size, close,
-                timeout, average_time, osc_step, stop_step)
-
-    elif new_value == value:
-        stop_step = stop_step+1
-
-        if stop_step == 2:
-            logger.debug("Making move by %s", step_size)
-            motor.move_relative(step_size)
-
-            start_time = time.time()
-
-            while pv.get() == value and time.time() - start_time < timeout:
-                time.sleep(0.001)
-
-            final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
-
-        else:
-            final_value = intensity_optimize(value, motor, pv, step_size, min_step_size, close,
-                timeout, average_time, osc_step, stop_step)
+            final_value, final_current = intensity_optimize(value, start_val, motor, pv,
+                bpm_x_target, bpm_x_pv, bpm_y_target, bpm_y_pv, current_start,
+                current_pv, min_step_size, close, timeout, average_time,
+                osc_step, stop_step)
 
     else:
-        final_value = intensity_optimize(value, start_val, motor, pv, step_size, min_step_size, close,
-                timeout, average_time, osc_step, stop_step)
+        final_value = new_value
+        final_current = current
 
-    return final_value
+    return final_value, final_current
+
+def calc_intensity_step(value, start_val, min_step_size, bpm_x_val, bpm_x_target,
+    bpm_y_val, bpm_y_target):
+    calibration = 1 # Needs calibration
+    step_size = abs((value-start_val))*(calibration)
+    step_size = min(step_size, min_step_size)
+
+    #Use motion on BPM to determine direction of intensity step, need to determine correct directions
+    if bpm_x_val < bpm_x_target and bpm_y_val < bpm_y_target:
+        step_size = step_size
+    else:
+        step_size = -1*step_size
+
+    return step_size
 
 def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_name,
-    motor_int_name, mx_database, shutter_name, bpm_x_target=None, bpm_y_target=None):
+    motor_int_name, mx_database, shutter_name, current_name, bpm_x_target=None,
+    bpm_y_target=None):
 
     logger.info('Starting feedback for %s', mono)
     logger.info('X BPM PV: %s', bpm_x_name)
@@ -260,12 +427,14 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
     logger.info('Y motor name: %s', motor_y_name)
     logger.info('Intensity motor name: %s', motor_int_name)
     logger.info('Front end shutter PV: %s', shutter_name)
+    logger.info('Ring current PV: %s', current_name)
 
     logger.debug("Connecting to PVs")
     bpm_x_pv = epics.PV(bpm_x_name, auto_monitor=False)
     bpm_y_pv = epics.PV(bpm_y_name, auto_monitor=False)
     bpm_int_pv = epics.PV(bpm_int_name, auto_monitor=False)
     shutter_pv = epics.PV(shutter_name, auto_monitor=False)
+    current_pv = epics.PV(current_name, auto_monitor=False)
     logger.debug("Connected to PVs")
 
     logger.debug("Connecting to motors")
@@ -280,6 +449,7 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
     bpm_y_pv.get()
     bpm_int_pv.get()
     shutter_pv.get()
+    current_pv.get()
     logger.debug("Initialized PVs")
 
     if bpm_x_target is None:
@@ -291,11 +461,16 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
         bpm_y_target = monitor_and_average([bpm_y_pv], 0.5, 0.05)[0]
 
 
-    bpm_int_start = monitor_and_average([bpm_int_pv], 0.5, 0.05)[0]
+    bpm_int_target = monitor_and_average([bpm_int_pv], 0.5, 0.05)[0]
+    current_start = current_pv.get()
 
     logger.info("X BPM target: %s", bpm_x_target)
     logger.info("Y BPM target: %s", bpm_x_target)
-    logger.info("Intensity BPM start: %s", bpm_int_start)
+    logger.info("Intensity BPM start: %s", bpm_int_target)
+    logger.info("Ring current start: %s", current_start)
+
+    x_step_calibration = (50/0.04)
+    y_step_calibration = (50/0.2)
 
     log_time = time.time()
 
@@ -309,7 +484,32 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
         else:
             log_info = False
 
-        bpm_x_val, bpm_y_val, bpm_int_val = monitor_and_average([bpm_x_pv, bpm_y_pv, bpm_int_pv], 0.5, 0.001)
+        # Do intensity feedback
+        bpm_x_val, bpm_y_val, bpm_int_val = monitor_and_average([bpm_x_pv, bpm_y_pv,
+            bpm_int_pv], 0.5, 0.001)
+
+        if log_info:
+            logger.info("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
+            bpm_y_val, bpm_int_val)
+        else:
+            logger.debug("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
+            bpm_y_val, bpm_int_val)
+
+        logger.debug("Doing Intensity feedback")
+
+        # bpm_int_target = intensity_feedback(bpm_int_val, bpm_int_target, motor_int,
+        #     bpm_int_pv, 10, 1, 0.02)
+
+        min_int_step = 1
+        close_int = 0.02
+
+        bpm_int_target, current_target = intensity_feedback(bpm_int_val,
+            bpm_int_target, motor_int, bpm_int_pv, bpm_x_target, bpm_x_pv,
+            bpm_y_target, bpm_y_pv, current_start, current_pv, min_int_step,
+            close_int)
+
+        bpm_x_val, bpm_y_val, bpm_int_val = monitor_and_average([bpm_x_pv, bpm_y_pv,
+            bpm_int_pv], 0.5, 0.001)
 
         if log_info:
             logger.info("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
@@ -319,40 +519,15 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
                 bpm_y_val, bpm_int_val)
 
         logger.debug("Doing X feedback")
-        x_step = (bpm_x_target-bpm_x_val)*(50/0.04)
-        if abs(x_step) < 1:
-            if x_step > 0:
-                x_step = 1
-            else:
-                x_step = -1
-
-        elif abs(x_step) > 50:
-            if x_step > 0:
-                x_step = 50
-            else:
-                x_step = -50
 
         # position_feedback(bpm_x_val, bpm_x_target, motor_x, bpm_x_pv, x_step, 1, 50, 0.001)
+        position_feedback(bpm_x_val, bpm_x_target, motor_x, bpm_x_pv,
+            x_step_calibration, 1, 50, 0.001)
 
         logger.debug("Doing Y feedback")
-        y_step = (bpm_y_target-bpm_y_val)*(50/0.2)
-        if abs(y_step) < 1:
-            if y_step > 0:
-                y_step = 1
-            else:
-                y_step = -1
-
-        elif abs(y_step) > 50:
-            if y_step > 0:
-                y_step = 50
-            else:
-                y_step = -50
-
         # position_feedback(bpm_y_val, bpm_y_target, motor_y, bpm_y_pv, 10, 1, 50, 0.002)
-
-        logger.debug("Doing Intensity feedback")
-        bpm_int_start = intensity_feedback(bpm_int_val, bpm_int_start, motor_int,
-            bpm_int_pv, 10, 1, 0.02)
+        position_feedback(bpm_y_val, bpm_y_target, motor_y, bpm_y_pv,
+            y_step_calibration, 1, 50, 0.002)
 
         if log_info:
             logger.info('X motor (%s) position: %s', motor_x_name, motor_x.get_position())
@@ -398,6 +573,7 @@ if __name__ == '__main__':
     motor_int_name = '{}_tune'.format(mono)
 
     shutter_name = 'FE:18:ID:FEshutter'
+    current_name = 'XFD:srCurrent'
 
     try:
         # First try to get the name from an environment variable.
@@ -414,5 +590,5 @@ if __name__ == '__main__':
     mx_database.set_program_name("mono_feedback")
 
     run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name,
-        motor_y_name, motor_int_name, mx_database, shutter_name)
+        motor_y_name, motor_int_name, mx_database, shutter_name, current_name)
 
