@@ -378,7 +378,6 @@ class ScanProcess(multiprocessing.Process):
         return
 
     def _measure(self, scalers, timer, mtr1_pos, num, mtr2_pos=0, num2=0):
-
         if self.scan_dim == '1D':
             image_name = 'scan_{:03}.tif'.format(num)
             self.det_filename.put(image_name)
@@ -389,7 +388,8 @@ class ScanProcess(multiprocessing.Process):
         for scaler in scalers:
             scaler.clear()
         timer.clear()
-        timer.stop()
+        if timer.is_busy():
+            timer.stop()
         timer.start(self.dwell_time)
 
         while timer.is_busy() != 0:
@@ -1017,7 +1017,7 @@ class ScanPanel(wx.Panel):
                 self.plot.set_xlim(self.x_pos[0], self.x_pos[-1])
                 self.plot.set_ylim(self.y_pos[0], self.y_pos[-1])
 
-                self.plot.set_ylabel('Position 1')
+                self.plot.set_xlabel('Position 1')
                 self.plot.set_ylabel('Position 2')
 
                 self.grid = np.meshgrid(self.x_pos, self.y_pos)
