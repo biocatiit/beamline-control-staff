@@ -70,10 +70,11 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, *args, **kwargs)
 
         self.controls = collections.OrderedDict()
-        self.ctrl_types = {'Amplifier'  : ac.AmpPanel,
-                        'Motor'         : mc.MotorPanel,
-                        'Digital IO'    : dioc.DIOPanel,
-                        'Custom'        : self.make_custom_ctrl,
+        self.ctrl_types = {'Amplifier'      : ac.AmpPanel,
+                        'Motor'             : mc.MotorPanel,
+                        'Digital IO'        : dioc.DIOPanel,
+                        'Digital O, Btn.'   : dioc.DOButtonPanel,
+                        'Custom'            : self.make_custom_ctrl,
                         }
 
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
@@ -127,6 +128,7 @@ class MainFrame(wx.Frame):
         self.amp_list = []
         self.motor_list = []
         self.dio_list = []
+        self.do_list = []
 
         self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos']
 
@@ -142,10 +144,14 @@ class MainFrame(wx.Frame):
                 self.motor_list.append(record.get_field('name'))
             elif class_name == 'digital_input' or class_name == 'digital_output':
                 self.dio_list.append(record.get_field('name'))
+                if class_name == 'digital_output':
+                    self.do_list.append(record.get_field('name'))
+
 
         self.amp_list = sorted(self.amp_list, key=str.lower)
         self.motor_list = sorted(self.motor_list, key=str.lower)
         self.dio_list = sorted(self.dio_list, key=str.lower)
+        self.do_list = sorted(self.do_list, key=str.lower)
 
     def _load_controls(self):
         """
@@ -867,6 +873,9 @@ class AddCtrlDialog(wx.Dialog):
             elif prev_choice == 'Digital IO':
                 textctrl.AutoComplete(main_frame.dio_list)
 
+            elif prev_choice == 'Digital O, Btn.':
+                textctrl.AutoComplete(main_frame.do_list)
+
             elif prev_choice == 'Custom':
                 textctrl.AutoComplete(main_frame.custom_list)
 
@@ -1017,6 +1026,8 @@ class AddCtrlDialog(wx.Dialog):
             records = main_frame.amp_list
         elif ctrl_type == 'Digital IO':
             records = main_frame.dio_list
+        elif ctrl_type == 'Digital O, Btn.':
+            records = main_frame.do_list
         elif ctrl_type == 'Custom':
             records = main_frame.custom_list
 
@@ -1054,6 +1065,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.SetValue(main_frame.amp_list[choice])
         elif ctrl_type == 'Digital IO':
             txtctrl.SetValue(main_frame.dio_list[choice])
+        elif ctrl_type == 'Digital O, Btn.':
+            txtctrl.SetValue(main_frame.do_list[choice])
         elif ctrl_type == 'Custom':
             txtctrl.SetValue(main_frame.custom_list[choice])
 
@@ -1077,6 +1090,8 @@ class AddCtrlDialog(wx.Dialog):
             txtctrl.AutoComplete(main_frame.amp_list)
         elif evt.GetString() == 'Digital IO':
             txtctrl.AutoComplete(main_frame.dio_list)
+        elif evt.GetString() == 'Digital O, Btn.':
+            txtctrl.AutoComplete(main_frame.do_list)
         elif evt.GetString() == 'Custom':
             txtctrl.AutoComplete(main_frame.custom_list)
 
