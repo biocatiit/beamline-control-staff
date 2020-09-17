@@ -212,6 +212,120 @@ class DIOPanel(wx.Panel):
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
+class DOButtonPanel(wx.Panel):
+    """
+    For digital outputs where you just want to set the variable to go, like
+    for opening a gate valve or triggering one of the hutch shutters.
+    """
+    def __init__(self, dio_name, mx_database, parent, panel_id=wx.ID_ANY,
+        panel_name=''):
+        """
+        Initializes the custom panel. Important parameters here are the
+        ``dio_name``, and the ``mx_database``.
+
+        :param str dio_name: The amplifier name in the Mx database.
+
+        :param Mp.RecordList mx_database: The database instance from Mp.
+
+        :param wx.Window parent: Parent class for the panel.
+
+        :param int panel_id: wx ID for the panel.
+
+        :param str panel_name: Name for the panel.
+        """
+        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
+
+        self.mx_database = mx_database
+        self.dio_name = dio_name
+        self.dio = self.mx_database.get_record(self.dio_name)
+        self.dio_class = self.dio.get_field('mx_class')
+        self.dio_type = self.dio.get_field('mx_type')
+
+        self.is_input = False
+
+        if self.dio_type.startswith('epics'):
+            self.is_epics = True
+            pv_name = self.dio.get_field('epics_variable_name')
+            self.pv = mpca.PV(pv_name)
+
+        else:
+            self.is_epics = False
+            server_record_name = self.amp.get_field("server_record")
+            self.server_record = self.mx_database.get_record(server_record_name)
+            self.remote_record_name = self.amp.get_field("remote_record_name")
+
+        self._enabled = True
+
+        self._create_layout()
+
+        self._initialize()
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        """
+
+        self.on = wx.Button(self, label='Actuate')
+
+        self.on.Bind(wx.EVT_RADIOBUTTON, self._on_output)
+
+        control_sizer = wx.BoxSizer(wx.VERTICAL)
+        control_sizer.Add(self.on, border=5, flag=wx.ALL)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(control_sizer)
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+        for item in self.GetChildren():
+            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+
+        self.SetSizer(top_sizer)
+
+        # return top_sizer
+
+    def _initialize(self):
+        pass
+
+    def _on_output(self, event):
+        self.pv.caput(1, wait=False)
+
+    def _on_rightclick(self, evt):
+        """
+        Shows a context menu. Current options allow enabling/disabling
+        the control panel.
+        """
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_enablechange)
+
+        if self._enabled:
+            menu.Append(1, 'Disable Control')
+        else:
+            menu.Append(1, 'Enable Control')
+
+        menu.Append(2, 'Show control info')
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_enablechange(self, evt):
+        """
+        Called from the panel context menu. Enables/disables the control
+        panel.
+        """
+        if self._enabled:
+            self._enabled = False
+        else:
+            self._enabled = True
+
+        for item in self.GetChildren():
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
+                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
+                isinstance(item, wx.StaticBox)):
+                item.Enable(self._enabled)
+
 
 class DIOFrame(wx.Frame):
     """
