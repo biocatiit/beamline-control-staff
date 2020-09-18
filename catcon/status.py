@@ -218,13 +218,14 @@ class OverviewPanel(wx.Panel):
             pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(d_shutter, pos=(0,1),
             flag=wx.ALIGN_CENTER_VERTICAL)
+        station_grid_sizer.Add(5, -1, pos=(0,2))
         station_grid_sizer.Add(wx.StaticText(station_box, label='A shutter:'),
-            pos=(0,2), flag=wx.ALIGN_CENTER_VERTICAL)
-        station_grid_sizer.Add(fe_shutter, pos=(0,3),
+            pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
+        station_grid_sizer.Add(fe_shutter, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(fe_shtr_ctrl, pos=(1, 0), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 2), span=(0, 2),
+        station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 3), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
         station_sizer = wx.StaticBoxSizer(station_box, wx.HORIZONTAL)
