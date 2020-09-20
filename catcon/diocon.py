@@ -268,7 +268,7 @@ class DOButtonPanel(wx.Panel):
 
         self.on = wx.Button(self, label='Actuate')
 
-        self.on.Bind(wx.EVT_RADIOBUTTON, self._on_output)
+        self.on.Bind(wx.EVT_BUTTON, self._on_output)
 
         control_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer.Add(self.on, border=5, flag=wx.ALL)

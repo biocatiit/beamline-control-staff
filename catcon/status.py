@@ -102,6 +102,8 @@ class MainStatusPanel(wx.Panel):
             'guard_vac'         : epics.PV('18ID:VAC:D:Guards'),
             'scatter_vac'       : epics.PV('18ID:VAC:D:ScatterChamber'),
             'sample_vac'        : epics.PV('18ID:VAC:D:Sample'),
+            'i0'                : epics.PV('18ID:IP330_11'),
+            'i1'                : epics.PV('18ID:IP330_12'),
         }
 
         [self.pvs[key].get() for key in self.pvs.keys()]
@@ -204,6 +206,8 @@ class OverviewPanel(wx.Panel):
 
         fe_shutter.SetTranslations({'0': 'Closed', '1': 'Open'})
         d_shutter.SetTranslations({'OFF': 'Closed', 'ON': 'Open'})
+        fe_shutter.SetForegroundColourTranslations({'Open': 'forest green', 
+            'Closed': 'red'})
 
         fe_shtr_ctrl = wx.BoxSizer(wx.HORIZONTAL)
         fe_shtr_ctrl.Add(fe_shutter_open, border=5, flag=wx.RIGHT)
@@ -223,9 +227,9 @@ class OverviewPanel(wx.Panel):
             pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(fe_shutter, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        station_grid_sizer.Add(fe_shtr_ctrl, pos=(1, 0), span=(0, 2),
+        station_grid_sizer.Add(fe_shtr_ctrl, pos=(1, 3), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 3), span=(0, 2),
+        station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 0), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
         station_sizer = wx.StaticBoxSizer(station_box, wx.HORIZONTAL)
@@ -258,6 +262,11 @@ class OverviewPanel(wx.Panel):
         exp_sample_vac = custom_epics_widgets.PVTextLabeled(exp_box,
             self.pvs['sample_vac'], scale=1000, do_round=True)
 
+        exp_i0 = custom_epics_widgets.PVTextLabeled(exp_box,
+            self.pvs['i0'], do_round=True, sig_fig=2)
+        exp_i1 = custom_epics_widgets.PVTextLabeled(exp_box,
+            self.pvs['i1'], do_round=True, sig_fig=2)
+
         exp_grid_sizer = wx.FlexGridSizer(cols=6, hgap=5, vgap=5)
         exp_grid_sizer.Add(wx.StaticText(exp_box, label='Slow shutter 1:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -282,9 +291,10 @@ class OverviewPanel(wx.Panel):
         exp_grid_sizer.Add(exp_scatter_vac, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(wx.StaticText(exp_box, label='I0 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        exp_grid_sizer.AddSpacer(1)
+        exp_grid_sizer.Add(exp_i0, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(wx.StaticText(exp_box, label='I1 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
+        exp_grid_sizer.Add(exp_i1, flag=wx.ALIGN_CENTER_VERTICAL)
 
         exp_sizer = wx.StaticBoxSizer(exp_box, wx.VERTICAL)
         exp_sizer.Add(exp_grid_sizer, proportion=1, flag=wx.EXPAND|wx.ALL,
