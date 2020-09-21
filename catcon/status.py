@@ -270,6 +270,16 @@ class MainStatusPanel(wx.Panel):
             'vac8_ig'           : epics.PV('18ID:BLEPS:IG8_WARNING'),
             'vac9_ig'           : epics.PV('18ID:BLEPS:IG9_WARNING'),
             'vac10_ig'          : epics.PV('18ID:BLEPS:IG10_WARNING'),
+            'flow1_rate'        : epics.PV('18ID:BLEPS:FLOW1_CURRENT'),
+            'flow1_status'      : epics.PV('18ID:BLEPS:FLOW1_STATUS'),
+            'flow1_setpoint'    : epics.PV('18ID:BLEPS:FLOW1_SET_POINT'),
+            'flow1_low'         : epics.PV('18ID:BLEPS:FLOW1_TRIP'),
+            'flow1_over_range'  : epics.PV('18ID:BLEPS:FLOW1_OVER_RANGE'),
+            'flow2_rate'        : epics.PV('18ID:BLEPS:FLOW2_CURRENT'),
+            'flow2_status'      : epics.PV('18ID:BLEPS:FLOW2_STATUS'),
+            'flow2_setpoint'    : epics.PV('18ID:BLEPS:FLOW2_SET_POINT'),
+            'flow2_low'         : epics.PV('18ID:BLEPS:FLOW2_TRIP'),
+            'flow2_over_range'  : epics.PV('18ID:BLEPS:FLOW2_OVER_RANGE'),
         }
 
         [self.pvs[key].get() for key in self.pvs.keys()]
@@ -490,7 +500,7 @@ class BLEPSPanel(wx.ScrolledWindow):
     """
     def __init__(self, pvs, parent, panel_id=wx.ID_ANY, panel_name=''):
         wx.ScrolledWindow.__init__(self, parent,
-            style=wx.BG_STYLE_SYSTEM|wx.VSCROLL)
+            style=wx.VSCROLL|wx.HSCROLL)
         self.SetScrollRate(20,20)
 
         self.pvs = pvs
@@ -666,13 +676,27 @@ class BLEPSPanel(wx.ScrolledWindow):
         vac_sizer.Add(vac_ig_sizer,
             flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
 
+
+        flow_box = wx.StaticBox(self, label='Flows')
+        flow_sizer = wx.StaticBoxSizer(flow_box, wx.VERTICAL)
+
+        flow_layout = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
+        flow_layout.Add(self.make_flow_sizer(flow_box, 1, 'White Beam Slits'))
+        flow_layout.Add(self.make_flow_sizer(flow_box, 2, 'Mono 1 and 2'))
+        flow_layout.AddGrowableCol(0)
+        flow_layout.AddGrowableCol(1)
+
+        flow_sizer.Add(flow_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+
         sub_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sub_sizer1.Add(bleps_sizer, flag=wx.EXPAND|wx.RIGHT, border=5)
         sub_sizer1.Add(misc_sizer, flag=wx.EXPAND)
 
         sub_sizer2 = wx.BoxSizer(wx.VERTICAL)
         sub_sizer2.Add(temp_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
-        sub_sizer2.Add(vac_sizer, flag=wx.EXPAND)
+        sub_sizer2.Add(vac_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
+        sub_sizer2.Add(flow_sizer, flag=wx.EXPAND)
 
         sub_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
         sub_sizer3.Add(gate_valve_sizer, flag=wx.EXPAND|wx.RIGHT, border=5)
@@ -843,6 +867,51 @@ class BLEPSPanel(wx.ScrolledWindow):
 
         return sizer
 
+    def make_flow_sizer(self, parent, f_num, label, monitored=True):
+        flow_box = wx.StaticBox(parent, label=label)
+        flow_box.SetOwnForegroundColour(wx.RED)
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        flow_box.SetOwnFont(font)
+
+        temp = epics.wx.PVText(flow_box, self.pvs['flow{}_rate'.format(f_num)])
+        status = epics.wx.PVText(flow_box, self.pvs['flow{}_status'.format(f_num)],
+            fg='forest green')
+
+        if monitored:
+            setpoint = epics.wx.PVText(flow_box,
+                self.pvs['flow{}_setpoint'.format(f_num)])
+            under_range = epics.wx.PVText(flow_box,
+                self.pvs['flow{}_over_range'.format(f_num)], fg='forest green')
+            high_t = epics.wx.PVText(flow_box,
+                self.pvs['flow{}_low'.format(f_num)], fg='forest green')
+
+        temp_grid = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        temp_grid.Add(wx.StaticText(flow_box, label='Flow:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        temp_grid.Add(temp, flag=wx.ALIGN_CENTER_VERTICAL)
+        if monitored:
+            temp_grid.Add(wx.StaticText(flow_box, label='Status:'))
+        else:
+            temp_grid.Add(wx.StaticText(flow_box, label='      Status:'))
+        temp_grid.Add(status, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        if monitored:
+            temp_grid.Add(wx.StaticText(flow_box, label='Setpoint:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(setpoint, flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(wx.StaticText(flow_box, label='Low flow alarm:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(high_t, flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(wx.StaticText(flow_box, label='Over range:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(under_range, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        temp_sizer = wx.StaticBoxSizer(flow_box, wx.HORIZONTAL)
+        temp_sizer.Add(temp_grid, flag=wx.ALL, border=5)
+        temp_sizer.AddStretchSpacer(1)
+
+        return temp_sizer
 
 class BeamlineStatusFrame(wx.Frame):
     """
@@ -872,11 +941,11 @@ class BeamlineStatusFrame(wx.Frame):
 
         top_sizer = self._create_layout()
 
-        # screen_two = wx.Display(1)
-        # w_edge, h_edge_, screen_two_w, screen_two_h = screen_two.GetGeometry()
+        screen_two = wx.Display(1)
+        w_edge, h_edge_, screen_two_w, screen_two_h = screen_two.GetGeometry()
 
-        # self.SetPosition((int(w_edge + (screen_two_w / 2)),
-        #                            int(screen_two_h / 2)))
+        self.SetPosition((int(w_edge + (screen_two_w / 2)),
+                                   int(screen_two_h / 2)))
 
         self.SetSizer(top_sizer)
         self.Layout()
