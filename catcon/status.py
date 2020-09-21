@@ -59,7 +59,7 @@ class MainStatusPanel(wx.Panel):
 
         self._create_layout()
 
-        self.SetMinSize((600, -1))
+        self.SetMinSize((1200, -1))
 
     def _create_layout(self):
         """
@@ -69,8 +69,10 @@ class MainStatusPanel(wx.Panel):
         notebook = wx.Notebook(self)
 
         overview_page = OverviewPanel(self.pvs, notebook)
+        bleps_page = BLEPSPanel(self.pvs, notebook)
 
         notebook.AddPage(overview_page, 'Overview')
+        notebook.AddPage(bleps_page, 'BLEPS')
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(notebook, proportion=1, border=5, flag=wx.EXPAND|wx.ALL)
@@ -104,6 +106,170 @@ class MainStatusPanel(wx.Panel):
             'sample_vac'        : epics.PV('18ID:VAC:D:Sample'),
             'i0'                : epics.PV('18ID:IP330_11'),
             'i1'                : epics.PV('18ID:IP330_12'),
+            'gv1_status'        : epics.PV('18ID:BLEPS:GV1_OPENED_LS'),
+            'gv1_both_sw'       : epics.PV('18ID:BLEPS:GV1_BOTH_SWITCH'),
+            'gv1_open_sw'       : epics.PV('18ID:BLEPS:GV1_OPENED_SWITCH'),
+            'gv1_close_sw'      : epics.PV('18ID:BLEPS:GV1_CLOSED_SWITCH'),
+            'gv1_no_sw'         : epics.PV('18ID:BLEPS:GV1_NO_SWITCH'),
+            'gv1_fail_open'     : epics.PV('18ID:BLEPS:GV1_FAIL_TO_OPEN'),
+            'gv1_fail_close'    : epics.PV('18ID:BLEPS:GV1_FAIL_TO_CLOSE'),
+            'gv1_fully_open'    : epics.PV('18ID:BLEPS:GV1_FULLY_OPEN'),
+            'gv1_fully_close'   : epics.PV('18ID:BLEPS:GV1_FULLY_CLOSE'),
+            'gv1_beam_exp'      : epics.PV('18ID:BLEPS:GV1_BEAM_EXPOSURE'),
+            'gv1_open'          : epics.PV('18ID:BLEPS:GV1_EPICS_OPEN'),
+            'gv1_close'         : epics.PV('18ID:BLEPS:GV1_EPICS_CLOSE'),
+            'gv2_status'        : epics.PV('18ID:BLEPS:GV2_OPENED_LS'),
+            'gv2_both_sw'       : epics.PV('18ID:BLEPS:GV2_BOTH_SWITCH'),
+            'gv2_open_sw'       : epics.PV('18ID:BLEPS:GV2_OPENED_SWITCH'),
+            'gv2_close_sw'      : epics.PV('18ID:BLEPS:GV2_CLOSED_SWITCH'),
+            'gv2_no_sw'         : epics.PV('18ID:BLEPS:GV2_NO_SWITCH'),
+            'gv2_fail_open'     : epics.PV('18ID:BLEPS:GV2_FAIL_TO_OPEN'),
+            'gv2_fail_close'    : epics.PV('18ID:BLEPS:GV2_FAIL_TO_CLOSE'),
+            'gv2_fully_open'    : epics.PV('18ID:BLEPS:GV2_FULLY_OPEN'),
+            'gv2_fully_close'   : epics.PV('18ID:BLEPS:GV2_FULLY_CLOSE'),
+            'gv2_beam_exp'      : epics.PV('18ID:BLEPS:GV2_BEAM_EXPOSURE'),
+            'gv2_open'          : epics.PV('18ID:BLEPS:GV2_EPICS_OPEN'),
+            'gv2_close'         : epics.PV('18ID:BLEPS:GV2_EPICS_CLOSE'),
+            'gv3_status'        : epics.PV('18ID:BLEPS:GV3_OPENED_LS'),
+            'gv3_both_sw'       : epics.PV('18ID:BLEPS:GV3_BOTH_SWITCH'),
+            'gv3_open_sw'       : epics.PV('18ID:BLEPS:GV3_OPENED_SWITCH'),
+            'gv3_close_sw'      : epics.PV('18ID:BLEPS:GV3_CLOSED_SWITCH'),
+            'gv3_no_sw'         : epics.PV('18ID:BLEPS:GV3_NO_SWITCH'),
+            'gv3_fail_open'     : epics.PV('18ID:BLEPS:GV3_FAIL_TO_OPEN'),
+            'gv3_fail_close'    : epics.PV('18ID:BLEPS:GV3_FAIL_TO_CLOSE'),
+            'gv3_fully_open'    : epics.PV('18ID:BLEPS:GV3_FULLY_OPEN'),
+            'gv3_fully_close'   : epics.PV('18ID:BLEPS:GV3_FULLY_CLOSE'),
+            'gv3_beam_exp'      : epics.PV('18ID:BLEPS:GV3_BEAM_EXPOSURE'),
+            'gv3_open'          : epics.PV('18ID:BLEPS:GV3_EPICS_OPEN'),
+            'gv3_close'         : epics.PV('18ID:BLEPS:GV3_EPICS_CLOSE'),
+            'gv4_status'        : epics.PV('18ID:BLEPS:GV4_OPENED_LS'),
+            'gv4_both_sw'       : epics.PV('18ID:BLEPS:GV4_BOTH_SWITCH'),
+            'gv4_open_sw'       : epics.PV('18ID:BLEPS:GV4_OPENED_SWITCH'),
+            'gv4_close_sw'      : epics.PV('18ID:BLEPS:GV4_CLOSED_SWITCH'),
+            'gv4_no_sw'         : epics.PV('18ID:BLEPS:GV4_NO_SWITCH'),
+            'gv4_fail_open'     : epics.PV('18ID:BLEPS:GV4_FAIL_TO_OPEN'),
+            'gv4_fail_close'    : epics.PV('18ID:BLEPS:GV4_FAIL_TO_CLOSE'),
+            'gv4_fully_open'    : epics.PV('18ID:BLEPS:GV4_FULLY_OPEN'),
+            'gv4_fully_close'   : epics.PV('18ID:BLEPS:GV4_FULLY_CLOSE'),
+            'gv4_beam_exp'      : epics.PV('18ID:BLEPS:GV4_BEAM_EXPOSURE'),
+            'gv4_open'          : epics.PV('18ID:BLEPS:GV4_EPICS_OPEN'),
+            'gv4_close'         : epics.PV('18ID:BLEPS:GV4_EPICS_CLOSE'),
+            'gv5_status'        : epics.PV('18ID:BLEPS:GV5_OPENED_LS'),
+            'gv5_both_sw'       : epics.PV('18ID:BLEPS:GV5_BOTH_SWITCH'),
+            'gv5_open_sw'       : epics.PV('18ID:BLEPS:GV5_OPENED_SWITCH'),
+            'gv5_close_sw'      : epics.PV('18ID:BLEPS:GV5_CLOSED_SWITCH'),
+            'gv5_no_sw'         : epics.PV('18ID:BLEPS:GV5_NO_SWITCH'),
+            'gv5_fail_open'     : epics.PV('18ID:BLEPS:GV5_FAIL_TO_OPEN'),
+            'gv5_fail_close'    : epics.PV('18ID:BLEPS:GV5_FAIL_TO_CLOSE'),
+            'gv5_fully_open'    : epics.PV('18ID:BLEPS:GV5_FULLY_OPEN'),
+            'gv5_fully_close'   : epics.PV('18ID:BLEPS:GV5_FULLY_CLOSE'),
+            'gv5_beam_exp'      : epics.PV('18ID:BLEPS:GV5_BEAM_EXPOSURE'),
+            'gv5_open'          : epics.PV('18ID:BLEPS:GV5_EPICS_OPEN'),
+            'gv5_close'         : epics.PV('18ID:BLEPS:GV5_EPICS_CLOSE'),
+            'gv6_status'        : epics.PV('18ID:BLEPS:GV6_OPENED_LS'),
+            'gv6_both_sw'       : epics.PV('18ID:BLEPS:GV6_BOTH_SWITCH'),
+            'gv6_open_sw'       : epics.PV('18ID:BLEPS:GV6_OPENED_SWITCH'),
+            'gv6_close_sw'      : epics.PV('18ID:BLEPS:GV6_CLOSED_SWITCH'),
+            'gv6_no_sw'         : epics.PV('18ID:BLEPS:GV6_NO_SWITCH'),
+            'gv6_fail_open'     : epics.PV('18ID:BLEPS:GV6_FAIL_TO_OPEN'),
+            'gv6_fail_close'    : epics.PV('18ID:BLEPS:GV6_FAIL_TO_CLOSE'),
+            'gv6_fully_open'    : epics.PV('18ID:BLEPS:GV6_FULLY_OPEN'),
+            'gv6_fully_close'   : epics.PV('18ID:BLEPS:GV6_FULLY_CLOSE'),
+            'gv6_beam_exp'      : epics.PV('18ID:BLEPS:GV6_BEAM_EXPOSURE'),
+            'gv6_open'          : epics.PV('18ID:BLEPS:GV6_EPICS_OPEN'),
+            'gv6_close'         : epics.PV('18ID:BLEPS:GV6_EPICS_CLOSE'),
+            'gv7_status'        : epics.PV('18ID:BLEPS:GV7_OPENED_LS'),
+            'gv7_both_sw'       : epics.PV('18ID:BLEPS:GV7_BOTH_SWITCH'),
+            'gv7_open_sw'       : epics.PV('18ID:BLEPS:GV7_OPENED_SWITCH'),
+            'gv7_close_sw'      : epics.PV('18ID:BLEPS:GV7_CLOSED_SWITCH'),
+            'gv7_no_sw'         : epics.PV('18ID:BLEPS:GV7_NO_SWITCH'),
+            'gv7_fail_open'     : epics.PV('18ID:BLEPS:GV7_FAIL_TO_OPEN'),
+            'gv7_fail_close'    : epics.PV('18ID:BLEPS:GV7_FAIL_TO_CLOSE'),
+            'gv7_fully_open'    : epics.PV('18ID:BLEPS:GV7_FULLY_OPEN'),
+            'gv7_fully_close'   : epics.PV('18ID:BLEPS:GV7_FULLY_CLOSE'),
+            'gv7_beam_exp'      : epics.PV('18ID:BLEPS:GV7_BEAM_EXPOSURE'),
+            'gv7_open'          : epics.PV('18ID:BLEPS:GV7_EPICS_OPEN'),
+            'gv7_close'         : epics.PV('18ID:BLEPS:GV7_EPICS_CLOSE'),
+            'comm_fault'        : epics.PV('18ID:BLEPS:COMMUNICATIONS_FAULT'),
+            'plc_battery_wrn'   : epics.PV('18ID:BLEPS:PLC_BATTERY_DEAD_WRN'),
+            # 'ps1_wrn'           : epics.PV('18ID:BLEPS:PS_1_WARNING'),
+            # 'ps2_wrn'           : epics.PV('18ID:BLEPS:PS_2_WARNING'),
+            # 'or_wrn'            : epics.PV('18ID:BLEPS:OR_WARNING'),
+            'biv_fail_close'    : epics.PV('18ID:BLEPS:BIV_FAIL_TO_CLOSE'),
+            'fes_fail_close'    : epics.PV('18ID:BLEPS:FES_FAIL_TO_CLOSE'),
+            'sds_fail_close'    : epics.PV('18ID:BLEPS:SDS_FAIL_TO_CLOSE'),
+            'T1_temp'           : epics.PV('18ID:BLEPS:TEMP1_CURRENT'),
+            'T1_status'         : epics.PV('18ID:BLEPS:TEMP1_STATUS'),
+            'T1_setpoint'       : epics.PV('18ID:BLEPS:TEMP1_SET_POINT'),
+            'T1_high'           : epics.PV('18ID:BLEPS:TEMP1_TRIP'),
+            'T1_under_range'    : epics.PV('18ID:BLEPS:TEMP1_UNDER_RANGE'),
+            'T2_temp'           : epics.PV('18ID:BLEPS:TEMP2_CURRENT'),
+            'T2_status'         : epics.PV('18ID:BLEPS:TEMP2_STATUS'),
+            'T3_temp'           : epics.PV('18ID:BLEPS:TEMP3_CURRENT'),
+            'T3_status'         : epics.PV('18ID:BLEPS:TEMP3_STATUS'),
+            'T3_setpoint'       : epics.PV('18ID:BLEPS:TEMP3_SET_POINT'),
+            'T3_high'           : epics.PV('18ID:BLEPS:TEMP3_TRIP'),
+            'T3_under_range'    : epics.PV('18ID:BLEPS:TEMP3_UNDER_RANGE'),
+            'T4_temp'           : epics.PV('18ID:BLEPS:TEMP4_CURRENT'),
+            'T4_status'         : epics.PV('18ID:BLEPS:TEMP4_STATUS'),
+            'T4_setpoint'       : epics.PV('18ID:BLEPS:TEMP4_SET_POINT'),
+            'T4_high'           : epics.PV('18ID:BLEPS:TEMP4_TRIP'),
+            'T4_under_range'    : epics.PV('18ID:BLEPS:TEMP4_UNDER_RANGE'),
+            'T5_temp'           : epics.PV('18ID:BLEPS:TEMP5_CURRENT'),
+            'T5_status'         : epics.PV('18ID:BLEPS:TEMP5_STATUS'),
+            'T6_temp'           : epics.PV('18ID:BLEPS:TEMP6_CURRENT'),
+            'T6_status'         : epics.PV('18ID:BLEPS:TEMP6_STATUS'),
+            'T8_temp'           : epics.PV('18ID:BLEPS:TEMP8_CURRENT'),
+            'T8_status'         : epics.PV('18ID:BLEPS:TEMP8_STATUS'),
+            'T9_temp'           : epics.PV('18ID:BLEPS:TEMP9_CURRENT'),
+            'T9_status'         : epics.PV('18ID:BLEPS:TEMP9_STATUS'),
+            'T9_setpoint'       : epics.PV('18ID:BLEPS:TEMP9_SET_POINT'),
+            'T9_high'           : epics.PV('18ID:BLEPS:TEMP9_TRIP'),
+            'T9_under_range'    : epics.PV('18ID:BLEPS:TEMP9_UNDER_RANGE'),
+            'T10_temp'          : epics.PV('18ID:BLEPS:TEMP10_CURRENT'),
+            'T10_status'        : epics.PV('18ID:BLEPS:TEMP10_STATUS'),
+            'T11_temp'          : epics.PV('18ID:BLEPS:TEMP11_CURRENT'),
+            'T11_status'        : epics.PV('18ID:BLEPS:TEMP11_STATUS'),
+            'T11_setpoint'      : epics.PV('18ID:BLEPS:TEMP11_SET_POINT'),
+            'T11_high'          : epics.PV('18ID:BLEPS:TEMP11_TRIP'),
+            'T11_under_range'   : epics.PV('18ID:BLEPS:TEMP11_UNDER_RANGE'),
+            'T12_temp'          : epics.PV('18ID:BLEPS:TEMP12_CURRENT'),
+            'T12_status'        : epics.PV('18ID:BLEPS:TEMP12_STATUS'),
+            'T12_setpoint'      : epics.PV('18ID:BLEPS:TEMP12_SET_POINT'),
+            'T12_high'          : epics.PV('18ID:BLEPS:TEMP12_TRIP'),
+            'T12_under_range'   : epics.PV('18ID:BLEPS:TEMP12_UNDER_RANGE'),
+            'T13_temp'          : epics.PV('18ID:BLEPS:TEMP13_CURRENT'),
+            'T13_status'        : epics.PV('18ID:BLEPS:TEMP13_STATUS'),
+            'T14_temp'          : epics.PV('18ID:BLEPS:TEMP14_CURRENT'),
+            'T14_status'        : epics.PV('18ID:BLEPS:TEMP14_STATUS'),
+            'T16_temp'          : epics.PV('18ID:BLEPS:TEMP16_CURRENT'),
+            'T16_status'        : epics.PV('18ID:BLEPS:TEMP16_STATUS'),
+            'vac1_trip'         : epics.PV('18ID:BLEPS:VS1_TRIP'),
+            'vac2_trip'         : epics.PV('18ID:BLEPS:VS2_TRIP'),
+            'vac3_trip'         : epics.PV('18ID:BLEPS:VS3_TRIP'),
+            'vac4_trip'         : epics.PV('18ID:BLEPS:VS4_TRIP'),
+            'vac5_trip'         : epics.PV('18ID:BLEPS:VS5_TRIP'),
+            'vac6_trip'         : epics.PV('18ID:BLEPS:VS6_TRIP'),
+            'vac7_trip'         : epics.PV('18ID:BLEPS:VS7_TRIP'),
+            'vac8_trip'         : epics.PV('18ID:BLEPS:VS8_TRIP'),
+            'vac1_ip'           : epics.PV('18ID:BLEPS:IP1_WARNING'),
+            'vac2_ip'           : epics.PV('18ID:BLEPS:IP2_WARNING'),
+            'vac3_ip'           : epics.PV('18ID:BLEPS:IP3_WARNING'),
+            'vac4_ip'           : epics.PV('18ID:BLEPS:IP4_WARNING'),
+            'vac5_ip'           : epics.PV('18ID:BLEPS:IP5_WARNING'),
+            'vac6_ip'           : epics.PV('18ID:BLEPS:IP6_WARNING'),
+            'vac7_ip'           : epics.PV('18ID:BLEPS:IP7_WARNING'),
+            'vac8_ip'           : epics.PV('18ID:BLEPS:IP8_WARNING'),
+            'vac1_ig'           : epics.PV('18ID:BLEPS:IG1_WARNING'),
+            'vac2_ig'           : epics.PV('18ID:BLEPS:IG2_WARNING'),
+            'vac3_ig'           : epics.PV('18ID:BLEPS:IG3_WARNING'),
+            'vac4_ig'           : epics.PV('18ID:BLEPS:IG4_WARNING'),
+            'vac5_ig'           : epics.PV('18ID:BLEPS:IG5_WARNING'),
+            'vac6_ig'           : epics.PV('18ID:BLEPS:IG6_WARNING'),
+            'vac7_ig'           : epics.PV('18ID:BLEPS:IG7_WARNING'),
+            'vac8_ig'           : epics.PV('18ID:BLEPS:IG8_WARNING'),
+            'vac9_ig'           : epics.PV('18ID:BLEPS:IG9_WARNING'),
+            'vac10_ig'          : epics.PV('18ID:BLEPS:IG10_WARNING'),
         }
 
         [self.pvs[key].get() for key in self.pvs.keys()]
@@ -152,6 +318,7 @@ class OverviewPanel(wx.Panel):
             border=5, flag=wx.RIGHT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL)
         aps_sizer.Add(aps_status, border=5,
             flag=wx.RIGHT|wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_VERTICAL)
+        aps_sizer.AddStretchSpacer(1)
 
 
         bleps_box = wx.StaticBox(self, label='BLEPS Status')
@@ -186,8 +353,9 @@ class OverviewPanel(wx.Panel):
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
         bleps_sizer = wx.StaticBoxSizer(bleps_box, wx.HORIZONTAL)
-        bleps_sizer.Add(bleps_grid_sizer, proportion=1, flag=wx.ALL|wx.EXPAND,
+        bleps_sizer.Add(bleps_grid_sizer, proportion=0, flag=wx.ALL|wx.EXPAND,
             border=5)
+        bleps_sizer.AddStretchSpacer(1)
 
         station_box = wx.StaticBox(self, label='Station Status')
 
@@ -206,7 +374,7 @@ class OverviewPanel(wx.Panel):
 
         fe_shutter.SetTranslations({'0': 'Closed', '1': 'Open'})
         d_shutter.SetTranslations({'OFF': 'Closed', 'ON': 'Open'})
-        fe_shutter.SetForegroundColourTranslations({'Open': 'forest green', 
+        fe_shutter.SetForegroundColourTranslations({'Open': 'forest green',
             'Closed': 'red'})
 
         fe_shtr_ctrl = wx.BoxSizer(wx.HORIZONTAL)
@@ -233,7 +401,9 @@ class OverviewPanel(wx.Panel):
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
         station_sizer = wx.StaticBoxSizer(station_box, wx.HORIZONTAL)
-        station_sizer.Add(station_grid_sizer, proportion=1, flag=wx.EXPAND)
+        station_sizer.Add(station_grid_sizer, proportion=0, flag=wx.EXPAND|wx.ALL,
+            border=5)
+        station_sizer.AddStretchSpacer(1)
 
 
         exp_box = wx.StaticBox(self, label='Experiment Status')
@@ -297,15 +467,16 @@ class OverviewPanel(wx.Panel):
         exp_grid_sizer.Add(exp_i1, flag=wx.ALIGN_CENTER_VERTICAL)
 
         exp_sizer = wx.StaticBoxSizer(exp_box, wx.VERTICAL)
-        exp_sizer.Add(exp_grid_sizer, proportion=1, flag=wx.EXPAND|wx.ALL,
+        exp_sizer.Add(exp_grid_sizer, proportion=0, flag=wx.EXPAND|wx.ALL,
             border=5)
+        exp_sizer.AddStretchSpacer(1)
 
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(aps_sizer, border=5, flag=wx.ALL)
-        top_sizer.Add(bleps_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM)
-        top_sizer.Add(station_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM)
-        top_sizer.Add(exp_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM)
+        top_sizer.Add(aps_sizer, border=5, flag=wx.ALL|wx.EXPAND)
+        top_sizer.Add(bleps_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND)
+        top_sizer.Add(station_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND)
+        top_sizer.Add(exp_sizer, border=5, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND)
 
         self.SetSizer(top_sizer)
 
@@ -314,6 +485,363 @@ class OverviewPanel(wx.Panel):
     def _initialize(self):
         pass
 
+class BLEPSPanel(wx.ScrolledWindow):
+    """
+    """
+    def __init__(self, pvs, parent, panel_id=wx.ID_ANY, panel_name=''):
+        wx.ScrolledWindow.__init__(self, parent,
+            style=wx.BG_STYLE_SYSTEM|wx.VSCROLL)
+        self.SetScrollRate(20,20)
+
+        self.pvs = pvs
+
+        self._initialize()
+
+        self._create_layout()
+
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        """
+
+        bleps_box = wx.StaticBox(self, label='BLEPS Status')
+
+        bleps_fault = epics.wx.PVText(bleps_box, self.pvs['bleps_fault'],
+            fg='forest green')
+        bleps_trip = epics.wx.PVText(bleps_box, self.pvs['bleps_trip'],
+            fg='forest green')
+        bleps_warning = epics.wx.PVText(bleps_box, self.pvs['bleps_warning'],
+            fg='forest green')
+        bleps_fault_reset = epics.wx.PVButton(bleps_box,
+            self.pvs['bleps_fault_reset'], label='Reset Fault')
+        bleps_trip_reset = epics.wx.PVButton(bleps_box,
+            self.pvs['bleps_trip_reset'], label='Reset Trip')
+
+        bleps_grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
+        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS fault:'),
+            pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(bleps_fault, pos=(0,1),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS trip:'),
+            pos=(0,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(bleps_trip, pos=(0,3),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS warning:'),
+            pos=(0,4), flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(bleps_warning, pos=(0,5),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        bleps_grid_sizer.Add(bleps_fault_reset, pos=(1,0), span=(0, 2),
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+        bleps_grid_sizer.Add(bleps_trip_reset, pos=(1,2), span=(0, 2),
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+
+        bleps_sizer = wx.StaticBoxSizer(bleps_box, wx.HORIZONTAL)
+        bleps_sizer.Add(bleps_grid_sizer, proportion=0, flag=wx.ALL|wx.EXPAND,
+            border=5)
+        bleps_sizer.AddStretchSpacer(1)
+
+        misc_box = wx.StaticBox(self, label='Misc. Faults/Warnings')
+        comm_fault = epics.wx.PVText(misc_box, self.pvs['comm_fault'],
+            fg='forest green')
+        plc_battery_wrn = epics.wx.PVText(misc_box, self.pvs['plc_battery_wrn'],
+            fg='forest green')
+        # ps1_wrn = epics.wx.PVText(misc_box, self.pvs['ps1_wrn'],
+        #     fg='forest green')
+        # ps2_wrn = epics.wx.PVText(misc_box, self.pvs['ps2_wrn'],
+        #     fg='forest green')
+        # or_wrn = epics.wx.PVText(misc_box, self.pvs['or_wrn'],
+        #     fg='forest green')
+        biv_fail_close = epics.wx.PVText(misc_box, self.pvs['biv_fail_close'],
+            fg='forest green')
+        fes_fail_close = epics.wx.PVText(misc_box, self.pvs['fes_fail_close'],
+            fg='forest green')
+        sds_fail_close = epics.wx.PVText(misc_box, self.pvs['sds_fail_close'],
+            fg='forest green')
+
+        misc_grid = wx.FlexGridSizer(cols=8, vgap=5, hgap=5)
+        misc_grid.Add(wx.StaticText(misc_box, label='Comm. fault:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(comm_fault)
+        misc_grid.Add(wx.StaticText(misc_box, label='Battery wrn.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(plc_battery_wrn)
+        # misc_grid.Add(wx.StaticText(misc_box, label='P.S. 1 wrn.:'),
+        #     flag=wx.ALIGN_CENTER_VERTICAL)
+        # misc_grid.Add(ps1_wrn)
+        # misc_grid.Add(wx.StaticText(misc_box, label='P.S. 2 wrn.:'),
+        #     flag=wx.ALIGN_CENTER_VERTICAL)
+        # misc_grid.Add(ps2_wrn)
+        # misc_grid.Add(wx.StaticText(misc_box, label='OR Module wrn.:'),
+        #     flag=wx.ALIGN_CENTER_VERTICAL)
+        # misc_grid.Add(or_wrn)
+        misc_grid.Add(wx.StaticText(misc_box, label='BIV fail to close:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(biv_fail_close)
+        misc_grid.Add(wx.StaticText(misc_box, label='FES fail to close:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(fes_fail_close)
+        misc_grid.Add(wx.StaticText(misc_box, label='SDS fail to close:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(sds_fail_close)
+
+        misc_sizer = wx.StaticBoxSizer(misc_box, wx.VERTICAL)
+        misc_sizer.Add(misc_grid, flag=wx.ALL|wx.EXPAND, border=5)
+
+        gate_valve_box = wx.StaticBox(self, label='Gate Valves')
+        gate_valve_sizer = wx.StaticBoxSizer(gate_valve_box, wx.VERTICAL)
+
+        gate_valve_layout = wx.FlexGridSizer(cols=3, vgap=5, hgap=5)
+        for i in range(1, 8):
+            gate_valve_layout.Add(self.make_gv_sizer(gate_valve_box, i))
+
+        gate_valve_sizer.Add(gate_valve_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        temp_box = wx.StaticBox(self, label='Temperatures')
+        temp_sizer = wx.StaticBoxSizer(temp_box, wx.VERTICAL)
+
+        temp_layout = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 1, 'Mono 1 Cryo Supply'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 3, 'Mono 1 Compton IB'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 4, 'Mono 1 Compton OB'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 9, 'Mono 2 Cryo Supply'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 11, 'Mono 2 Compton IB'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 12, 'Mono 2 Compton OB'))
+        temp_layout.Add(self.make_temp_sizer(temp_box, 2, 'Mono 1 Cryo Return',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 5, 'Mono 1 Compton Bot.',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 6, 'Mono 1 Copper Block',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 8, 'Mono 1 2nd Xtal Shield',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 10, 'Mono 2 Cryo Return',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 13, 'Mono 2 Compton Bot.',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 14, 'Mono 2 Copper Block',
+            False), flag=wx.EXPAND)
+        temp_layout.Add(self.make_temp_sizer(temp_box, 16, 'Mono 2 2nd Xtal Shield',
+            False), flag=wx.EXPAND)
+        temp_layout.AddGrowableCol(0)
+        temp_layout.AddGrowableCol(1)
+
+        temp_sizer.Add(temp_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+
+        vac_box = wx.StaticBox(self, label='Vacuum')
+
+        vac_trip_box = wx.StaticBox(self, label='Vaccum Sections')
+
+        vac_trip_layout = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        for i in range(1, 9):
+            vac_trip_layout.Add(self.make_vac_trip_sizer(vac_trip_box, i))
+
+        vac_trip_sizer = wx.StaticBoxSizer(vac_trip_box, wx.VERTICAL)
+        vac_trip_sizer.Add(vac_trip_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        vac_ip_box = wx.StaticBox(self, label='Ion Pumps')
+
+        vac_ip_warn_layout = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        for i in range(1, 9):
+            vac_ip_warn_layout.Add(self.make_vac_ip_warn_sizer(vac_ip_box, i))
+
+        vac_ip_sizer = wx.StaticBoxSizer(vac_ip_box, wx.VERTICAL)
+        vac_ip_sizer.Add(vac_ip_warn_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        vac_ig_box = wx.StaticBox(self, label='Ion Gauges')
+
+        vac_ig_warn_layout = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        for i in range(1, 11):
+            vac_ig_warn_layout.Add(self.make_vac_ig_warn_sizer(vac_ig_box, i))
+
+        vac_ig_sizer = wx.StaticBoxSizer(vac_ig_box, wx.VERTICAL)
+        vac_ig_sizer.Add(vac_ig_warn_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        vac_sizer = wx.StaticBoxSizer(vac_box, wx.VERTICAL)
+        vac_sizer.Add(vac_trip_sizer, flag=wx.EXPAND|wx.ALL, border=5)
+        vac_sizer.Add(vac_ip_sizer,
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+        vac_sizer.Add(vac_ig_sizer,
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+
+        sub_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        sub_sizer1.Add(bleps_sizer, flag=wx.EXPAND|wx.RIGHT, border=5)
+        sub_sizer1.Add(misc_sizer, flag=wx.EXPAND)
+
+        sub_sizer2 = wx.BoxSizer(wx.VERTICAL)
+        sub_sizer2.Add(temp_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
+        sub_sizer2.Add(vac_sizer, flag=wx.EXPAND)
+
+        sub_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
+        sub_sizer3.Add(gate_valve_sizer, flag=wx.EXPAND|wx.RIGHT, border=5)
+        sub_sizer3.Add(sub_sizer2, flag=wx.EXPAND)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(sub_sizer1, flag=wx.EXPAND|wx.ALL, border=5)
+        top_sizer.Add(sub_sizer3, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=5)
+
+        self.SetSizer(top_sizer)
+
+        # return top_sizer
+
+    def _initialize(self):
+        pass
+
+    def make_gv_sizer(self, parent, gv_num):
+
+        gv_box = wx.StaticBox(parent, label='Gate Valve {}'.format(gv_num))
+
+        gv_status = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_status'.format(gv_num)], fg='forest green')
+        gv_both_sw = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_both_sw'.format(gv_num)], fg='forest green')
+        gv_open_sw = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_open_sw'.format(gv_num)], fg='forest green')
+        gv_close_sw = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_close_sw'.format(gv_num)], fg='forest green')
+        gv_no_sw = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_no_sw'.format(gv_num)], fg='forest green')
+        gv_fail_open = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_fail_open'.format(gv_num)], fg='forest green')
+        gv_fail_close = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_fail_close'.format(gv_num)], fg='forest green')
+        gv_fully_open = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_fully_open'.format(gv_num)], fg='forest green')
+        gv_fully_close = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_fully_close'.format(gv_num)], fg='forest green')
+        gv_beam_exp = epics.wx.PVText(gv_box,
+            self.pvs['gv{}_beam_exp'.format(gv_num)], fg='forest green')
+
+        gv_open = custom_epics_widgets.PVButton2(gv_box,
+            self.pvs['gv{}_open'.format(gv_num)], label='Open', size=(50, -1))
+        gv_close = custom_epics_widgets.PVButton2(gv_box,
+            self.pvs['gv{}_close'.format(gv_num)], label='Close', size=(50, -1))
+
+        gv_status_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        gv_status_sizer.Add(wx.StaticText(gv_box, label='Status:'), border=5,
+            flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        gv_status_sizer.Add(gv_status, flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        gv_status_sizer.AddStretchSpacer(1)
+
+        gv_ctrl_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        gv_ctrl_sizer.Add(gv_open, flag=wx.LEFT, border=5)
+        gv_ctrl_sizer.Add(gv_close, flag=wx.LEFT, border=5)
+
+        gv_faults = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
+        gv_faults.Add(wx.StaticText(gv_box, label='Both switch:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_both_sw, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Open switch:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_open_sw, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Close switch:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_close_sw, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='No switch:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_no_sw, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Fail to open:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_fail_open, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Fail to close:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_fail_close, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Fully open:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_fully_open, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Fully closed:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_fully_close, flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(wx.StaticText(gv_box, label='Beam exp.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        gv_faults.Add(gv_beam_exp, flag=wx.ALIGN_CENTER_VERTICAL)
+
+
+        gv_box_sizer = wx.StaticBoxSizer(gv_box, wx.VERTICAL)
+        gv_box_sizer.Add(gv_status_sizer, flag=wx.ALL|wx.EXPAND, border=5)
+        gv_box_sizer.Add(gv_ctrl_sizer, border=5,
+            flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL)
+        gv_box_sizer.Add(gv_faults, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM, border=5)
+
+        return gv_box_sizer
+
+    def make_temp_sizer(self, parent, T_num, label, monitored=True):
+        T_box = wx.StaticBox(parent, label=label)
+
+        temp = epics.wx.PVText(T_box, self.pvs['T{}_temp'.format(T_num)])
+        status = epics.wx.PVText(T_box, self.pvs['T{}_status'.format(T_num)],
+            fg='forest green')
+
+        if monitored:
+            setpoint = epics.wx.PVText(T_box,
+                self.pvs['T{}_setpoint'.format(T_num)])
+            under_range = epics.wx.PVText(T_box,
+                self.pvs['T{}_under_range'.format(T_num)], fg='forest green')
+            high_t = epics.wx.PVText(T_box,
+                self.pvs['T{}_high'.format(T_num)], fg='forest green')
+
+        temp_grid = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        temp_grid.Add(wx.StaticText(T_box, label='Temp. [C]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        temp_grid.Add(temp, flag=wx.ALIGN_CENTER_VERTICAL)
+        if monitored:
+            temp_grid.Add(wx.StaticText(T_box, label='Status:'))
+        else:
+            temp_grid.Add(wx.StaticText(T_box, label='      Status:'))
+        temp_grid.Add(status, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        if monitored:
+            temp_grid.Add(wx.StaticText(T_box, label='Setpoint [C]:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(setpoint, flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(wx.StaticText(T_box, label='High T. Alarm:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(high_t, flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(wx.StaticText(T_box, label='Under range:'),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            temp_grid.Add(under_range, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        temp_sizer = wx.StaticBoxSizer(T_box, wx.HORIZONTAL)
+        temp_sizer.Add(temp_grid, flag=wx.ALL, border=5)
+        temp_sizer.AddStretchSpacer(1)
+
+        return temp_sizer
+
+    def make_vac_trip_sizer(self, parent, v_num):
+        vac = epics.wx.PVText(parent, self.pvs['vac{}_trip'.format(v_num)],
+            fg='forest green')
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(wx.StaticText(parent, label='Vac. section {}:'.format(v_num)),
+            flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=5)
+        sizer.Add(vac, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
+
+    def make_vac_ip_warn_sizer(self, parent, v_num):
+        vac = epics.wx.PVText(parent, self.pvs['vac{}_ip'.format(v_num)],
+            fg='forest green')
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(wx.StaticText(parent, label='Ion pump {}:'.format(v_num)),
+            flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=5)
+        sizer.Add(vac, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
+
+    def make_vac_ig_warn_sizer(self, parent, v_num):
+        vac = epics.wx.PVText(parent, self.pvs['vac{}_ig'.format(v_num)],
+            fg='forest green')
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(wx.StaticText(parent, label='Ion gauge {}:'.format(v_num)),
+            flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL, border=5)
+        sizer.Add(vac, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
 
 
 class BeamlineStatusFrame(wx.Frame):
@@ -344,18 +872,23 @@ class BeamlineStatusFrame(wx.Frame):
 
         top_sizer = self._create_layout()
 
-        screen_two = wx.Display(1)
-        w_edge, h_edge_, screen_two_w, screen_two_h = screen_two.GetGeometry()
+        # screen_two = wx.Display(1)
+        # w_edge, h_edge_, screen_two_w, screen_two_h = screen_two.GetGeometry()
 
-        self.SetPosition((int(w_edge + (screen_two_w / 2)),
-                                   int(screen_two_h / 2)))
+        # self.SetPosition((int(w_edge + (screen_two_w / 2)),
+        #                            int(screen_two_h / 2)))
 
         self.SetSizer(top_sizer)
         self.Layout()
         self.Fit()
-        self.Raise()
+        # self.Raise()
         self.PostSizeEvent()
+        # wx.CallLater(5000, self.PostSizeEvent)
+        # wx.CallLater(5000, self.Layout)
 
+        size = self.GetSize()
+
+        self.SetSize((size[0], size[1]+30))
 
     def _create_layout(self):
         """
