@@ -49,6 +49,7 @@ import diocon as dioc
 import atten
 import ic_calc
 import switch_monos
+import overview
 
 
 class MainFrame(wx.Frame):
@@ -80,6 +81,7 @@ class MainFrame(wx.Frame):
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             'Switch Monos'  : switch_monos.SWMonosPanel,
+            'Beamline Overview' : overview.MainStatusPanel,
             }
 
         self.ctrl_panels = {}
@@ -130,7 +132,8 @@ class MainFrame(wx.Frame):
         self.dio_list = []
         self.do_list = []
 
-        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos']
+        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos', 
+            'Beamline Overview']
 
         for record in self.mx_db.get_all_records():
             try:
@@ -694,8 +697,10 @@ class CtrlsFrame(wx.Frame):
 
         self._create_layout(ctrls, mx_db)
 
+        self.Layout()
         self.Fit()
-        self.Raise()
+        # self.Raise()
+        self.PostSizeEvent()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
