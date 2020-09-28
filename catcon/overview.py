@@ -104,6 +104,7 @@ class MainStatusPanel(wx.Panel):
             'u_energy'          : epics.PV('ID18:Energy'),
             'u_target_gap'      : epics.PV('ID18:GapSet'),
             'u_target_energy'   : epics.PV('ID18:EnergySet'),
+            'u_start'           : epics.PV('18ID:Start'),
 
             'current'           : epics.PV('XFD:srCurrent'),
             'aps_status'        : epics.PV('S:ActualMode'),
@@ -115,6 +116,18 @@ class MainStatusPanel(wx.Panel):
             'aps_update_msg'    : epics.PV('XFD:message18'),
             'aps_bc_time'       : epics.PV('S:SRtimeCP'),
             'aps_bc_current'    : epics.PV('S:SRcurrentCP'),
+            'rf_bpm_18b_p0_x'   : epics.PV('S18B:P0:ms:x:InUseBO'),
+            'rf_bpm_18b_p1_x'   : epics.PV('S18B:P1:ms:x:InUseBO'),
+            'rf_bpm_19a_p0_x'   : epics.PV('S19A:P0:ms:x:InUseBO'),
+            'rf_bpm_19a_p1_x'   : epics.PV('S19A:P1:ms:x:InUseBO'),
+            'rf_bpm_18b_p0_y'   : epics.PV('S18B:P0:ms:y:InUseBO'),
+            'rf_bpm_18b_p1_y'   : epics.PV('S18B:P1:ms:y:InUseBO'),
+            'rf_bpm_19a_p0_y'   : epics.PV('S19A:P0:ms:y:InUseBO'),
+            'rf_bpm_19a_p1_y'   : epics.PV('S19A:P1:ms:y:InUseBO'),
+            'x_bpm_p1_x'        : epics.PV('S18ID:P1:ms:x:InUseBO'),
+            'x_bpm_p2_x'        : epics.PV('S18ID:P2:ms:x:InUseBO'),
+            'x_bpm_p1_y'        : epics.PV('S18ID:P1:ms:y:InUseBO'),
+            'x_bpm_p2_y'        : epics.PV('S18ID:P2:ms:y:InUseBO'),
 
             'exp_slow_shtr1'    : epics.PV('18ID:bi0:ch6'),
             'exp_slow_shtr2'    : epics.PV('18ID:bi0:ch7'),
@@ -1440,10 +1453,11 @@ class APSPanel(wx.Panel):
         aps_sizer.Add(aps_sub_sizer1, flag=wx.ALL, border=5)
         aps_sizer.Add(aps_sub_sizer2, proportion=1, flag=wx.ALL|wx.EXPAND,
             border=5)
-        aps_sizer.AddStretchSpacer(1)
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.ALL, border=5)
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_sizer.Add(aps_sizer, proportion=1, flag=wx.ALL, border=5)
+        top_sizer.Add(self._make_bpm_sizer(self), flag=wx.TOP|wx.BOTTOM|wx.RIGHT,
+            border=5)
 
         self.SetSizer(top_sizer)
 
@@ -1499,12 +1513,101 @@ class APSPanel(wx.Panel):
         # self.bc_hist_line.set_ydata(y_vals)
         self.canvas.GetParent().Freeze()
         self.bc_hist_plot.clear()
+        self.bc_hist_plot.set_xlabel('Time relative to now [h]')
+        self.bc_hist_plot.set_ylabel('Current [mA]')
         self.bc_hist_plot.fill_between(x_vals, 0, y_vals)
         self.bc_hist_plot.set_xlim(-24, 0)
         self.bc_hist_plot.set_ylim(min(min(y_vals)*0.98, 95), max(y_vals)*1.002)
         self.canvas.GetParent().Thaw()
 
         self.canvas.draw()
+
+    def _make_bpm_sizer(self, parent):
+        bpm_box = wx.StaticBox(parent, label='APS BPMS')
+        rf_bpm_box = wx.StaticBox(bpm_box, label='RF BPMS')
+        x_bpm_box = wx.StaticBox(bpm_box, label='X-ray BPMS')
+
+        rf_bpm_18b_p0_x = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_18b_p0_x'],
+            fg='forest green')
+        rf_bpm_18b_p0_y = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_18b_p0_y'],
+            fg='forest green')
+        rf_bpm_18b_p1_x = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_18b_p1_x'],
+            fg='forest green')
+        rf_bpm_18b_p1_y = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_18b_p1_y'],
+            fg='forest green')
+        rf_bpm_19a_p0_x = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_19a_p0_x'],
+            fg='forest green')
+        rf_bpm_19a_p0_y = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_19a_p0_y'],
+            fg='forest green')
+        rf_bpm_19a_p1_x = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_19a_p1_x'],
+            fg='forest green')
+        rf_bpm_19a_p1_y = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_19a_p1_y'],
+            fg='forest green')
+
+        x_bpm_p1_x = epics.wx.PVText(x_bpm_box, self.pvs['x_bpm_p1_x'],
+            fg='forest green')
+        x_bpm_p1_y = epics.wx.PVText(x_bpm_box, self.pvs['x_bpm_p1_y'],
+            fg='forest green')
+        x_bpm_p2_x = epics.wx.PVText(x_bpm_box, self.pvs['x_bpm_p2_x'],
+            fg='forest green')
+        x_bpm_p2_y = epics.wx.PVText(x_bpm_box, self.pvs['x_bpm_p2_y'],
+            fg='forest green')
+
+
+        rf_layout = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='18B P0 X:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_18b_p0_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='18B P0 Y:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_18b_p0_y, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='18B P1 X:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_18b_p1_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='18B P1 Y:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_18b_p1_y, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='19A P0 X:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_19a_p0_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='19A P0 Y:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_19a_p0_y, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='19A P1 X:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_19a_p1_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(wx.StaticText(rf_bpm_box, label='19A P1 Y:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        rf_layout.Add(rf_bpm_19a_p1_y, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        rf_sizer = wx.StaticBoxSizer(rf_bpm_box, wx.VERTICAL)
+        rf_sizer.Add(rf_layout, flag=wx.ALL|wx.EXPAND, border=5)
+
+        x_layout = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        x_layout.Add(wx.StaticText(x_bpm_box, label='XBPM P1 X:'),
+            flag=wx.ALIGN_CENTER_HORIZONTAL)
+        x_layout.Add(x_bpm_p1_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        x_layout.Add(wx.StaticText(x_bpm_box, label='XBPM P1 Y:'),
+            flag=wx.ALIGN_CENTER_HORIZONTAL)
+        x_layout.Add(x_bpm_p1_y, flag=wx.ALIGN_CENTER_VERTICAL)
+        x_layout.Add(wx.StaticText(x_bpm_box, label='XBPM P2 X:'),
+            flag=wx.ALIGN_CENTER_HORIZONTAL)
+        x_layout.Add(x_bpm_p2_x, flag=wx.ALIGN_CENTER_VERTICAL)
+        x_layout.Add(wx.StaticText(x_bpm_box, label='XBPM P2 Y:'),
+            flag=wx.ALIGN_CENTER_HORIZONTAL)
+        x_layout.Add(x_bpm_p2_y, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        x_sizer = wx.StaticBoxSizer(x_bpm_box, wx.VERTICAL)
+        x_sizer.Add(x_layout, flag=wx.ALL|wx.EXPAND, border=5)
+
+        bpm_layout = wx.StaticBoxSizer(bpm_box, wx.HORIZONTAL)
+        bpm_layout.Add(rf_sizer, flag=wx.ALL, border=5)
+        bpm_layout.Add(x_sizer, flag=wx.RIGHT|wx.TOP|wx.BOTTOM, border=5)
+
+        return bpm_layout
+
+
+
 
 class StationPanel(wx.Panel):
     """
@@ -1614,6 +1717,8 @@ class StationPanel(wx.Panel):
             auto_units=True)
         target_energy = epics.wx.PVText(u_box, self.pvs['u_target_energy'],
             auto_units=True)
+        start = epics.wx.PVButton(u_box, self.pvs['u_start'],
+            label='Move to Target')
 
         u_layout = wx.FlexGridSizer(cols=4, vgap=10, hgap=5)
         u_layout.Add(wx.StaticText(u_box, label='Actual Undulator Energy:'),
@@ -1631,6 +1736,9 @@ class StationPanel(wx.Panel):
 
         u_sizer = wx.StaticBoxSizer(u_box, wx.VERTICAL)
         u_sizer.Add(u_layout, flag=wx.EXPAND|wx.ALL, border=5)
+        u_sizer.Add(start,
+            flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.LEFT|wx.RIGHT,
+            border=5)
 
         return u_sizer
 
