@@ -1717,7 +1717,7 @@ class StationPanel(wx.Panel):
             auto_units=True)
         target_energy = epics.wx.PVText(u_box, self.pvs['u_target_energy'],
             auto_units=True)
-        start = epics.wx.PVButton(u_box, self.pvs['u_start'],
+        start = custom_epics_widgets.PVButton2(u_box, self.pvs['u_start'],
             label='Move to Target')
 
         u_layout = wx.FlexGridSizer(cols=4, vgap=10, hgap=5)
