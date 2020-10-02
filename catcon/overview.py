@@ -104,7 +104,7 @@ class MainStatusPanel(wx.Panel):
             'u_energy'          : epics.PV('ID18:Energy'),
             'u_target_gap'      : epics.PV('ID18:GapSet'),
             'u_target_energy'   : epics.PV('ID18:EnergySet'),
-            'u_start'           : epics.PV('18ID:Start'),
+            'u_start'           : epics.PV('ID18:Start'),
 
             'current'           : epics.PV('XFD:srCurrent'),
             'aps_status'        : epics.PV('S:ActualMode'),
