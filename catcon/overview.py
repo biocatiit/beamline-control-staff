@@ -106,6 +106,35 @@ class MainStatusPanel(wx.Panel):
             'u_target_energy'   : epics.PV('ID18:EnergySet'),
             'u_start'           : epics.PV('ID18:Start'),
 
+            'A_door_1'          : epics.PV('PA:18ID:STA_A_DR1_CLOSE_LS'),
+            'A_user_key'        : epics.PV('PA:18ID:STA_A_USER_KEY_SW'),
+            'A_aps_key_a'       : epics.PV('PA:18ID:STA_A_APS_ENBLE_PL'),
+            'A_searched_a'      : epics.PV('PA:18ID:STA_A_SEARCHED_PL'),
+            'A_beam_ready'      : epics.PV('PA:18ID:STA_A_BEAMREADY_PL'),
+            'A_beam_active'     : epics.PV('PA:18ID:STA_A_NO_ACCESS'),
+            'A_crash_1'         : epics.PV('PA:18ID:STA_A_CB1'),
+            'C_door_1'          : epics.PV('PA:18ID:STA_C_DR1_CLOSE_LS'),
+            'C_door_2'          : epics.PV('PA:18ID:STA_C_DR2_CLOSE_LS'),
+            'C_user_key'        : epics.PV('PA:18ID:STA_C_USER_KEY_SW'),
+            'C_aps_key_a'       : epics.PV('PA:18ID:STA_C_APS_ENBLE_PL'),
+            'C_searched_a'      : epics.PV('PA:18ID:STA_C_SEARCHED_PL'),
+            'C_beam_ready'      : epics.PV('PA:18ID:STA_C_BEAMREADY_PL'),
+            'C_beam_active'     : epics.PV('PA:18ID:STA_C_NO_ACCESS'),
+            'C_crash_1'         : epics.PV('PA:18ID:STA_C_CB1'),
+            'C_crash_2'         : epics.PV('PA:18ID:STA_C_CB2'),
+            'D_door_1'          : epics.PV('PA:18ID:STA_D_DR1_CLOSE_LS'),
+            'D_door_2'          : epics.PV('PA:18ID:STA_D_DR2_CLOSE_LS'),
+            'D_door_3'          : epics.PV('PA:18ID:STA_D_DR3_CLOSE_LS'),
+            'D_door_4'          : epics.PV('PA:18ID:STA_D_DR4_CLOSE_LS'),
+            'D_user_key'        : epics.PV('PA:18ID:STA_D_USER_KEY_SW'),
+            'D_aps_key_a'       : epics.PV('PA:18ID:STA_D_APS_ENBLE_PL'),
+            'D_searched_a'      : epics.PV('PA:18ID:STA_D_SEARCHED_PL'),
+            'D_beam_ready'      : epics.PV('PA:18ID:STA_D_BEAMREADY_PL'),
+            'D_beam_active'     : epics.PV('PA:18ID:STA_D_NO_ACCESS'),
+            'D_crash_1'         : epics.PV('PA:18ID:STA_D_CB1'),
+            'D_crash_2'         : epics.PV('PA:18ID:STA_D_CB2'),
+            'D_crash_3'         : epics.PV('PA:18ID:STA_D_CB3'),
+
             'current'           : epics.PV('XFD:srCurrent'),
             'aps_status'        : epics.PV('S:ActualMode'),
             'aps_nominal'       : epics.PV('S:DesiredMode'),
@@ -1470,6 +1499,8 @@ class APSPanel(wx.Panel):
         self.history_pvs = [self.pvs['aps_bc_time'], self.pvs['aps_bc_current']]
         self.history_pvs[1].add_callback(self._beam_current_plot_callback)
 
+        self._aps_msg_callback()
+
     def _aps_msg_callback(self, **kwargs):
         msg = ' '.join(pv.get() for pv in self.msg_pvs)
 
@@ -1609,7 +1640,7 @@ class APSPanel(wx.Panel):
 
 
 
-class StationPanel(wx.Panel):
+class StationPanel(wx.ScrolledWindow):
     """
     .. todo::
         Eventually this should allow viewing (and setting?) of the amp
@@ -1622,7 +1653,9 @@ class StationPanel(wx.Panel):
     with the amps by calling ``Mp``, the python wrapper for ``MX``.
     """
     def __init__(self, pvs, parent, panel_id=wx.ID_ANY, panel_name=''):
-        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
+        wx.ScrolledWindow.__init__(self, parent,
+            style=wx.VSCROLL|wx.HSCROLL)
+        self.SetScrollRate(20,20)
 
         self.pvs = pvs
 
@@ -1691,10 +1724,28 @@ class StationPanel(wx.Panel):
 
         temp_sizer = self._make_temp_sizer(self)
 
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        top_sizer.Add(station_sizer, flag=wx.ALL, border=5)
-        top_sizer.Add(undulator_sizer, flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
-        top_sizer.Add(temp_sizer, flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
+
+        pss_box = wx.StaticBox(self, label='PSS Status')
+        fsize = self.GetFont().Larger().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        pss_box.SetOwnFont(font)
+
+        pss_sizer = wx.StaticBoxSizer(pss_box, wx.HORIZONTAL)
+        pss_sizer.Add(self.make_pss_sizer(pss_box, 'D'), flag=wx.ALL, border=5)
+        pss_sizer.Add(self.make_pss_sizer(pss_box, 'C'),
+            flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
+        pss_sizer.Add(self.make_pss_sizer(pss_box, 'A'),
+            flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
+
+        row1_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        row1_sizer.Add(station_sizer, flag=wx.ALL|wx.EXPAND, border=5)
+        row1_sizer.Add(undulator_sizer,
+            flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
+        row1_sizer.Add(temp_sizer, flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(row1_sizer)
+        top_sizer.Add(pss_sizer)
 
         self.SetSizer(top_sizer)
 
@@ -1739,6 +1790,7 @@ class StationPanel(wx.Panel):
         u_sizer.Add(start,
             flag=wx.ALIGN_CENTER_HORIZONTAL|wx.BOTTOM|wx.LEFT|wx.RIGHT,
             border=5)
+        u_sizer.AddStretchSpacer(1)
 
         return u_sizer
 
@@ -1827,6 +1879,102 @@ class StationPanel(wx.Panel):
 
         return temp_sizer
 
+    def make_pss_sizer(self, parent, station):
+        pss_box = wx.StaticBox(self, label='PSS {} Status'.format(station))
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        pss_box.SetOwnFont(font)
+
+        door_1 = custom_epics_widgets.PVTextLabeled(pss_box,
+            self.pvs['{}_door_1'.format(station)], fg='forest green')
+        user_key = epics.wx.PVText(pss_box,
+            self.pvs['{}_user_key'.format(station)], fg='forest green')
+        aps_key_a = epics.wx.PVText(pss_box,
+            self.pvs['{}_aps_key_a'.format(station)], fg='forest green')
+        searched_a = epics.wx.PVText(pss_box,
+            self.pvs['{}_searched_a'.format(station)], fg='forest green')
+        beam_ready = epics.wx.PVText(pss_box,
+            self.pvs['{}_beam_ready'.format(station)], fg='forest green')
+        beam_active = epics.wx.PVText(pss_box,
+            self.pvs['{}_beam_active'.format(station)], fg='forest green')
+        crash_1 = custom_epics_widgets.PVTextLabeled(pss_box,
+            self.pvs['{}_crash_1'.format(station)], fg='forest green')
+
+        door_1.SetTranslations({'ON': 'Closed', 'OFF': 'Open'})
+        crash_1.SetTranslations({'OFF': 'Active', 'ON': 'Clear'})
+
+        if station != 'A':
+            door_2 = custom_epics_widgets.PVTextLabeled(pss_box,
+                self.pvs['{}_door_2'.format(station)], fg='forest green')
+            crash_2 = custom_epics_widgets.PVTextLabeled(pss_box,
+            self.pvs['{}_crash_2'.format(station)], fg='forest green')
+
+            door_2.SetTranslations({'ON': 'Closed', 'OFF': 'Open'})
+            crash_2.SetTranslations({'OFF': 'Active', 'ON': 'Clear'})
+
+        if station == 'D':
+            door_3 = custom_epics_widgets.PVTextLabeled(pss_box,
+                self.pvs['{}_door_3'.format(station)], fg='forest green')
+            door_4 = custom_epics_widgets.PVTextLabeled(pss_box,
+                self.pvs['{}_door_4'.format(station)], fg='forest green')
+            crash_3 = custom_epics_widgets.PVTextLabeled(pss_box,
+                self.pvs['{}_crash_3'.format(station)], fg='forest green')
+
+            door_3.SetTranslations({'ON': 'Closed', 'OFF': 'Open'})
+            door_4.SetTranslations({'ON': 'Closed', 'OFF': 'Open'})
+            crash_3.SetTranslations({'OFF': 'Active', 'ON': 'Clear'})
+
+        pss_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        pss_layout.Add(wx.StaticText(pss_box, label='Door 1:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(door_1)
+
+        if station != 'A':
+            pss_layout.Add(wx.StaticText(pss_box, label='Door 2:'.format(station)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            pss_layout.Add(door_2)
+
+        if station == 'D':
+            pss_layout.Add(wx.StaticText(pss_box, label='Door 3:'.format(station)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            pss_layout.Add(door_3)
+            pss_layout.Add(wx.StaticText(pss_box, label='Door 4:'.format(station)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            pss_layout.Add(door_4)
+
+        pss_layout.Add(wx.StaticText(pss_box, label='User Key:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(user_key)
+        pss_layout.Add(wx.StaticText(pss_box, label='APS Key:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(aps_key_a)
+        pss_layout.Add(wx.StaticText(pss_box, label='Searched:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(searched_a)
+        pss_layout.Add(wx.StaticText(pss_box, label='Beam Ready:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(beam_ready)
+        pss_layout.Add(wx.StaticText(pss_box, label='Beam Active:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(beam_active)
+        pss_layout.Add(wx.StaticText(pss_box, label='Crash Btn. 1:'.format(station)),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        pss_layout.Add(crash_1)
+
+        if station != 'A':
+            pss_layout.Add(wx.StaticText(pss_box, label='Crash Btn. 2:'.format(station)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            pss_layout.Add(crash_2)
+
+        if station == 'D':
+            pss_layout.Add(wx.StaticText(pss_box, label='Crash Btn. 3:'.format(station)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            pss_layout.Add(crash_3)
+
+        pss_sizer = wx.StaticBoxSizer(pss_box, wx.VERTICAL)
+        pss_sizer.Add(pss_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        return pss_sizer
 
 class ExpPanel(wx.Panel):
     """
@@ -1903,10 +2051,10 @@ class ExpPanel(wx.Panel):
         vac_layout.Add(wx.StaticText(vac_box, label='Guard Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(guard_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='Sample Vac.[mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_box, label='Sample Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(sample_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='S.C. Vac.[mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_box, label='S.C. Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(scatter_vac, flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(wx.StaticText(vac_box, label='Vac Sec. 1 [mTorr]:'),
