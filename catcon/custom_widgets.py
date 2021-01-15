@@ -59,7 +59,7 @@ class CustomEpicsValue(wx.StaticText):
 
         if base != 10 and base != 16 and base != 8 and base != None:
             error_message = "Only base 8, 10, and 16 are supported."
-            raise ValueError, error_message
+            raise ValueError(error_message)
 
         self.base = base
         self.pv = mpca.PV(pv_name)

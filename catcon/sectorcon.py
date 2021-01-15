@@ -245,6 +245,14 @@ class MainFrame(wx.Frame):
 
         self.save_layout()
 
+        sys.excepthook = sys.__excepthook__
+
+        for w in wx.GetTopLevelWindows():
+            if w != self:
+                w.Destroy()
+
+        self._mgr.UnInit()
+
         self.Destroy()
 
     def save_layout(self):
@@ -264,8 +272,8 @@ class MainFrame(wx.Frame):
 
         sname = '{}_sector_ctrl_settings.txt'.format(platform.node().replace('.','_'))
         sfile = os.path.join(savedir, sname)
-        with open(sfile, 'w') as f:
-            f.write(unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)))
+        with open(sfile, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder))
 
     def _load_layout(self):
         """
