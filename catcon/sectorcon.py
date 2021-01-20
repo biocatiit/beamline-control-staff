@@ -99,9 +99,9 @@ class MainFrame(wx.Frame):
         self.mx_timer.Start(10)
 
         if int(wx.__version__.split('.')[0]) > 3:
-            self.SetSizeHints((480,350))
+            self.SetSizeHints((550,350))
         else:
-            self.SetSizeHints(480,350)
+            self.SetSizeHints(550,350)
         self.Layout()
         self.Fit()
 

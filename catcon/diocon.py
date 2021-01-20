@@ -30,6 +30,7 @@ if __name__ == "__main__" and __package__ is None:
 import os
 
 import wx
+import epics
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -82,7 +83,7 @@ class DIOPanel(wx.Panel):
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
-            self.pv = mpca.PV(pv_name)
+            self.pv = epics.PV(pv_name)
 
         else:
             self.is_epics = False
@@ -136,13 +137,15 @@ class DIOPanel(wx.Panel):
     def _initialize(self):
         if self.is_input:
             if self.is_epics:
-                self.callback = self.pv.add_callback(mpca.DBE_VALUE, self._on_epics_input, (self.pv, self._update_status))
+                # self.callback = self.pv.add_callback(mpca.DBE_VALUE, self._on_epics_input, (self.pv, self._update_status))
+                self.callback = self.pv.add_callback(self._on_epics_input)
 
-                value = self.pv.caget()
-                self._on_epics_input(self.callback, (self.pv, self._update_status))
+                # value = self.pv.caget()
+                # self._on_epics_input(self.callback, (self.pv, self._update_status))
         else:
             if self.is_epics:
-                value = self.pv.caget()
+                # value = self.pv.caget()
+                value = self.pv.get()
 
                 if value:
                     self.on.SetValue(True)
@@ -152,25 +155,57 @@ class DIOPanel(wx.Panel):
                     self.off.SetValue(True)
 
 
+    # def _on_output(self, event):
+    #     if event.GetEventObject() == self.off:
+    #         if self.is_epics:
+    #             self.pv.caput(0, wait=False)
+    #     else:
+    #         if self.is_epics:
+    #             self.pv.caput(1, wait=False)
+
     def _on_output(self, event):
         if event.GetEventObject() == self.off:
             if self.is_epics:
-                self.pv.caput(0, wait=False)
+                self.pv.put(0, wait=False)
         else:
             if self.is_epics:
-                self.pv.caput(1, wait=False)
+                self.pv.put(1, wait=False)
 
-    @staticmethod
-    def _on_epics_input(callback, args):
-        pv, update_func = args
+    # @staticmethod
+    # def _on_epics_input(callback, args):
+    #     print('in on_epics_input')
+    #     pv, update_func = args
 
-        value = pv.get_local()
+    #     value = pv.get_local()
+    #     print(value)
+    #     print(pv.caget())
 
-        if isinstance( value, list ):
-            if ( len(value) == 1 ):
-                value = value[0]
+    #     if isinstance( value, list ):
+    #         if ( len(value) == 1 ):
+    #             value = value[0]
 
-        wx.CallAfter(update_func, value)
+    #     wx.CallAfter(update_func, value)
+
+    def _on_epics_input(self, **kwargs):
+        value = kwargs['value']
+        # pv, update_func = args
+
+        # value = pv.get_local()
+        # print(value)
+        # print(pv.caget())
+
+        # if isinstance( value, list ):
+        #     if ( len(value) == 1 ):
+        #         value = value[0]
+
+        wx.CallAfter(self._update_status, value)
+
+    # def _update_status(self, value):
+    #     print(value)
+    #     if value:
+    #         self.state.SetLabel('On')
+    #     else:
+    #         self.state.SetLabel('Off')
 
     def _update_status(self, value):
         if value:
