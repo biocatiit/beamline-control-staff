@@ -158,9 +158,9 @@ class MainStatusPanel(wx.Panel):
             'x_bpm_p1_y'        : epics.PV('S18ID:P1:ms:y:InUseBO'),
             'x_bpm_p2_y'        : epics.PV('S18ID:P2:ms:y:InUseBO'),
 
-            'exp_slow_shtr1'    : epics.PV('18ID:bi0:ch6'),
-            'exp_slow_shtr2'    : epics.PV('18ID:bi0:ch7'),
-            'exp_fast_shtr'     : epics.PV('18ID:bo0:ch9'),
+            'exp_slow_shtr1'    : epics.PV('18ID:LJT4:3:DI6'),
+            'exp_slow_shtr2'    : epics.PV('18ID:LJT4:3:DI7'),
+            'exp_fast_shtr'     : epics.PV('18ID:LJT4:2:DO9'),
             'col_vac'           : epics.PV('18ID:VAC:D:Cols'),
             'guard_vac'         : epics.PV('18ID:VAC:D:Guards'),
             'scatter_vac'       : epics.PV('18ID:VAC:D:ScatterChamber'),
@@ -169,12 +169,12 @@ class MainStatusPanel(wx.Panel):
             'vs2_vac'           : epics.PV('18ID:VAC:D:Vac2'),
             'i0'                : epics.PV('18ID:IP330_11'),
             'i1'                : epics.PV('18ID:IP330_12'),
-            'atten_1'           : epics.PV('18ID:bi0:ch8'),
-            'atten_2'           : epics.PV('18ID:bi0:ch1'),
-            'atten_4'           : epics.PV('18ID:bi0:ch2'),
-            'atten_8'           : epics.PV('18ID:bi0:ch3'),
-            'atten_16'          : epics.PV('18ID:bi0:ch4'),
-            'atten_32'          : epics.PV('18ID:bi0:ch5'),
+            'atten_1'           : epics.PV('18ID:LJT4:3:DI0'),
+            'atten_2'           : epics.PV('18ID:LJT4:3:DI1'),
+            'atten_4'           : epics.PV('18ID:LJT4:3:DI2'),
+            'atten_8'           : epics.PV('18ID:LJT4:3:DI3'),
+            'atten_16'          : epics.PV('18ID:LJT4:3:DI4'),
+            'atten_32'          : epics.PV('18ID:LJT4:3:DI5'),
 
             'bleps_fault'       : epics.PV('18ID:BLEPS:FAULT_EXISTS'),
             'bleps_trip'        : epics.PV('18ID:BLEPS:TRIP_EXISTS'),
@@ -753,9 +753,9 @@ class OverviewPanel(wx.Panel):
         exp_fast_shtr = custom_epics_widgets.PVTextLabeled(exp_box,
             self.pvs['exp_fast_shtr'], fg='forest green')
 
-        exp_slow_shtr1.SetTranslations({'On': 'Open', 'Off': 'Closed'})
-        exp_slow_shtr2.SetTranslations({'Off': 'Open', 'On': 'Closed'})
-        exp_fast_shtr.SetTranslations({'On': 'Open', 'Off': 'Closed'})
+        exp_slow_shtr1.SetTranslations({'0': 'Open', '1': 'Closed'})
+        exp_slow_shtr2.SetTranslations({'1': 'Open', '0': 'Closed'})
+        exp_fast_shtr.SetTranslations({'High': 'Open', 'Low': 'Closed'})
 
         exp_slow_shtr1.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
         exp_slow_shtr2.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
@@ -2024,6 +2024,7 @@ class ExpPanel(wx.Panel):
         self.pvs['atten_32'].add_callback(self._atten_calc)
 
         self._atten_calc()
+        
 
     def _make_vacuum_sizer(self, parent):
         vac_box = wx.StaticBox(parent, label='Vacuum')
@@ -2082,9 +2083,9 @@ class ExpPanel(wx.Panel):
         fast_shtr = custom_epics_widgets.PVTextLabeled(shutter_box,
             self.pvs['exp_fast_shtr'], fg='forest green')
 
-        slow_shtr1.SetTranslations({'On': 'Open', 'Off': 'Closed'})
-        slow_shtr2.SetTranslations({'Off': 'Open', 'On': 'Closed'})
-        fast_shtr.SetTranslations({'On': 'Open', 'Off': 'Closed'})
+        slow_shtr1.SetTranslations({'0': 'Open', '1': 'Closed'})
+        slow_shtr2.SetTranslations({'1': 'Open', '0': 'Closed'})
+        fast_shtr.SetTranslations({'High': 'Open', 'Low': 'Closed'})
 
         slow_shtr1.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
         slow_shtr2.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
@@ -2136,12 +2137,12 @@ class ExpPanel(wx.Panel):
         atten_32 = custom_epics_widgets.PVTextLabeled(atten_box,
             self.pvs['atten_32'], fg='forest green')
 
-        atten_1.SetTranslations({'On': 'Out', 'Off': 'In'})
-        atten_2.SetTranslations({'On': 'Out', 'Off': 'In'})
-        atten_4.SetTranslations({'On': 'Out', 'Off': 'In'})
-        atten_8.SetTranslations({'On': 'Out', 'Off': 'In'})
-        atten_16.SetTranslations({'On': 'Out', 'Off': 'In'})
-        atten_32.SetTranslations({'On': 'Out', 'Off': 'In'})
+        atten_1.SetTranslations({'1': 'Out', '0': 'In'})
+        atten_2.SetTranslations({'1': 'Out', '0': 'In'})
+        atten_4.SetTranslations({'1': 'Out', '0': 'In'})
+        atten_8.SetTranslations({'1': 'Out', '0': 'In'})
+        atten_16.SetTranslations({'1': 'Out', '0': 'In'})
+        atten_32.SetTranslations({'1': 'Out', '0': 'In'})
 
         atten_1.SetForegroundColourTranslations({'Out': 'forest green',
             'In': 'red'})
@@ -2209,7 +2210,7 @@ class ExpPanel(wx.Panel):
         else:
             atten = '{}'.format(round(atten, 5))
 
-        self.transmission.SetLabel(atten)
+        wx.CallAfter(self.transmission.SetLabel, atten)
 
 
 class BeamlineStatusFrame(wx.Frame):
