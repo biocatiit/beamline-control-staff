@@ -259,7 +259,7 @@ class DOButtonPanel(wx.Panel):
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
-            self.pv = mpca.PV(pv_name)
+            self.pv = epics.PV(pv_name)
 
         else:
             self.is_epics = False
@@ -279,9 +279,13 @@ class DOButtonPanel(wx.Panel):
 
         """
 
-        self.on = wx.Button(self, label='Actuate')
+        if self.is_epics:
+            custom_epics_widgets.PVButton2(self, self.pv,
+                label='Actuate')
+        else:
+            self.on = wx.Button(self, label='Actuate')
 
-        self.on.Bind(wx.EVT_BUTTON, self._on_output)
+            self.on.Bind(wx.EVT_BUTTON, self._on_output)
 
         control_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer.Add(self.on, border=5, flag=wx.ALL)
