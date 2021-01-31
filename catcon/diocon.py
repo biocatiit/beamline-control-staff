@@ -113,10 +113,11 @@ class DIOPanel(wx.Panel):
 
             control_sizer = wx.BoxSizer(wx.HORIZONTAL)
             control_sizer.Add(self.off)
-            control_sizer.Add(self.on, border=10, flag=wx.TOP)
+            control_sizer.Add(self.on, border=10, flag=wx.LEFT)
         else:
             if self.is_epics:
                 self.state = custom_epics_widgets.PVTextLabeled(self, self.pv)
+                self.state.SetTranslations({'1': 'On', '0': 'Off'})
             else:
                 self.state = wx.StaticText(self, label='')
 
@@ -145,23 +146,30 @@ class DIOPanel(wx.Panel):
 
         else:
             if self.is_epics:
-                self.callback = self.pv.add_callback(self._on_epics_output)
-                # value = self.pv.caget()
                 value = self.pv.get()
 
                 if value:
-                    self.on.ChangeValue(True)
+                    self.on.SetValue(True)
                 else:
-                    self.off.ChangeValue(True)
+                    self.off.SetValue(True)
+
+                self.callback = self.pv.add_callback(self._on_epics_output, index=0)
+                
 
 
     def _on_output(self, event):
+        if self.is_epics:
+            self.pv.remove_callback(0)
+
         if event.GetEventObject() == self.off:
             if self.is_epics:
-                self.pv.put(0, wait=False)
+                self.pv.put(0, wait=True)
         else:
             if self.is_epics:
-                self.pv.put(1, wait=False)
+                self.pv.put(1, wait=True)
+
+        if self.is_epics:
+            self.pv.add_callback(self._on_epics_output, index=0)
 
 
     def _on_epics_output(self, **kwargs):
@@ -170,12 +178,18 @@ class DIOPanel(wx.Panel):
         wx.CallAfter(self._update_output, value)
 
     def _update_output(self, value):
+        if self.is_epics:
+            self.pv.remove_callback(0)
+
         if value:
-            self.on.ChangeValue(True)
-            self.off.ChangeValue(False)
+            self.on.SetValue(True)
+            self.off.SetValue(False)
         else:
-            self.on.ChangeValue(True)
-            self.off.ChangeValue(False)
+            self.on.SetValue(False)
+            self.off.SetValue(True)
+
+        if self.is_epics:
+            self.pv.add_callback(self._on_epics_output, index=0)
 
     def _on_rightclick(self, evt):
         """
