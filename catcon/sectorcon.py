@@ -307,6 +307,8 @@ class MainFrame(wx.Frame):
             if len(ctrl_data)>1:
                 self.show_ctrls(ctrl_data)
 
+        add_dlg.Destroy()
+
     def add_ctrl(self):
         """
         Adds a new control set to the control frame. Calls the :class:`AddCtrlDialog`
@@ -373,6 +375,7 @@ class MainFrame(wx.Frame):
             style=wx.YES_NO|wx.YES_DEFAULT|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP|wx.CENTER)
 
         result = dlg.ShowModal()
+        dlg.Destroy()
 
         if result == wx.ID_YES:
             return True
@@ -639,6 +642,9 @@ class CtrlsPanel(wx.Panel):
                         self.main_frame.controls[new_group][new_ctrl] = ctrl_data
 
         self.main_frame.save_layout()
+
+        add_dlg.Destroy()
+
         return
 
     def _showDupWarning(self, group, ctrl):
@@ -662,6 +668,7 @@ class CtrlsPanel(wx.Panel):
             style=wx.YES_NO|wx.YES_DEFAULT|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP|wx.CENTER)
 
         result = dlg.ShowModal()
+        dlg.Destroy()
 
         if result == wx.ID_YES:
             return True

@@ -142,7 +142,6 @@ class SWMonosPanel(wx.Panel):
             t = threading.Thread(target=self.one_to_two)
             t.daemon = True
             t.start()
-            # self.one_to_two()
 
     def on_two_to_one(self, evt):
         self.abort_event.clear()
@@ -152,7 +151,6 @@ class SWMonosPanel(wx.Panel):
             t = threading.Thread(target=self.two_to_one)
             t.daemon = True
             t.start()
-            # self.two_to_one()
 
     def check_fe_shutter(self):
         if self.fe_shutter_pv.caget() == 0:
@@ -168,6 +166,8 @@ class SWMonosPanel(wx.Panel):
                 wx.ICON_EXCLAMATION|wx.STAY_ON_TOP|wx.OK|wx.CANCEL)
 
             result = dlg.ShowModal()
+
+            dlg.Destroy()
 
             if result == wx.ID_CANCEL:
                 break
