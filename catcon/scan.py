@@ -87,8 +87,8 @@ class ScanProcess(multiprocessing.Process):
         self.motor_name = ''
         self.motor_name2 = ''
 
-        self.shutter1_name = 'avme944x_out9'
-        self.shutter2_name =  'avme944x_out6'
+        self.shutter1_name = 'do_9'
+        self.shutter2_name =  'do_6'
 
         self.shutter1 = None
         self.shutter2 = None

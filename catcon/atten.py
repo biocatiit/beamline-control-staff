@@ -157,21 +157,21 @@ class AttenuatorPanel(wx.Panel):
 
         if self.mx_database is not None:
             self.mx_attens = {
-                1   : self.mx_database.get_record('avme944x_out0'),
-                2   : self.mx_database.get_record('avme944x_out1'),
-                4   : self.mx_database.get_record('avme944x_out2'),
-                8   : self.mx_database.get_record('avme944x_out3'),
-                16  : self.mx_database.get_record('avme944x_out4'),
-                32  : self.mx_database.get_record('avme944x_out5'),
+                1   : self.mx_database.get_record('do_0'),
+                2   : self.mx_database.get_record('do_1'),
+                4   : self.mx_database.get_record('do_2'),
+                8   : self.mx_database.get_record('do_3'),
+                16  : self.mx_database.get_record('do_4'),
+                32  : self.mx_database.get_record('do_5'),
             }
 
             self.mx_attens_outs = {
-                1   : self.mx_database.get_record('avme944x_in8'),
-                2   : self.mx_database.get_record('avme944x_in1'),
-                4   : self.mx_database.get_record('avme944x_in2'),
-                8   : self.mx_database.get_record('avme944x_in3'),
-                16  : self.mx_database.get_record('avme944x_in4'),
-                32  : self.mx_database.get_record('avme944x_in5'),
+                1   : self.mx_database.get_record('di_0'),
+                2   : self.mx_database.get_record('di_1'),
+                4   : self.mx_database.get_record('di_2'),
+                8   : self.mx_database.get_record('di_3'),
+                16  : self.mx_database.get_record('di_4'),
+                32  : self.mx_database.get_record('di_5'),
             }
 
             # for atten_out in self.mx_attens_outs.values():
@@ -322,12 +322,15 @@ class AttenuatorPanel(wx.Panel):
         if used_attens is not None:
             for foil, mx_atten in self.mx_attens.items():
                 if foil in used_attens:
-                    mx_atten.write(0)
+                    if mx_atten.read():
+                        mx_atten.write(0)
                 else:
-                    mx_atten.write(1)
+                    if not mx_atten.read():
+                        mx_atten.write(1)
         else:
             for mx_atten in self.mx_attens.values():
-                mx_atten.write(1)
+                if not mx_atten.read():
+                    mx_atten.write(1)
 
         time.sleep(0.5)
 

@@ -30,6 +30,7 @@ import sys
 import string
 
 import wx
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
 
 def get_mxdir():
     """Gets the top level install directory for MX."""
@@ -124,3 +125,28 @@ class CharValidator(wx.Validator):
             elif self.flag == 'float_neg' and key not in string.digits+'.-':
                 return
         event.Skip()
+
+class CustomPlotToolbar(NavigationToolbar2WxAgg):
+    """
+    A custom plot toolbar that displays the cursor position (or other text)
+    in addition to the usual controls.
+    """
+    def __init__(self, canvas):
+        """
+        Initializes the toolbar.
+
+        :param wx.Window parent: The parent window
+        :param matplotlib.Canvas: The canvas associated with the toolbar.
+        """
+        NavigationToolbar2WxAgg.__init__(self, canvas)
+
+        self.status = wx.StaticText(self, label='')
+
+        self.AddControl(self.status)
+
+    def set_status(self, status):
+        """
+        Called to set the status text in the toolbar, i.e. the cursor position
+        on the plot.
+        """
+        self.status.SetLabel(status)

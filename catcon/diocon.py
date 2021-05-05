@@ -30,6 +30,7 @@ if __name__ == "__main__" and __package__ is None:
 import os
 
 import wx
+import epics
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -37,6 +38,7 @@ import Mp as mp
 import MpCa as mpca
 import MpWx as mpwx
 import custom_widgets
+import custom_epics_widgets
 
 class DIOPanel(wx.Panel):
     """
@@ -82,7 +84,7 @@ class DIOPanel(wx.Panel):
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
-            self.pv = mpca.PV(pv_name)
+            self.pv = epics.PV(pv_name)
 
         else:
             self.is_epics = False
@@ -109,11 +111,15 @@ class DIOPanel(wx.Panel):
             self.off.Bind(wx.EVT_RADIOBUTTON, self._on_output)
             self.on.Bind(wx.EVT_RADIOBUTTON, self._on_output)
 
-            control_sizer = wx.BoxSizer(wx.VERTICAL)
+            control_sizer = wx.BoxSizer(wx.HORIZONTAL)
             control_sizer.Add(self.off)
-            control_sizer.Add(self.on, border=3, flag=wx.TOP)
+            control_sizer.Add(self.on, border=10, flag=wx.LEFT)
         else:
-            self.state = wx.StaticText(self, label='')
+            if self.is_epics:
+                self.state = custom_epics_widgets.PVTextLabeled(self, self.pv)
+                self.state.SetTranslations({'1': 'On', '0': 'Off'})
+            else:
+                self.state = wx.StaticText(self, label='')
 
             control_sizer = wx.BoxSizer(wx.HORIZONTAL)
             control_sizer.Add(wx.StaticText(self, label='State:'),
@@ -136,47 +142,54 @@ class DIOPanel(wx.Panel):
     def _initialize(self):
         if self.is_input:
             if self.is_epics:
-                self.callback = self.pv.add_callback(mpca.DBE_VALUE, self._on_epics_input, (self.pv, self._update_status))
+              pass  
 
-                value = self.pv.caget()
-                self._on_epics_input(self.callback, (self.pv, self._update_status))
         else:
             if self.is_epics:
-                value = self.pv.caget()
+                value = self.pv.get()
 
                 if value:
                     self.on.SetValue(True)
-                    # self.off.SetValue(False)
                 else:
-                    # self.on.SetValue(False)
                     self.off.SetValue(True)
+
+                self.callback = self.pv.add_callback(self._on_epics_output, index=0)
+                
 
 
     def _on_output(self, event):
+        if self.is_epics:
+            self.pv.remove_callback(0)
+
         if event.GetEventObject() == self.off:
             if self.is_epics:
-                self.pv.caput(0, wait=False)
+                self.pv.put(0, wait=True)
         else:
             if self.is_epics:
-                self.pv.caput(1, wait=False)
+                self.pv.put(1, wait=True)
 
-    @staticmethod
-    def _on_epics_input(callback, args):
-        pv, update_func = args
+        if self.is_epics:
+            self.pv.add_callback(self._on_epics_output, index=0)
 
-        value = pv.get_local()
 
-        if isinstance( value, list ):
-            if ( len(value) == 1 ):
-                value = value[0]
+    def _on_epics_output(self, **kwargs):
+        value = kwargs['value']
 
-        wx.CallAfter(update_func, value)
+        wx.CallAfter(self._update_output, value)
 
-    def _update_status(self, value):
+    def _update_output(self, value):
+        if self.is_epics:
+            self.pv.remove_callback(0)
+
         if value:
-            self.state.SetLabel('On')
+            self.on.SetValue(True)
+            self.off.SetValue(False)
         else:
-            self.state.SetLabel('Off')
+            self.on.SetValue(False)
+            self.off.SetValue(True)
+
+        if self.is_epics:
+            self.pv.add_callback(self._on_epics_output, index=0)
 
     def _on_rightclick(self, evt):
         """
@@ -246,7 +259,7 @@ class DOButtonPanel(wx.Panel):
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
-            self.pv = mpca.PV(pv_name)
+            self.pv = epics.PV(pv_name)
 
         else:
             self.is_epics = False
@@ -266,9 +279,13 @@ class DOButtonPanel(wx.Panel):
 
         """
 
-        self.on = wx.Button(self, label='Actuate')
+        if self.is_epics:
+            custom_epics_widgets.PVButton2(self, self.pv,
+                label='Actuate')
+        else:
+            self.on = wx.Button(self, label='Actuate')
 
-        self.on.Bind(wx.EVT_RADIOBUTTON, self._on_output)
+            self.on.Bind(wx.EVT_BUTTON, self._on_output)
 
         control_sizer = wx.BoxSizer(wx.VERTICAL)
         control_sizer.Add(self.on, border=5, flag=wx.ALL)

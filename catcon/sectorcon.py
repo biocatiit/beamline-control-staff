@@ -22,6 +22,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object, range, map
 from io import open
+import six
 
 import sys
 import threading
@@ -49,6 +50,7 @@ import diocon as dioc
 import atten
 import ic_calc
 import switch_monos
+import overview
 
 
 class MainFrame(wx.Frame):
@@ -80,6 +82,7 @@ class MainFrame(wx.Frame):
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             'Switch Monos'  : switch_monos.SWMonosPanel,
+            'Beamline Overview' : overview.MainStatusPanel,
             }
 
         self.ctrl_panels = {}
@@ -96,9 +99,9 @@ class MainFrame(wx.Frame):
         self.mx_timer.Start(10)
 
         if int(wx.__version__.split('.')[0]) > 3:
-            self.SetSizeHints((480,350))
+            self.SetSizeHints((550,350))
         else:
-            self.SetSizeHints(480,350)
+            self.SetSizeHints(550,350)
         self.Layout()
         self.Fit()
 
@@ -130,7 +133,8 @@ class MainFrame(wx.Frame):
         self.dio_list = []
         self.do_list = []
 
-        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos']
+        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos',
+            'Beamline Overview']
 
         for record in self.mx_db.get_all_records():
             try:
@@ -170,7 +174,10 @@ class MainFrame(wx.Frame):
 
         if os.path.exists(settings):
             with open(settings, 'r') as f:
-                self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
+                try:
+                    self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
+                except Exception:
+                    pass
 
     def _create_layout(self):
         """
@@ -242,6 +249,14 @@ class MainFrame(wx.Frame):
 
         self.save_layout()
 
+        sys.excepthook = sys.__excepthook__
+
+        for w in wx.GetTopLevelWindows():
+            if w != self:
+                w.Destroy()
+
+        self._mgr.UnInit()
+
         self.Destroy()
 
     def save_layout(self):
@@ -261,8 +276,12 @@ class MainFrame(wx.Frame):
 
         sname = '{}_sector_ctrl_settings.txt'.format(platform.node().replace('.','_'))
         sfile = os.path.join(savedir, sname)
-        with open(sfile, 'w') as f:
-            f.write(unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)))
+        with open(sfile, 'w', encoding='utf-8') as f:
+            if six.PY2:
+                out = unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder))
+            else:
+                out = json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)
+            f.write(out)
 
     def _load_layout(self):
         """
@@ -701,8 +720,10 @@ class CtrlsFrame(wx.Frame):
 
         self._create_layout(ctrls, mx_db)
 
+        self.Layout()
         self.Fit()
-        self.Raise()
+        # self.Raise()
+        self.PostSizeEvent()
 
         self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
