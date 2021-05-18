@@ -83,6 +83,7 @@ class AIOPanel(wx.Panel):
             self.is_epics = True
             pv_name = self.aio.get_field('epics_variable_name')
             self.pv = epics.PV(pv_name)
+            self.pv.get()
 
         else:
             self.is_epics = False
@@ -95,6 +96,8 @@ class AIOPanel(wx.Panel):
         self._create_layout()
 
         self._initialize()
+
+        self.SendSizeEvent()
 
     def _create_layout(self):
         """
@@ -114,6 +117,7 @@ class AIOPanel(wx.Panel):
             control_sizer.Add(wx.StaticText(self, label='Input:'), border=5,
                 flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
             control_sizer.Add(ai, flag=wx.ALIGN_CENTER_VERTICAL)
+            control_sizer.AddStretchSpacer(1)
 
         else:
             if not self.is_epics:
@@ -126,9 +130,10 @@ class AIOPanel(wx.Panel):
             control_sizer.Add(wx.StaticText(self, label='Output:'),
                 flag=wx.ALIGN_CENTER_VERTICAL)
             control_sizer.Add(ao, border=3, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+            control_sizer.AddStretchSpacer(1)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(control_sizer)
+        top_sizer.Add(control_sizer, flag=wx.EXPAND)
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
@@ -240,11 +245,11 @@ class AIOFrame(wx.Frame):
         for aio in aios:
             aio_panel = AIOPanel(aio, self.mx_database, self)
             aio_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(aio)))
-            aio_box_sizer.Add(aio_panel)
-            aio_grid.Add(aio_box_sizer)
+            aio_box_sizer.Add(aio_panel, 1, flag=wx.EXPAND)
+            aio_grid.Add(aio_box_sizer, flag=wx.EXPAND)
 
         aio_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        aio_panel_sizer.Add(aio_grid)
+        aio_panel_sizer.Add(aio_grid, 1, flag=wx.EXPAND)
 
         return aio_panel_sizer
 
