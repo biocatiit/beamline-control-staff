@@ -47,8 +47,10 @@ import Mp as mp
 import motorcon as mc
 import ampcon as ac
 import diocon as dioc
+import aiocon as aioc
 import atten
 import ic_calc
+import dbpm_calc
 import switch_monos
 import overview
 
@@ -76,11 +78,13 @@ class MainFrame(wx.Frame):
                         'Motor'             : mc.MotorPanel,
                         'Digital IO'        : dioc.DIOPanel,
                         'Digital O, Btn.'   : dioc.DOButtonPanel,
+                        'Analog IO'         : aioc.AIOPanel,
                         'Custom'            : self.make_custom_ctrl,
                         }
 
         self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
+            'Diamond BPM Calculator'    : dbpm_calc.DBPMCalcPanel,
             'Switch Monos'  : switch_monos.SWMonosPanel,
             'Beamline Overview' : overview.MainStatusPanel,
             }
@@ -133,8 +137,8 @@ class MainFrame(wx.Frame):
         self.dio_list = []
         self.do_list = []
 
-        self.custom_list = ['Attenuators', 'Ion Chamber Calculator', 'Switch Monos',
-            'Beamline Overview']
+        self.custom_list = ['Attenuators', 'Ion Chamber Calculator',
+        'DBPM Calculator', 'Switch Monos', 'Beamline Overview']
 
         for record in self.mx_db.get_all_records():
             try:
