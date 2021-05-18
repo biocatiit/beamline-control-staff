@@ -30,7 +30,7 @@ if __name__ == "__main__" and __package__ is None:
 import os
 
 import wx
-import epics
+import epics, epics.wx
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
