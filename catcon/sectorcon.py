@@ -317,7 +317,9 @@ class MainFrame(wx.Frame):
             full_ctrl_name = '18ID_D_BPM_'
         else:
             full_ctrl_name == ctrl_name
+
         ctrl = self.custom_ctrl_type[ctrl_name](full_ctrl_name, mx_db, parent)
+
         return ctrl
 
     def _on_addctrl(self, evt):

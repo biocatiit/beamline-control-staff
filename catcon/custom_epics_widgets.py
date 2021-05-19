@@ -44,7 +44,7 @@ class PVTextLabeled(epics.wx.PVText):
                  font=None, fg=None, bg=None, style=None,
                  minor_alarm="DARKRED", major_alarm="RED",
                  invalid_alarm="ORANGERED", auto_units=False, units="",
-                 scale=1., sig_fig=0, do_round=False, **kw):
+                 scale=1., sig_fig=0, do_round=False, offset=0., **kw):
 
         """
         Create a new pvText
@@ -60,6 +60,7 @@ class PVTextLabeled(epics.wx.PVText):
             minor_alarm, major_alarm, invalid_alarm, auto_units, units, **kw)
 
         self.scale = scale
+        self.offset = offset
         self.sig_fig = sig_fig
         self.do_round = do_round
 
@@ -97,6 +98,9 @@ class PVTextLabeled(epics.wx.PVText):
 
             if self.scale != 1:
                 value = float(value)*self.scale
+
+            if self.offset != 0:
+                value = float(value) + self.offset
 
             if self.do_round:
                 value = round(float(value), self.sig_fig)
@@ -311,3 +315,57 @@ class PVTextMonitor(epics.wx.PVText):
                 self.OverrideForegroundColour(None)
         except Exception:
             pass
+
+
+class PVTextCtrl2(epics.wx.PVText):
+    """ Static text for displaying a PV value,
+        with callback for automatic updates
+        By default the text colour will change on alarm states.
+        This can be overriden or disabled as constructor
+        parameters
+        """
+
+    def __init__(self, parent, pv=None, font=None, fg=None, bg=None,
+            dirty_timeout=2500, scale=1., offset=0., **kw):
+
+        """
+        Create a new pvText
+        minor_alarm, major_alarm & invalid_alarm are all text colours
+        that will be set depending no the alarm state of the target
+        PV. Set to None if you want no highlighting in that alarm state.
+        auto_units means the PV value will be displayed with the EGU
+        "engineering units" as a suffix. Alternately, you can specify
+        an explicit unit string.
+        """
+
+        epics.wx.PVTextCtrl.__init__(self, parent, pv, font, fg, bg, dirty_timeout,
+            **kw)
+
+        self.scale = scale
+        self.offset = offset
+
+    def SetValue(self, value):
+        value = str((float(value)- self.offset)/self.scale)
+        self._caput(value)
+
+    def _SetValue(self, value):
+        "set widget label"
+        value = str(float(value)*self.scale + self.offset)
+        wx.TextCtrl.SetValue(self, value)
+
+    def OnChar(self, event):
+        "char event handler"
+        if event.KeyCode == wx.WXK_RETURN:
+            self.OnWriteback()
+        else:
+            self.SetBackgroundColour("yellow")
+            if self.dirty_timeout is not None:
+                self.dirty_writeback_timer.Start(self.dirty_timeout)
+            event.Skip()
+
+    def OnWriteback(self, event=None):
+        """ writeback the currently displayed value to the PV """
+        self.dirty_writeback_timer.Stop()
+        entry = str(self.GetValue().strip())
+        self.SetValue(entry)
+        self.SetBackgroundColour(wx.NullColour)

@@ -28,9 +28,12 @@ import os
 
 import wx
 import wx.lib.buttons as buttons
+import epics, epics.wx
+from epics.wx.wxlib import EpicsFunction
 
 import scancon
 import custom_widgets
+import custom_epics_widgets
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
@@ -86,12 +89,45 @@ class MotorPanel(wx.Panel):
         font = self.GetFont()
         self.vert_size = font.GetPixelSize()[1]+5
 
-        if self.mtr_type == 'epics_motor':
-            pv = self.motor.get_field('epics_record_name')
-            self.limit_pv = mpca.PV("{}.LVIO".format(pv))
-            self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE, custom_widgets.on_epics_limit, (self.limit_pv, self))
-
+        self.is_epics = False
         self.is_slit_mtr = False
+
+        if self.mtr_type == 'epics_motor':
+            self.is_epics = True
+
+            self.epics_pv_name = self.motor.get_field('epics_record_name')
+
+            self.epics_motor = epics.Motor(self.epics_pv_name)
+
+            self.pos_pv = self.epics_motor.PV('RBV')
+
+            # self.limit_pv = mpca.PV("{}.LVIO".format(self.epics_pv_name))
+            # self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE,
+            #     custom_widgets.on_epics_limit, (self.limit_pv, self))
+            # self.limit_pv = self.epics_motor.PV('LVIO')
+
+            if self.scale > 0:
+                nlimit = "LLM"
+                plimit = "HLM"
+            else:
+                nlimit = "HLM"
+                plimit = "LLM"
+
+            self.nlimit_pv = self.epics_motor.PV(nlimit)
+            self.plimit_pv = self.epics_motor.PV(plimit)
+
+            self.set_pv = self.epics_motor.PV('SET')
+
+            self.pos_pv.get()
+            self.limit_pv.get()
+            self.nlimit_pv.get()
+            self.plimit_pv.get()
+            self.set_pv.get()
+
+            self.epics_motor.add_callback('LVIO', self._on_epics_limit)
+            self.epics_motor.add_callback('HLS', self._on_epics_limit)
+            self.epics_motor.add_callback('LLS', self._on_epics_limit)
+            self.epics_motor.add_callback('SPMG', self._on_epics_disable)
 
         if self.mtr_type == 'network_motor':
             self.server_record_name = self.motor.get_field('server_record')
@@ -142,36 +178,50 @@ class MotorPanel(wx.Panel):
             self.low_limit = custom_widgets.CustomLimitValueEntry(self,
                 self.server_record, nlimit,
                 function=custom_widgets.limit_network_value_callback,
-                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get())
+                args=(self.scale, self.offset, self.remote_scale.get(),
+                    self.remote_offset.get()),
+                validator=utils.CharValidator('float_neg')
                 )
 
             self.high_limit = custom_widgets.CustomLimitValueEntry(self,
                 self.server_record, plimit,
                 function=custom_widgets.limit_network_value_callback,
-                args=(self.scale, self.offset, self.remote_scale.get(), self.remote_offset.get())
+                args=(self.scale, self.offset, self.remote_scale.get(),
+                    self.remote_offset.get()),
+                validator=utils.CharValidator('float_neg')
                 )
 
             mname = wx.StaticText(self, label=self.motor.name)
 
-        elif self.mtr_type == 'epics_motor':
-            pv = self.motor.get_field('epics_record_name')
-            self.sever_record = None #Needed to get around some MP bugs
-            pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
-                custom_widgets.epics_value_callback, self.scale, self.offset)
+        elif self.is_epics:
+            # pv = self.motor.get_field('epics_record_name')
+            # self.sever_record = None #Needed to get around some MP bugs
+            # pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
+            #     custom_widgets.epics_value_callback, self.scale, self.offset)
 
-            if self.scale > 0:
-                nlimit = "{}.LLM".format(pv)
-                plimit = "{}.HLM".format(pv)
-            else:
-                nlimit = "{}.HLM".format(pv)
-                plimit = "{}.LLM".format(pv)
+            # if self.scale > 0:
+            #     nlimit = "{}.LLM".format(pv)
+            #     plimit = "{}.HLM".format(pv)
+            # else:
+            #     nlimit = "{}.HLM".format(pv)
+            #     plimit = "{}.LLM".format(pv)
 
-            self.low_limit = custom_widgets.CustomEpicsValueEntry(self, nlimit,
-                custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-            self.high_limit = custom_widgets.CustomEpicsValueEntry(self, plimit,
-                custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+            # self.low_limit = custom_widgets.CustomEpicsValueEntry(self, nlimit,
+            #     custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
+            # self.high_limit = custom_widgets.CustomEpicsValueEntry(self, plimit,
+            #     custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
 
-            mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name, pv))
+            pos = custom_epics_widgets.PVTextLabeled(self.pos_pv, scale=self.scale,
+                offset=self.offset)
+            self.low_limit = custom_epics_widgets.PVTextCtrl2(self.nlimit_pv,
+                dirty_timeout=None, scale=self.scale, offset=self.offset,
+                validator=utils.CharValidator('float_neg'))
+            self.high_limit = custom_epics_widgets.PVTextCtrl2(self.plimit_pv,
+                dirty_timeout=None, scale=self.scale, offset=self.offset,
+                validator=utils.CharValidator('float_neg'))
+
+            mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name,
+                self.epics_pv_name))
 
 
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
@@ -183,8 +233,10 @@ class MotorPanel(wx.Panel):
             wx.VERTICAL)
         status_sizer.Add(status_grid, 1, flag=wx.EXPAND)
 
-        self.pos_ctrl = wx.TextCtrl(self, value='', size=(50,self.vert_size))
-        self.mrel_ctrl = wx.TextCtrl(self, value='1.0', size=(50,self.vert_size))
+        self.pos_ctrl = wx.TextCtrl(self, value='', size=(50,self.vert_size),
+            validator=utils.CharValidator('float_neg'))
+        self.mrel_ctrl = wx.TextCtrl(self, value='1.0', size=(50,self.vert_size),
+            validator=utils.CharValidator('float_neg'))
 
         # move_btn = wx.Button(self, label='Move', size=(50, self.vert_size), style=wx.BU_EXACTFIT)
         move_btn = buttons.ThemedGenButton(self, label='Move', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
@@ -268,24 +320,35 @@ class MotorPanel(wx.Panel):
         pval = self.pos_ctrl.GetValue()
 
         if self._is_num(pval):
-            try:
-                self.motor.move_absolute(float(pval))
-            except mp.Would_Exceed_Limit_Error as e:
-                msg = str(e)
-                msg1, msg2 = msg.split('to')
-                pos, msg2 = msg2.split('would')
-                msg2 = msg2.split('limit')[0]
+            pval = float(pval)
 
-                pos = float(pos.strip())
-                pos = pos*self.remote_scale.get() + self.remote_offset.get()
-                pos = pos*self.scale + self.offset
+            if self.is_epics:
+                wx.CallAfter(self._move_epics_position, pval)
 
-                msg = msg1 + ' {} '.format(pos) + msg2 + 'limit.'
-                wx.MessageBox(msg, 'Error moving motor')
+            else:
+                try:
+                    self.motor.move_absolute(pval)
+                except mp.Would_Exceed_Limit_Error as e:
+                    msg = str(e)
+                    msg1, msg2 = msg.split('to')
+                    pos, msg2 = msg2.split('would')
+                    msg2 = msg2.split('limit')[0]
+
+                    pos = float(pos.strip())
+                    pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                    pos = pos*self.scale + self.offset
+
+                    msg = msg1 + ' {} '.format(pos) + msg2 + 'limit.'
+                    wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Position has to be numeric.'
             wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
+    @EpicsFunction
+    def _move_epics_position(self, pval):
+        pval = (float(pval) - self.offset)*self.scale
+        self.epics_motor.put('SET', 0, wait=True)
+        self.epics_motor.move(pval)
 
     def _on_setto(self, evt):
         """
@@ -301,39 +364,47 @@ class MotorPanel(wx.Panel):
             wx.MessageBox(msg, 'Error setting position')
             return
 
-        current_pos = float(self.motor.get_position())
-
-        if self.is_slit_mtr:
-            remote_offset = float(self.remote_offset.get())
-
-            remote_current_pos = (current_pos-self.offset)/self.scale
-            remote_target_pos = (pval-self.offset)/self.scale
-
-            delta =  remote_target_pos - remote_current_pos
-            new_remote_offset = remote_offset + delta
-
-            self.remote_offset.put(new_remote_offset)
+        if self.is_epics:
+            wx.CallAfter(self._set_epics_position, pval)
 
         else:
-            self.motor.set_position(pval)
+            current_pos = float(self.motor.get_position())
 
-        if self.mtr_type == 'network_motor':
-            pos_change = pval - current_pos
+            if self.is_slit_mtr:
+                remote_offset = float(self.remote_offset.get())
 
-            low_lim = float(self.low_limit.GetValue())
-            new_low_lim = low_lim + pos_change
+                remote_current_pos = (current_pos-self.offset)/self.scale
+                remote_target_pos = (pval-self.offset)/self.scale
 
-            high_lim = float(self.high_limit.GetValue())
-            new_high_lim = high_lim + pos_change
+                delta =  remote_target_pos - remote_current_pos
+                new_remote_offset = remote_offset + delta
 
-            self.low_limit.SetValue(str(new_low_lim))
-            self.high_limit.SetValue(str(new_high_lim))
+                self.remote_offset.put(new_remote_offset)
 
-            self.low_limit.OnEnter(None)
-            self.high_limit.OnEnter(None)
+            else:
+                self.motor.set_position(pval)
 
+            if self.mtr_type == 'network_motor':
+                pos_change = pval - current_pos
+
+                low_lim = float(self.low_limit.GetValue())
+                new_low_lim = low_lim + pos_change
+
+                high_lim = float(self.high_limit.GetValue())
+                new_high_lim = high_lim + pos_change
+
+                self.low_limit.SetValue(str(new_low_lim))
+                self.high_limit.SetValue(str(new_high_lim))
+
+                self.low_limit.OnEnter(None)
+                self.high_limit.OnEnter(None)
 
         return
+
+    @EpicsFunction
+    def _set_epics_position(self, pval):
+        pval = (float(pval) - self.offset)*self.scale
+        self.epics_motor.set_position(pval)
 
     def _on_mrel(self, evt):
         """
@@ -349,32 +420,72 @@ class MotorPanel(wx.Panel):
                 mult = 1
             else:
                 mult = -1
-            try:
-                self.motor.move_relative(mult*float(pval))
-            except mp.Would_Exceed_Limit_Error as e:
-                msg = str(e)
-                msg1, msg2 = msg.split('to')
-                pos, msg2 = msg2.split('would')
-                msg2 = msg2.split('limit')[0]
 
-                pos = float(pos.strip())
-                pos = pos*self.remote_scale.get() + self.remote_offset.get()
-                pos = pos*self.scale + self.offset
+            if self.is_epics:
+                wx.CallAfter(self._tweak_epics_position, pval, mult)
 
-                if 'negative' in msg:
-                    limit_val = self.low_limit.GetValue()
-                else:
-                    limit_val = self.high_limit.GetValue()
-                msg = msg1 + ' {} '.format(pos) + msg2 + 'limit of {}.'.format(limit_val)
-                wx.MessageBox(msg, 'Error moving motor')
+            else:
+                pval = mult*float(pval)
+
+                try:
+                    self.motor.move_relative(pval)
+                except mp.Would_Exceed_Limit_Error as e:
+                    msg = str(e)
+                    msg1, msg2 = msg.split('to')
+                    pos, msg2 = msg2.split('would')
+                    msg2 = msg2.split('limit')[0]
+
+                    pos = float(pos.strip())
+                    pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                    pos = pos*self.scale + self.offset
+
+                    if 'negative' in msg:
+                        limit_val = self.low_limit.GetValue()
+                    else:
+                        limit_val = self.high_limit.GetValue()
+                    msg = msg1 + ' {} '.format(pos) + msg2 + 'limit of {}.'.format(limit_val)
+                    wx.MessageBox(msg, 'Error moving motor')
         else:
             msg = 'Step size has to be numeric.'
             wx.MessageBox(msg, 'Error moving motor')
 
+    @EpicsFunction
+    def _tweak_epics_position(self, pval, mult):
+        pval = float(pval)/self.scale
+
+        self.epics_motor.tweak_val = pval
+
+        if mult > 0:
+            self.epics_motor.tweak()
+        else:
+            self.epics_motor.tweak('rev')
+
     def _on_stop(self, evt):
         """
         Called when the user clicks the "Stop" button. Does a soft abort"""
-        self.motor.soft_abort()
+
+        if self.is_epics:
+            wx.CallAfter(self._stop_epics_motor)
+        else:
+            self.motor.soft_abort()
+
+    @EpicsFunction
+    def _stop_epics_motor(self):
+        self.epics_motor.stop()
+
+    def _on_epics_soft_limit(self, value, **kwargs):
+        if value == 1:
+            msg = str("Software limit hit for motor '{}'".format(self.motor_name))
+            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+
+    def _on_epics_hard_limit(self, value, **kwargs):
+        if value != 0:
+            if 'HLS' in kwargs['pvname']:
+                msg = str("Hardware high limit hit for motor '{}'".format(self.motor_name))
+            else:
+                msg = str("Hardware low limit hit for motor '{}'".format(self.motor_name))
+
+            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
 
     def _is_num(self, val):
         """
@@ -422,6 +533,25 @@ class MotorPanel(wx.Panel):
                 and not isinstance(item, custom_widgets.CustomEpicsValue) and not
                 isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
+
+        if self.is_epics:
+            wx.CallAfter(self._epics_enablechange)
+
+    @EpicsFunction
+    def _epics_enablechange(self):
+        if self._enabled:
+            self.epics_motor.stop_go = 3
+        else:
+            self.epics_motor.stop_go = 0
+
+    def _on_epics_disable(self, value, **kwargs):
+        if value == 0:
+            self._enabled = True
+            self._on_enablechange(None)
+
+        elif value == 3:
+            self._enabled = False
+            self._on_enablechange(None)
 
     def _on_scan(self, evt):
         """
