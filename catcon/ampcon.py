@@ -227,6 +227,9 @@ class DBPMAmpPanel(wx.Panel):
 
         top_sizer = self._create_layout()
 
+        self.gain_callback = self.amp_gain_pv.add_callback(self._on_epics_gain_change)
+        self.scale_callback = self.amp_scale_pv.add_callback(self._on_epics_scale_change)
+
         self.SetSizer(top_sizer)
 
     def _create_layout(self):
@@ -238,17 +241,17 @@ class DBPMAmpPanel(wx.Panel):
         """
 
         #Don't know how to get possible amplifications from mx, if it even knows. So this instead.
-        amp_choices = ['3.5e+02', '1e+04', '1e+05', '1e+06', '1e+07']
+        amp_choices = ['1e+02', '1e+04', '1e+05', '1e+06', '1e+07']
 
         self.gain = wx.Choice(self, choices=amp_choices)
         self.gain.Bind(wx.EVT_CHOICE, self._on_change_gain)
 
         input_c = epics.wx.PVText(self, self.amp_current_pv, auto_units=True)
-        output_v = epics.wx.PVText(self, self.amp_output_pv, units="V")
+        output_v = epics.wx.PVText(self, self.amp_output_pv, units=" V")
 
         control_grid = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
         control_grid.Add(wx.StaticText(self, label='Amplifier name:'), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(wx.StaticText(self, label=self.amp.get_field('name')),
+        control_grid.Add(wx.StaticText(self, label=self.amp_name),
             flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         control_grid.Add(wx.StaticText(self, label='Gain:'), flag=wx.ALIGN_CENTER_VERTICAL)
         control_grid.Add(self.gain, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
@@ -276,7 +279,8 @@ class DBPMAmpPanel(wx.Panel):
         wx.CallAfter(self._change_gain)
 
     def _change_gain(self):
-        gain = self.gain.GetValue()
+        gain = self.gain.GetStringSelection()
+
         if gain == '1e+07':
             gain_setting = '1uA'
             scale = 100.0
@@ -293,13 +297,114 @@ class DBPMAmpPanel(wx.Panel):
             gain_setting = '1mA'
             scale = 0.1
 
-        elif gain == '3.5e+03':
+        elif gain == '1e+02':
             gain_setting = '35mA'
             scale = 0.001
 
-        self.amp_gain_pv.put(gain_setting)
-        self.amp_scale_pv.put(scale)
+        self.amp_gain_pv.remove_callback(self.gain_callback)
+        self.amp_scale_pv.remove_callback(self.scale_callback)
 
+        self.amp_gain_pv.put(gain_setting, wait=True)
+        self.amp_scale_pv.put(scale, wait=True)
+
+        self.gain_callback = self.amp_gain_pv.add_callback(self._on_epics_gain_change)
+        self.scale_callback = self.amp_scale_pv.add_callback(self._on_epics_scale_change)
+
+    def _on_epics_gain_change(self, value, **kwargs):
+        wx.CallAfter(self._epics_gain_change, value, **kwargs)
+
+    def _epics_gain_change(self, value, **kwargs):
+
+        if value == 0:
+            gain = '1e+07'
+        elif value == 1:
+            gain = '1e+06'
+        elif value == 2:
+            gain = '1e+05'
+        elif value == 3:
+            gain = '1e+04'
+        elif value == 4:
+            gain = '1e+02'
+
+        if gain == '1e+07':
+            scale = 100.0
+
+        elif gain == '1e+06':
+            scale = 10.0
+
+        elif gain == '1e+05':
+            scale = 1.0
+
+        elif gain == '1e+04':
+            scale = 0.1
+
+        elif gain == '1e+02':
+            scale = 0.001
+
+        if scale != float(self.amp_scale_pv.get(as_string=True)):
+            self.amp_scale_pv.remove_callback(self.scale_callback)
+            self.amp_scale_pv.put(scale, wait=True)
+            self.scale_callback = self.amp_scale_pv.add_callback(self._on_epics_scale_change)
+
+        if gain != self.gain.GetStringSelection():
+            self.gain.SetStringSelection(gain)
+
+    def _on_epics_scale_change(self, char_value, **kwargs):
+        wx.CallAfter(self._epics_scale_change, char_value, **kwargs)
+
+    def _epics_scale_change(self, char_value, **kwargs):
+        value = float(char_value)
+
+        if value >= 100.0:
+            gain = '1e+07'
+        elif value >= 10.0:
+            gain = '1e+06'
+        elif value >= 1.0:
+            gain = '1e+05'
+        elif value >= 0.1:
+            gain = '1e+04'
+        elif value >= 0.001:
+            gain = '1e+02'
+        else:
+            gain = '1e+02'
+
+        if gain == '1e+07':
+            gain_setting = '1uA'
+            gain_val = 0
+            scale = 100.0
+
+        elif gain == '1e+06':
+            gain_setting = '10uA'
+            gain_val = 1
+            scale = 10.0
+
+        elif gain == '1e+05':
+            gain_setting = '100uA'
+            gain_val = 2
+            scale = 1.0
+
+        elif gain == '1e+04':
+            gain_setting = '1mA'
+            gain_val = 3
+            scale = 0.1
+
+        elif gain == '1e+02':
+            gain_setting = '35mA'
+            gain_val = 4
+            scale = 0.001
+
+        if scale != float(self.amp_scale_pv.get(as_string=True)):
+            self.amp_scale_pv.remove_callback(self.scale_callback)
+            self.amp_scale_pv.put(scale, wait=True)
+            self.scale_callback = self.amp_scale_pv.add_callback(self._on_epics_scale_change)
+
+        if gain_val != self.amp_gain_pv.get():
+            self.amp_gain_pv.remove_callback(self.gain_callback)
+            self.amp_gain_pv.put(gain_setting, wait=True)
+            self.gain_callback = self.amp_gain_pv.add_callback(self._on_epics_gain_change)
+
+        if gain != self.gain.GetStringSelection():
+            self.gain.SetStringSelection(gain)
 
     def _on_rightclick(self, evt):
         """
@@ -433,8 +538,12 @@ if __name__ == '__main__':
     mx_database.set_plot_enable(2)
     mx_database.set_program_name("ampcon")
 
+    # mx_database = None
+
     app = wx.App()
-    frame = AmpFrame(mx_database, ['keithley1', 'keithley2', 'keithley3', 'keithley4'],
-        (2,2), parent=None, title='Test Amplifier Control')
+    # frame = AmpFrame(mx_database, ['keithley1', 'keithley2', 'keithley3', 'keithley4'],
+    #     (2,2), parent=None, title='Test Amplifier Control')
+    frame = AmpFrame(mx_database, ['18ID_BPM_D_'],
+        (2,2), False, True, parent=None, title='Test Amplifier Control')
     frame.Show()
     app.MainLoop()
