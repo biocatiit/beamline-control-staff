@@ -30,6 +30,7 @@ if __name__ == "__main__" and __package__ is None:
 import os
 
 import wx
+import epics, epics.wx
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -185,12 +186,162 @@ class AmpPanel(wx.Panel):
                 item.Enable(self._enabled)
 
 
+class DBPMAmpPanel(wx.Panel):
+    """
+    Sydor Diamond DBPM amplifier panel. Has to set the gain and the scale
+    factor. Can also read out the value of the current, so we display that.
+    """
+    def __init__(self, amp_name, mx_database, parent, panel_id=wx.ID_ANY,
+        panel_name=''):
+        """
+        Initializes the custom panel. Important parameters here are the
+        ``amp_name``, and the ``mx_database``.
+
+        :param str amp_name: The amplifier name in the Mx database.
+
+        :param Mp.RecordList mx_database: The database instance from Mp.
+
+        :param wx.Window parent: Parent class for the panel.
+
+        :param int panel_id: wx ID for the panel.
+
+        :param str panel_name: Name for the panel.
+        """
+        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
+
+        self.mx_database = mx_database
+        self.amp_name = amp_name
+
+        self.amp_gain_pv = epics.PV('{}Gain:Level-SP'.format(self.amp_name))
+        self.amp_current_pv = epics.PV('{}Ampl:CurrTotal-I'.format(self.amp_name))
+        self.amp_scale_pv = epics.PV('{}CtrlDAC:CLevel-SP'.format(self.amp_name))
+        self.amp_output_pv = epics.PV('{}CtrlDAC:CLevel-I'.format(self.amp_name))
+
+
+        self.amp_gain_pv.get()
+        self.amp_current_pv.get()
+        self.amp_scale_pv.get()
+        self.amp_output_pv.get()
+
+        self._enabled = True
+
+        top_sizer = self._create_layout()
+
+        self.SetSizer(top_sizer)
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        :returns: wx Sizer for the panel.
+        :rtype: wx.Sizer
+        """
+
+        #Don't know how to get possible amplifications from mx, if it even knows. So this instead.
+        amp_choices = ['3.5e+02', '1e+04', '1e+05', '1e+06', '1e+07']
+
+        self.gain = wx.Choice(self, choices=amp_choices)
+        self.gain.Bind(wx.EVT_CHOICE, self._on_change_gain)
+
+        input_c = epics.wx.PVText(self, self.amp_current_pv, auto_units=True)
+        output_v = epics.wx.PVText(self, self.amp_output_pv, units="V")
+
+        control_grid = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
+        control_grid.Add(wx.StaticText(self, label='Amplifier name:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label=self.amp.get_field('name')),
+            flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Gain:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(self.gain, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Input:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(input_c, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(wx.StaticText(self, label='Output:'), flag=wx.ALIGN_CENTER_VERTICAL)
+        control_grid.Add(output_v, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+
+
+        control_sizer = wx.BoxSizer(wx.VERTICAL)
+        control_sizer.Add(control_grid, 1, flag=wx.EXPAND)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(control_sizer, 1, flag=wx.EXPAND)
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+        for item in self.GetChildren():
+            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+
+        return top_sizer
+
+    def _on_change_gain(self, evt):
+        wx.CallAfter(self._change_gain)
+
+    def _change_gain(self):
+        gain = self.gain.GetValue()
+        if gain == '1e+07':
+            gain_setting = '1uA'
+            scale = 100.0
+
+        elif gain == '1e+06':
+            gain_setting = '10uA'
+            scale = 10.0
+
+        elif gain == '1e+05':
+            gain_setting = '100uA'
+            scale = 1.0
+
+        elif gain == '1e+04':
+            gain_setting = '1mA'
+            scale = 0.1
+
+        elif gain == '3.5e+03':
+            gain_setting = '35mA'
+            scale = 0.001
+
+        self.amp_gain_pv.put(gain_setting)
+        self.amp_scale_pv.put(scale)
+
+
+    def _on_rightclick(self, evt):
+        """
+        Shows a context menu. Current options allow enabling/disabling
+        the control panel.
+        """
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_enablechange)
+
+        if self._enabled:
+            menu.Append(1, 'Disable Control')
+        else:
+            menu.Append(1, 'Enable Control')
+
+        menu.Append(2, 'Show control info')
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_enablechange(self, evt):
+        """
+        Called from the panel context menu. Enables/disables the control
+        panel.
+        """
+        if self._enabled:
+            self._enabled = False
+        else:
+            self._enabled = True
+
+        for item in self.GetChildren():
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
+                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
+                isinstance(item, wx.StaticBox)):
+                item.Enable(self._enabled)
+
+
 class AmpFrame(wx.Frame):
     """
     A lightweight amplifier frame designed to hold an arbitrary number of amps
     in an arbitrary grid pattern.
     """
-    def __init__(self, mx_database, amps, shape, timer=True, *args, **kwargs):
+    def __init__(self, mx_database, amps, shape, timer=True, dbpm=False, *args, **kwargs):
         """
         Initializes the amp frame. This frame is designed to function either as
         a stand alone application, or as part of a larger application.
@@ -215,6 +366,8 @@ class AmpFrame(wx.Frame):
 
         self.mx_timer = wx.Timer()
         self.mx_timer.Bind(wx.EVT_TIMER, self._on_mxtimer)
+
+        self.dbpm = dbpm
 
         top_sizer = self._create_layout(amps, shape)
 
@@ -244,7 +397,11 @@ class AmpFrame(wx.Frame):
             amp_grid.AddGrowableCol(i)
 
         for amp in amps:
-            amp_panel = AmpPanel(amp, self.mx_database, self)
+            if not self.dbpm:
+                amp_panel = AmpPanel(amp, self.mx_database, self)
+            else:
+                amp_panel = DBPMAmpPanel(amp, self.mx_database, self)
+
             amp_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(amp)))
             amp_box_sizer.Add(amp_panel)
             amp_grid.Add(amp_box_sizer)
