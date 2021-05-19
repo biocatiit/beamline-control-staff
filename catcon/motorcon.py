@@ -92,6 +92,8 @@ class MotorPanel(wx.Panel):
         self.is_epics = False
         self.is_slit_mtr = False
 
+        self.epics_motor = None
+
         if self.mtr_type == 'epics_motor':
             self.is_epics = True
 
@@ -257,6 +259,10 @@ class MotorPanel(wx.Panel):
         # scan_btn = buttons.ThemedGenButton(self, label='Scan', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
         # scan_btn.Bind(wx.EVT_BUTTON, self._on_scan)
 
+        if self.is_epics:
+            more_btn = buttons.ThemedGenButton(self, label='More', size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
+            more_btn.Bind(wx.EVT_BUTTON, self._on_more)
+
         pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=5, rows=2)
         pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
         pos_sizer.Add((1,1))
@@ -288,6 +294,8 @@ class MotorPanel(wx.Panel):
 
         ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         # ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
+        if self.is_epics
+            ctrl_btn_sizer.Add(more_btn, flag=wx.ALIGN_LEFT)
         ctrl_btn_sizer.AddStretchSpacer(1)
         ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT|wx.ALIGN_RIGHT)
 
@@ -581,6 +589,10 @@ class MotorPanel(wx.Panel):
         frame = scancon.ScanFrame(self.motor_name, self.motor, self.server_record,
             self.mx_database, parent=None, title='{} Scan Control'.format(self.motor_name))
         frame.Show()
+
+    def _on_more(self, evt):
+        if self.epics_motor is not None:
+            epics.wx.motordetailframe.MotorDetailFrame(parent=self, motor=self.epics_motor)
 
 
 
