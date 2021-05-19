@@ -87,6 +87,7 @@ class MainFrame(wx.Frame):
             'Diamond BPM Calculator'    : dbpm_calc.DBPMCalcPanel,
             'Switch Monos'  : switch_monos.SWMonosPanel,
             'Beamline Overview' : overview.MainStatusPanel,
+            'D BPM Amplifier'   : ac.DBPMAmpPanel,
             }
 
         self.ctrl_panels = {}
@@ -312,7 +313,11 @@ class MainFrame(wx.Frame):
         self.mx_timer.Start()
 
     def make_custom_ctrl(self, ctrl_name, mx_db, parent):
-        ctrl = self.custom_ctrl_type[ctrl_name](ctrl_name, mx_db, parent)
+        if ctrl_name == 'D BPM Amplifier':
+            full_ctrl_name = '18ID_D_BPM_'
+        else:
+            full_ctrl_name == ctrl_name
+        ctrl = self.custom_ctrl_type[ctrl_name](full_ctrl_name, mx_db, parent)
         return ctrl
 
     def _on_addctrl(self, evt):
