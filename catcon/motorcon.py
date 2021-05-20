@@ -685,7 +685,7 @@ if __name__ == '__main__':
 
     mx_database = mp.setup_database(database_filename)
     mx_database.set_plot_enable(2)
-    mx_database.set_program_name("motoron")
+    mx_database.set_program_name("motorcon")
 
     app = wx.App()
     frame = MotorFrame(mx_database, ['mtr1','mtr2','mtr3','mtr4'],

@@ -229,7 +229,7 @@ class ScanProcess(multiprocessing.Process):
 
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
-        file_name=None, dir_path=None):
+        file_name=None, dir_path=None, scalers_raw, **kwargs):
         """
         Sets the parameters for the scan.
 
@@ -270,6 +270,8 @@ class ScanProcess(multiprocessing.Process):
         self.dwell_time = dwell_time
         self.timer = timer
         self.detector = detector
+
+        self.scalers_raw = scalers_raw
 
         if self.detector is not None:
             self.det = self.mx_database.get_record(self.detector)
@@ -401,15 +403,25 @@ class ScanProcess(multiprocessing.Process):
 
         result = [str(scaler.read()) for scaler in scalers]
 
+        if self.scalers_raw == 'i1/i0':
+                ret_val = float(result[1])/float(result[0])
+            else:
+                ret_val = float(result[0])
+
         if self.scan_dim == '1D':
-            self.return_val_q.put_nowait((mtr1_pos, float(result[0])))
+            self.return_val_q.put_nowait((mtr1_pos, ret_val))
         elif self.scan_dim == '2D':
-            self.return_val_q.put_nowait((mtr1_pos, mtr2_pos, float(result[0])))
+            self.return_val_q.put_nowait((mtr1_pos, mtr2_pos, ret_val))
 
         print('Position 1: {}'.format(mtr1_pos))
         if self.scan_dim == '2D':
             print('Position 2: {}'.format(mtr2_pos))
-        print('Intensity: {}'.format(', '.join(result)))
+
+        if self.scalers_raw == 'i1/i0':
+            print('Intensity: {}'.format(result[1]/result[0]))
+        else:
+            print('Intensity: {}'.format(', '.join(result)))
+
         print('Image name: {}\n'.format(image_name))
 
     def _mx_scan(self):
@@ -918,6 +930,9 @@ class ScanPanel(wx.Panel):
         self.motors, self.scalers, self.timers, self.detectors = self.return_q.get()
         self.detectors.insert(0, 'None')
 
+        if 'i0' in self.scalers and 'i1' in self.scalers:
+            self.scalers.append('i1/i0')
+
     def _on_motorchoice(self, evt):
         if evt.GetEventObject() == self.motor:
             self.motor_name = self.motor.GetStringSelection()
@@ -1115,11 +1130,13 @@ class ScanPanel(wx.Panel):
                         'stop2'         : stop2,
                         'step2'         : step2,
                         'scalers'       : [self.scaler.GetStringSelection()],
+                        'scalers_raw'   : self.scaler.GetStringSelection(),
                         'dwell_time'    : float(self.count_time.GetValue()),
                         'timer'         : self.timer.GetStringSelection(),
                         'detector'      : self.detector.GetStringSelection(),
                         'scan_dim'      : scan_dim,
                         }
+
         except ValueError:
             msg = 'All of start, stop, step, and count time must be numbers.'
             wx.MessageBox(msg, "Failed to start scan", wx.OK)
@@ -1137,6 +1154,9 @@ class ScanPanel(wx.Panel):
 
         if scan_params['detector'] == 'None':
             scan_params['detector'] = None
+
+        if 'i1/i0' in scan_params['scalers']:
+            scan_params['scalers'] = ['i0', 'i1']
 
         self.current_scan_params = scan_params
 
@@ -1200,6 +1220,7 @@ class ScanPanel(wx.Panel):
             self.scan_timer.Stop()
             self.live_plt_evt.set()
             self._update_results()
+            self._save_log()
 
             #This is a hack
             self.scan_proc.stop()
@@ -1636,6 +1657,11 @@ class ScanPanel(wx.Panel):
             time.sleep(0.1)
         time.sleep(2)
 
+        if self.current_scan_params['scalers_raw'] == 'i1/i0':
+            ratio = True
+        else:
+            ratio = False
+
         if not self.det_scan:
             with open(filename) as thefile:
                 data = utils.file_follow(thefile, self.live_plt_evt)
@@ -1646,10 +1672,21 @@ class ScanPanel(wx.Panel):
                         self.scan_header = self.scan_header + val
                     else:
                         if self.scan_dimension == 1:
-                            x, y = val.strip().split()
+                            if not ratio:
+                                x, y = val.strip().split()
+                            else:
+                                x, y1, y2 = val.strip().split()
+                                y = float(y2)/float(y1)
+
                             self._update_plot_vals(x, y)
+
                         elif self.scan_dimension == 2:
-                            x, y, z = val.strip().split()
+                            if not ratio:
+                                x, y, z = val.strip().split()
+                            else:
+                                x, y, z1, z2 = val.strip().split()
+                                z = float(z2)/float(z1)
+
                             self._update_plot_vals(x, y, z)
         else:
             while True:
@@ -2101,6 +2138,82 @@ class ScanPanel(wx.Panel):
             self.disp_der_fit_label2.SetLabel('Fit Std.:')
             self.disp_der_fit_p1.SetLabel(str(round(self.der_fitparams[0][1],4)))
             self.disp_der_fit_p2.SetLabel(str(round(self.der_fitparams[0][2],4)))
+
+    def _save_log(self):
+        if self.current_scan_params['detector'] is not None:
+
+            self.cmd_q.put_nowait(['get_det_params', [], {}])
+            det_dir = self.return_q.get()
+
+            scan_prefix = 'scan'
+
+            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
+
+            start = float(self.current_scan_params['start'])
+            stop = float(self.current_scan_params['stop'])
+            step = abs(float(self.current_scan_params['step']))
+
+            if start < stop:
+                mtr1_positions = np.arange(start, stop+step, step)
+            else:
+                mtr1_positions = np.arange(stop, start+step, step)
+                mtr1_positions = mtr1_positions[::-1]
+
+            if self.scan_dim == '2D':
+                start2 = float(self.current_scan_params['start2'])
+                stop2 = float(self.current_scan_params['stop2'])
+                step2 = abs(float(self.current_scan_params['step2']))
+
+                if start2 < stop2:
+                    mtr2_positions = np.arange(start2, stop2+step2, step2)
+                else:
+                    mtr2_positions = np.arange(stop2, start2+step2, step2)
+                    mtr2_positions = mtr2_positions[::-1]
+
+            if self.scan_dim == '2D':
+                start2 = float(self.start2)
+                stop2 = float(self.current_scan_params['stop2'])
+                step2 = abs(float(self.step2))
+
+                if start2 < stop2:
+                    mtr2_positions = np.arange(start2, stop2+step2, step2)
+                else:
+                    mtr2_positions = np.arange(stop2, start2+step2, step2)
+                    mtr2_positions = mtr2_positions[::-1]
+
+            # if self.scan_dim == '1D':
+                #     image_name = 'scan_{:03}.tif'.format(num)
+                #     self.det_filename.put(image_name)
+                # elif self.scan_dim == '2D':
+                #     image_name = 'scan_{:03}_{:03}.tif'.format(num, num2)
+                #     self.det_filename.put(image_name)
+
+            counters = self.current_scan_params['scalers_raw']
+
+            if self.current_scan_params['scan_dim'] != '2D':
+                log_file = os.path.join(datadir, '{}.log'.format(scan_prefix))
+
+                with open(log_file, 'w') as f:
+                    f.write('#Filename\t{}_pos\t{}'.format(self.current_scan_params['device'],
+                        '\t'.join(counters.split())))
+
+                    for i in range(len(mtr1_positions)):
+                        f.write('scan_{:03}.tif\t{}\t{}'.format(i, self.plt_x[i], self.plt_y[i]))
+
+            else:
+
+                for i in range(len(mtr1_positions)):
+                    log_file = os.path.join(datadir, '{}_{:03}.log'.format(scan_prefix, i))
+
+                    with open(log_file, 'w') as f:
+                        f.write('#Filename\t{}_pos\t{}_pos\t{}'.format(self.current_scan_params['device'],
+                            self.current_scan_params['device2'], '\t'.join(counters.split())))
+
+                        for j in range(len(mtr2_positions)):
+                            num = i*len(mtr2_positions)+j
+                            f.write('scan_{:03}.tif\t{}\t{}\t{}'.format(num, self.plt_x[num],
+                                self.plt_y[num], self.plt_z[num]))
+
 
     def _on_moveto(self, event):
         """
