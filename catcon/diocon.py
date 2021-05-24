@@ -81,8 +81,6 @@ class DIOPanel(wx.Panel):
         else:
             self.is_input = False
 
-        print(self.dio_type)
-
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
