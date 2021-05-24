@@ -317,7 +317,7 @@ class PVTextMonitor(epics.wx.PVText):
             pass
 
 
-class PVTextCtrl2(epics.wx.PVText):
+class PVTextCtrl2(epics.wx.PVTextCtrl):
     """ Static text for displaying a PV value,
         with callback for automatic updates
         By default the text colour will change on alarm states.

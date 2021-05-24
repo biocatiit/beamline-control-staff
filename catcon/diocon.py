@@ -81,6 +81,8 @@ class DIOPanel(wx.Panel):
         else:
             self.is_input = False
 
+        print(self.dio_type)
+
         if self.dio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.dio.get_field('epics_variable_name')
@@ -131,8 +133,12 @@ class DIOPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+            if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) 
+                or isinstance(item, wx.StaticBox))
+                and not (isinstance(item, custom_epics_widgets.PVTextLabeled) 
+                or isinstance(item, custom_epics_widgets.PVTextCtrl2))
+                ):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         self.SetSizer(top_sizer)
@@ -295,8 +301,12 @@ class DOButtonPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+            if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) 
+                or isinstance(item, wx.StaticBox))
+                and not (isinstance(item, custom_epics_widgets.PVTextLabeled) 
+                or isinstance(item, custom_epics_widgets.PVTextCtrl2))
+                ):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         self.SetSizer(top_sizer)

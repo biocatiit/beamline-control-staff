@@ -121,14 +121,14 @@ class MotorPanel(wx.Panel):
             self.set_pv = self.epics_motor.PV('SET')
 
             self.pos_pv.get()
-            self.limit_pv.get()
+            # self.limit_pv.get()
             self.nlimit_pv.get()
             self.plimit_pv.get()
             self.set_pv.get()
 
-            self.epics_motor.add_callback('LVIO', self._on_epics_limit)
-            self.epics_motor.add_callback('HLS', self._on_epics_limit)
-            self.epics_motor.add_callback('LLS', self._on_epics_limit)
+            self.epics_motor.add_callback('LVIO', self._on_epics_soft_limit)
+            self.epics_motor.add_callback('HLS', self._on_epics_hard_limit)
+            self.epics_motor.add_callback('LLS', self._on_epics_hard_limit)
             self.epics_motor.add_callback('SPMG', self._on_epics_disable)
 
         if self.mtr_type == 'network_motor':
@@ -213,12 +213,12 @@ class MotorPanel(wx.Panel):
             # self.high_limit = custom_widgets.CustomEpicsValueEntry(self, plimit,
             #     custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
 
-            pos = custom_epics_widgets.PVTextLabeled(self.pos_pv, scale=self.scale,
+            pos = custom_epics_widgets.PVTextLabeled(self, self.pos_pv, scale=self.scale,
                 offset=self.offset)
-            self.low_limit = custom_epics_widgets.PVTextCtrl2(self.nlimit_pv,
+            self.low_limit = custom_epics_widgets.PVTextCtrl2(self, self.nlimit_pv,
                 dirty_timeout=None, scale=self.scale, offset=self.offset,
                 validator=utils.CharValidator('float_neg'))
-            self.high_limit = custom_epics_widgets.PVTextCtrl2(self.plimit_pv,
+            self.high_limit = custom_epics_widgets.PVTextCtrl2(self, self.plimit_pv,
                 dirty_timeout=None, scale=self.scale, offset=self.offset,
                 validator=utils.CharValidator('float_neg'))
 
@@ -294,7 +294,7 @@ class MotorPanel(wx.Panel):
 
         ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         # ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
-        if self.is_epics
+        if self.is_epics:
             ctrl_btn_sizer.Add(more_btn, flag=wx.ALIGN_LEFT)
         ctrl_btn_sizer.AddStretchSpacer(1)
         ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT|wx.ALIGN_RIGHT)
@@ -314,8 +314,12 @@ class MotorPanel(wx.Panel):
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
-            if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+            if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
+                or isinstance(item, custom_widgets.CustomEpicsValue) 
+                or isinstance(item, wx.StaticBox))
+                and not (isinstance(item, custom_epics_widgets.PVTextLabeled) 
+                or isinstance(item, custom_epics_widgets.PVTextCtrl2))
+                ):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         return top_sizer
@@ -592,7 +596,7 @@ class MotorPanel(wx.Panel):
 
     def _on_more(self, evt):
         if self.epics_motor is not None:
-            epics.wx.motordetailframe.MotorDetailFrame(parent=self, motor=self.epics_motor)
+            wx.CallAfter(epics.wx.motordetailframe.MotorDetailFrame, parent=self, motor=self.epics_motor)
 
 
 
