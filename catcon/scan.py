@@ -229,7 +229,7 @@ class ScanProcess(multiprocessing.Process):
 
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
-        file_name=None, dir_path=None, scalers_raw, **kwargs):
+        file_name=None, dir_path=None, scalers_raw='', **kwargs):
         """
         Sets the parameters for the scan.
 
@@ -404,9 +404,9 @@ class ScanProcess(multiprocessing.Process):
         result = [str(scaler.read()) for scaler in scalers]
 
         if self.scalers_raw == 'i1/i0':
-                ret_val = float(result[1])/float(result[0])
-            else:
-                ret_val = float(result[0])
+            ret_val = float(result[1])/float(result[0])
+        else:
+            ret_val = float(result[0])
 
         if self.scan_dim == '1D':
             self.return_val_q.put_nowait((mtr1_pos, ret_val))
@@ -931,7 +931,8 @@ class ScanPanel(wx.Panel):
         self.detectors.insert(0, 'None')
 
         if 'i0' in self.scalers and 'i1' in self.scalers:
-            self.scalers.append('i1/i0')
+            self.scalers.append('i1/i0'.encode('utf-8'))
+            self.scalers = sorted(self.scalers, key=str.lower)
 
     def _on_motorchoice(self, evt):
         if evt.GetEventObject() == self.motor:
@@ -1172,6 +1173,9 @@ class ScanPanel(wx.Panel):
         det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
         files = glob.glob(os.path.join(det_datadir, scan_prefix)+'*')
+
+        if os.path.exists(os.path.join(det_datadir, 'scan.log')):
+            files.append(os.path.join(det_datadir, 'scan.log'))
 
         if len(files) > 0:
             msg = ('Warning, there are other scan files in the selected '
@@ -2143,7 +2147,7 @@ class ScanPanel(wx.Panel):
         if self.current_scan_params['detector'] is not None:
 
             self.cmd_q.put_nowait(['get_det_params', [], {}])
-            det_dir = self.return_q.get()
+            det_datadir = self.return_q.get()[0]
 
             scan_prefix = 'scan'
 
@@ -2159,7 +2163,7 @@ class ScanPanel(wx.Panel):
                 mtr1_positions = np.arange(stop, start+step, step)
                 mtr1_positions = mtr1_positions[::-1]
 
-            if self.scan_dim == '2D':
+            if self.current_scan_params['scan_dim'] == '2D':
                 start2 = float(self.current_scan_params['start2'])
                 stop2 = float(self.current_scan_params['stop2'])
                 step2 = abs(float(self.current_scan_params['step2']))
@@ -2168,50 +2172,33 @@ class ScanPanel(wx.Panel):
                     mtr2_positions = np.arange(start2, stop2+step2, step2)
                 else:
                     mtr2_positions = np.arange(stop2, start2+step2, step2)
-                    mtr2_positions = mtr2_positions[::-1]
-
-            if self.scan_dim == '2D':
-                start2 = float(self.start2)
-                stop2 = float(self.current_scan_params['stop2'])
-                step2 = abs(float(self.step2))
-
-                if start2 < stop2:
-                    mtr2_positions = np.arange(start2, stop2+step2, step2)
-                else:
-                    mtr2_positions = np.arange(stop2, start2+step2, step2)
-                    mtr2_positions = mtr2_positions[::-1]
-
-            # if self.scan_dim == '1D':
-                #     image_name = 'scan_{:03}.tif'.format(num)
-                #     self.det_filename.put(image_name)
-                # elif self.scan_dim == '2D':
-                #     image_name = 'scan_{:03}_{:03}.tif'.format(num, num2)
-                #     self.det_filename.put(image_name)
 
             counters = self.current_scan_params['scalers_raw']
 
+            counters = counters = counters.upper()
+
             if self.current_scan_params['scan_dim'] != '2D':
-                log_file = os.path.join(datadir, '{}.log'.format(scan_prefix))
+                log_file = os.path.join(det_datadir, '{}.log'.format(scan_prefix))
 
                 with open(log_file, 'w') as f:
-                    f.write('#Filename\t{}_pos\t{}'.format(self.current_scan_params['device'],
+                    f.write('#Filename\t{}_pos\t{}\n'.format(self.current_scan_params['device'],
                         '\t'.join(counters.split())))
 
                     for i in range(len(mtr1_positions)):
-                        f.write('scan_{:03}.tif\t{}\t{}'.format(i, self.plt_x[i], self.plt_y[i]))
+                        f.write('scan_{:03}.tif\t{}\t{}\n'.format(i, self.plt_x[i], self.plt_y[i]))
 
             else:
 
                 for i in range(len(mtr1_positions)):
-                    log_file = os.path.join(datadir, '{}_{:03}.log'.format(scan_prefix, i))
+                    log_file = os.path.join(det_datadir, '{}_{:03}.log'.format(scan_prefix, i))
 
                     with open(log_file, 'w') as f:
-                        f.write('#Filename\t{}_pos\t{}_pos\t{}'.format(self.current_scan_params['device'],
+                        f.write('#Filename\t{}_pos\t{}_pos\t{}\n'.format(self.current_scan_params['device'],
                             self.current_scan_params['device2'], '\t'.join(counters.split())))
 
                         for j in range(len(mtr2_positions)):
                             num = i*len(mtr2_positions)+j
-                            f.write('scan_{:03}.tif\t{}\t{}\t{}'.format(num, self.plt_x[num],
+                            f.write('scan_{:03}_{:03}.tif\t{}\t{}\t{}\n'.format(i, j, self.plt_x[num],
                                 self.plt_y[num], self.plt_z[num]))
 
 
