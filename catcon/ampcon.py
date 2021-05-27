@@ -215,13 +215,10 @@ class DBPMAmpPanel(wx.Panel):
         self.amp_gain_pv = epics.PV('{}Gain:Level-SP'.format(self.amp_name))
         self.amp_current_pv = epics.PV('{}Ampl:CurrTotal-I'.format(self.amp_name))
         self.amp_scale_pv = epics.PV('{}CtrlDAC:CLevel-SP'.format(self.amp_name))
-        self.amp_output_pv = epics.PV('{}CtrlDAC:CLevel-I'.format(self.amp_name))
-
 
         self.amp_gain_pv.get()
         self.amp_current_pv.get()
         self.amp_scale_pv.get()
-        self.amp_output_pv.get()
 
         self._enabled = True
 
@@ -229,6 +226,8 @@ class DBPMAmpPanel(wx.Panel):
 
         self.gain_callback = self.amp_gain_pv.add_callback(self._on_epics_gain_change)
         self.scale_callback = self.amp_scale_pv.add_callback(self._on_epics_scale_change)
+
+        self._epics_gain_change(self.amp_gain_pv.get())
 
         self.SetSizer(top_sizer)
 
@@ -247,7 +246,6 @@ class DBPMAmpPanel(wx.Panel):
         self.gain.Bind(wx.EVT_CHOICE, self._on_change_gain)
 
         input_c = epics.wx.PVText(self, self.amp_current_pv, auto_units=True)
-        output_v = epics.wx.PVText(self, self.amp_output_pv, units=" V")
 
         control_grid = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
         control_grid.Add(wx.StaticText(self, label='Amplifier name:'), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -257,8 +255,6 @@ class DBPMAmpPanel(wx.Panel):
         control_grid.Add(self.gain, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         control_grid.Add(wx.StaticText(self, label='Input:'), flag=wx.ALIGN_CENTER_VERTICAL)
         control_grid.Add(input_c, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(wx.StaticText(self, label='Output:'), flag=wx.ALIGN_CENTER_VERTICAL)
-        control_grid.Add(output_v, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
 
 
         control_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -304,6 +300,7 @@ class DBPMAmpPanel(wx.Panel):
         self.amp_gain_pv.remove_callback(self.gain_callback)
         self.amp_scale_pv.remove_callback(self.scale_callback)
 
+        self.amp_scale_pv.put(0, wait=True)
         self.amp_gain_pv.put(gain_setting, wait=True)
         self.amp_scale_pv.put(scale, wait=True)
 

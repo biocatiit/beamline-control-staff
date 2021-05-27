@@ -141,7 +141,8 @@ class MainFrame(wx.Frame):
 
 
         self.custom_list = ['Attenuators', 'Ion Chamber Calculator',
-        'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview']
+            'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview', 
+            'D BPM Amplifier']
 
         for record in self.mx_db.get_all_records():
             try:
