@@ -187,8 +187,24 @@ class MainFrame(wx.Frame):
             with open(settings, 'r') as f:
                 try:
                     self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+                    if len(self.controls) > 0:
+                        load_backup = False
+                    else:
+                        load_backup = True
                 except Exception:
-                    pass
+                    load_backup = True
+
+        if load_backup:
+            sname = '{}_sector_ctrl_settings_bak.txt'.format(platform.node().replace('.','_'))
+            settings = os.path.join(savedir, sname)
+
+            if os.path.exists(settings):
+                with open(settings, 'r') as f:
+                    try:
+                        self.controls = json.load(f, object_pairs_hook=collections.OrderedDict)
+                    except Exception:
+                        pass
 
     def _create_layout(self):
         """
@@ -293,6 +309,23 @@ class MainFrame(wx.Frame):
             else:
                 out = json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)
             f.write(out)
+
+        try:
+            with open(sfile, 'r') as f:
+                controls = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+            if len(controls) > 0:
+                sname = '{}_sector_ctrl_settings_bak.txt'.format(platform.node().replace('.','_'))
+                sfile = os.path.join(savedir, sname)
+                with open(sfile, 'w', encoding='utf-8') as f:
+                    if six.PY2:
+                        out = unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder))
+                    else:
+                        out = json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)
+                    f.write(out)
+
+        except Exception:
+            pass
 
     def _load_layout(self):
         """
