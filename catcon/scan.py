@@ -2145,7 +2145,11 @@ class ScanPanel(wx.Panel):
 
     def _save_log(self):
         if self.current_scan_params['detector'] is not None:
-
+            try:
+                self.return_q.get_nowait()
+            except Exception:
+                pass
+                
             self.cmd_q.put_nowait(['get_det_params', [], {}])
             det_datadir = self.return_q.get()[0]
 
@@ -2184,7 +2188,7 @@ class ScanPanel(wx.Panel):
                     f.write('#Filename\t{}_pos\t{}\n'.format(self.current_scan_params['device'],
                         '\t'.join(counters.split())))
 
-                    for i in range(len(mtr1_positions)):
+                    for i in range(len(self.plt_x)):
                         f.write('scan_{:03}.tif\t{}\t{}\n'.format(i, self.plt_x[i], self.plt_y[i]))
 
             else:
@@ -2198,8 +2202,9 @@ class ScanPanel(wx.Panel):
 
                         for j in range(len(mtr2_positions)):
                             num = i*len(mtr2_positions)+j
-                            f.write('scan_{:03}_{:03}.tif\t{}\t{}\t{}\n'.format(i, j, self.plt_x[num],
-                                self.plt_y[num], self.plt_z[num]))
+                            if num < len(self.plt_x):
+                                f.write('scan_{:03}_{:03}.tif\t{}\t{}\t{}\n'.format(i, j, self.plt_x[num],
+                                    self.plt_y[num], self.plt_z[num]))
 
 
     def _on_moveto(self, event):
