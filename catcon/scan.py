@@ -20,6 +20,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this software.  If not, see <http://www.gnu.org/licenses/>.
 
+### Note this is the standalone version, which is the one we currently use
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object, range, map
 from io import open
@@ -50,6 +52,9 @@ import scipy.interpolate
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
+
+os.sys.path.append('/usr/local/beamline-control-user/biocon')
+import detectorcon
 
 class ScanProcess(multiprocessing.Process):
     """
@@ -274,20 +279,31 @@ class ScanProcess(multiprocessing.Process):
         self.scalers_raw = scalers_raw
 
         if self.detector is not None:
-            self.det = self.mx_database.get_record(self.detector)
-            self.det.set_trigger_mode(1)
 
-            server_record_name = self.det.get_field('server_record')
-            remote_det_name = self.det.get_field('remote_record_name')
-            server_record = self.mx_database.get_record(server_record_name)
-            det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
-            det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+            if self.detector == 'Eiger2 XE 9M':
+                self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
+                    use_tiff_writer=False, use_file_writer=True,
+                    photon_energy=12.0) 
+                
 
-            self.det_datadir = mp.Net(server_record, det_datadir_name)
-            self.det_filename = mp.Net(server_record, det_datafile_name)
+            else:
+                self.det = self.mx_database.get_record(self.detector)
+                self.det.set_trigger_mode(1)
+
+                server_record_name = self.det.get_field('server_record')
+                remote_det_name = self.det.get_field('remote_record_name')
+                server_record = self.mx_database.get_record(server_record_name)
+                det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
+                det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+
+                self.det_datadir = mp.Net(server_record, det_datadir_name)
+                self.det_filename = mp.Net(server_record, det_datafile_name)
 
     def _get_det_params(self):
-        self.return_queue.put((self.det_datadir.get(), ))
+        if self.detector == 'Eiger2 XE 9M':
+            self.return_queue.put((self.det.get_data_dir(), ))
+        else:
+            self.return_queue.put((self.det_datadir.get(), ))
 
     def _scan(self):
         """
@@ -309,9 +325,13 @@ class ScanProcess(multiprocessing.Process):
         step = abs(float(self.step))
 
         if start < stop:
-            mtr1_positions = np.arange(start, stop+step, step)
+            mtr1_positions = np.arange(start, stop, step)
+            if mtr1_positions[-1] + step == stop:
+                mtr1_positions = np.concatenate((mtr1_positions, np.array([stop])))
         else:
-            mtr1_positions = np.arange(stop, start+step, step)
+            mtr1_positions = np.arange(stop, start, step)
+            if mtr1_positions[-1] + step == start:
+                mtr1_positions = np.concatenate((mtr1_positions, np.array([start])))
             mtr1_positions = mtr1_positions[::-1]
 
         if self.scan_dim == '2D':
@@ -320,10 +340,19 @@ class ScanProcess(multiprocessing.Process):
             step2 = abs(float(self.step2))
 
             if start2 < stop2:
-                mtr2_positions = np.arange(start2, stop2+step2, step2)
+                mtr2_positions = np.arange(start2, stop2, step2)
+                if mtr2_positions[-1] + step2 == stop2:
+                    mtr2_positions = np.concatenate((mtr2_positions, np.array([stop2])))
             else:
-                mtr2_positions = np.arange(stop2, start2+step2, step2)
+                mtr2_positions = np.arange(stop2, start2, step2)
+                if mtr2_positions[-1] + step2 == start2:
+                    mtr2_positions = np.concatenate((mtr2_positions, np.array([start2])))
                 mtr2_positions = mtr2_positions[::-1]
+
+            # Makes order match MX scan
+            temp = copy.copy(mtr1_positions)
+            mtr1_positions = copy.copy(mtr2_positions)
+            mtr2_positions = temp
 
         if self._abort_event.is_set():
             self.return_queue.put_nowait(['stop_live_plotting'])
@@ -333,7 +362,30 @@ class ScanProcess(multiprocessing.Process):
 
         self.return_queue.put_nowait(('dummy',))
 
+        if self.detector == 'Eiger2 XE 9M' and self.scan_dim == '1D':
+            image_name = 'scan'
+            
+            self.det.set_filename(image_name)
+            self.det.set_trigger_mode('int_enable')
+            self.det.set_manual_trigger(1)
+            self.det.set_num_frames(len(mtr1_positions))
+            self.det.set_exp_time(self.dwell_time)
+            self.det.set_exp_period(self.dwell_time+0.0001)
+            self.det.arm()
+
         for num, mtr1_pos in enumerate(mtr1_positions):
+
+            if self.detector == 'Eiger2 XE 9M' and self.scan_dim == '2D':
+                image_name = 'scan_{:03}'.format(num+1)
+                
+                self.det.set_filename(image_name)
+                self.det.set_trigger_mode('int_enable')
+                self.det.set_manual_trigger(1)
+                self.det.set_num_frames(len(mtr2_positions))
+                self.det.set_exp_time(self.dwell_time)
+                self.det.set_exp_period(self.dwell_time+0.0001)
+                self.det.arm()
+
             if mtr1_pos != mtr1_positions[0]:
                 # logger.info('Moving motor 1 position to {}'.format(mtr1_pos))
                 self.motor.move_absolute(mtr1_pos)
@@ -341,6 +393,8 @@ class ScanProcess(multiprocessing.Process):
             while self.motor.is_busy():
                 time.sleep(0.01)
                 if self._abort_event.is_set():
+                    if self.detector == 'Eiger2 XE 9M':
+                        self.det.abort()
                     self.motor.stop()
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
@@ -349,6 +403,8 @@ class ScanProcess(multiprocessing.Process):
                 self._measure(scalers, timer, mtr1_pos, num)
 
                 if self._abort_event.is_set():
+                    if self.detector == 'Eiger2 XE 9M':
+                        self.det.abort()
                     self.return_queue.put_nowait(['stop_live_plotting'])
                     return
 
@@ -362,6 +418,8 @@ class ScanProcess(multiprocessing.Process):
                     while self.motor2.is_busy():
                         time.sleep(0.01)
                         if self._abort_event.is_set():
+                            if self.detector == 'Eiger2 XE 9M':
+                                self.det.abort()
                             self.motor2.stop()
                             self.return_queue.put_nowait(['stop_live_plotting'])
                             return
@@ -369,10 +427,14 @@ class ScanProcess(multiprocessing.Process):
                     self._measure(scalers, timer, mtr1_pos, num, mtr2_pos, num2)
 
                     if self._abort_event.is_set():
+                        if self.detector == 'Eiger2 XE 9M':
+                            self.det.abort()
                         self.return_queue.put_nowait(['stop_live_plotting'])
                         return
 
             if self._abort_event.is_set():
+                if self.detector == 'Eiger2 XE 9M':
+                    self.det.abort()
                 self.return_queue.put_nowait(['stop_live_plotting'])
                 return
 
@@ -380,23 +442,36 @@ class ScanProcess(multiprocessing.Process):
         return
 
     def _measure(self, scalers, timer, mtr1_pos, num, mtr2_pos=0, num2=0):
+        
         if self.scan_dim == '1D':
-            image_name = 'scan_{:03}.tif'.format(num)
-            self.det_filename.put(image_name)
+            image_name = 'scan_{:03}.tif'.format(num+1)
+
         elif self.scan_dim == '2D':
-            image_name = 'scan_{:03}_{:03}.tif'.format(num, num2)
+            image_name = 'scan_{:03}_{:03}.tif'.format(num+1, num2+1)
+        
+        if self.detector != 'Eiger2 XE 9M':
             self.det_filename.put(image_name)
+        else:
+            image_name = image_name.rstrip('.tif')
 
         for scaler in scalers:
             scaler.clear()
+
         timer.clear()
+
         if timer.is_busy():
             timer.stop()
+
+        if self.detector == 'Eiger2 XE 9M':
+            self.det.trigger(wait=False)
+
         timer.start(self.dwell_time)
 
         while timer.is_busy() != 0:
             time.sleep(.01)
             if self._abort_event.is_set():
+                if self.detector == 'Eiger2 XE 9M':
+                    self.det.abort()
                 timer.stop()
                 self.return_queue.put_nowait(['stop_live_plotting'])
                 return
@@ -929,6 +1004,7 @@ class ScanPanel(wx.Panel):
         self.cmd_q.put_nowait(['get_devices', [], {}])
         self.motors, self.scalers, self.timers, self.detectors = self.return_q.get()
         self.detectors.insert(0, 'None')
+        self.detectors.append('Eiger2 XE 9M')
 
         if 'i0' in self.scalers and 'i1' in self.scalers:
             self.scalers.append('i1/i0'.encode('utf-8'))
@@ -1168,14 +1244,15 @@ class ScanPanel(wx.Panel):
         self.cmd_q.put_nowait(['start_mxdb', [self.mx_database], {}])
 
     def _check_data_dir(self, det_datadir):
-        scan_prefix = 'scan_'
+        scan_prefix = 'scan'
+        print(det_datadir)
 
-        det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
+        if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
+            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+        else:
+            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
         files = glob.glob(os.path.join(det_datadir, scan_prefix)+'*')
-
-        if os.path.exists(os.path.join(det_datadir, 'scan.log')):
-            files.append(os.path.join(det_datadir, 'scan.log'))
 
         if len(files) > 0:
             msg = ('Warning, there are other scan files in the selected '
@@ -2155,7 +2232,10 @@ class ScanPanel(wx.Panel):
 
             scan_prefix = 'scan'
 
-            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
+            if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
+                det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+            else:
+                det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
             start = float(self.current_scan_params['start'])
             stop = float(self.current_scan_params['stop'])
@@ -2189,7 +2269,7 @@ class ScanPanel(wx.Panel):
                         '\t'.join(counters.split())))
 
                     for i in range(len(self.plt_x)):
-                        f.write('scan_{:03}.tif\t{}\t{}\n'.format(i, self.plt_x[i], self.plt_y[i]))
+                        f.write('scan_{:06}.tif\t{}\t{}\n'.format(i, self.plt_x[i], self.plt_y[i]))
 
             else:
 
@@ -2203,7 +2283,7 @@ class ScanPanel(wx.Panel):
                         for j in range(len(mtr2_positions)):
                             num = i*len(mtr2_positions)+j
                             if num < len(self.plt_x):
-                                f.write('scan_{:03}_{:03}.tif\t{}\t{}\t{}\n'.format(i, j, self.plt_x[num],
+                                f.write('scan_{:03}_{:06}.tif\t{}\t{}\t{}\n'.format(i, j, self.plt_x[num],
                                     self.plt_y[num], self.plt_z[num]))
 
 
