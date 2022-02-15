@@ -142,14 +142,22 @@ class MotorPanel(wx.Panel):
             remote_type_name = '{}.mx_type'.format(self.remote_record_name)
             remote_type = mp.Net(self.server_record, remote_type_name)
 
+            slit_names = ['jjc_v', 'jjc_h', 'jj1v', 'jj1h', 'xenocsv', 'xenocsh', 'xenocs_colv', 'xenocs_colh']
+
             r_type = remote_type.get()
+            print(r_type)
             try:
                 str(r_type)
             except Exception:
                 r_type = ''
 
-            if r_type == 'slit_motor':
-                self.is_slit_mtr = True
+            #if r_type == 'slit_motor':
+            #    self.is_slit_mtr = True
+
+            for name in slit_names:
+                if self.remote_record_name.startswith(name):
+                    self.is_slit_mtr =  True
+                    break
 
         top_sizer = self._create_layout()
 
