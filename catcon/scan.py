@@ -2233,7 +2233,8 @@ class ScanPanel(wx.Panel):
             scan_prefix = 'scan'
 
             if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
-                det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+                # det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+                pass
             else:
                 det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
