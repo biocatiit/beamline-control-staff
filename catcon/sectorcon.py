@@ -195,6 +195,9 @@ class MainFrame(wx.Frame):
                 except Exception:
                     load_backup = True
 
+        else:
+            load_backup = False
+
         if load_backup:
             sname = '{}_sector_ctrl_settings_bak.txt'.format(platform.node().replace('.','_'))
             settings = os.path.join(savedir, sname)
