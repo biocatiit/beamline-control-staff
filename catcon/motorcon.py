@@ -142,7 +142,8 @@ class MotorPanel(wx.Panel):
             remote_type_name = '{}.mx_type'.format(self.remote_record_name)
             remote_type = mp.Net(self.server_record, remote_type_name)
 
-            slit_names = ['jjc_v', 'jjc_h', 'jj1v', 'jj1h', 'xenocsv', 'xenocsh', 'xenocs_colv', 'xenocs_colh']
+            slit_names = ['jjc_v', 'jjc_h', 'jj1v', 'jj1h', 'xenocsv',
+                'xenocsh', 'xenocs_colv', 'xenocs_colh', 'wbv', 'wbh']
 
             r_type = remote_type.get()
             print(r_type)
