@@ -355,7 +355,7 @@ class MotorPanel(wx.Panel):
                     pos, msg2 = msg2.split('would')
                     msg2 = msg2.split('limit')[0]
 
-                    pos = float(pos.strip())
+                    pos = float(pos.split()[0].strip())
                     pos = pos*self.remote_scale.get() + self.remote_offset.get()
                     pos = pos*self.scale + self.offset
 
@@ -456,7 +456,7 @@ class MotorPanel(wx.Panel):
                     pos, msg2 = msg2.split('would')
                     msg2 = msg2.split('limit')[0]
 
-                    pos = float(pos.strip())
+                    pos = float(pos.split()[0].strip())
                     pos = pos*self.remote_scale.get() + self.remote_offset.get()
                     pos = pos*self.scale + self.offset
 
