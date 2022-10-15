@@ -29,6 +29,7 @@ if __name__ == "__main__" and __package__ is None:
 
 import platform
 import math
+import time
 
 import wx
 import epics, epics.wx

@@ -38,6 +38,7 @@ import wx.aui as aui
 from wx.lib.agw import ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl  as  listmix
 import wx.lib.inspection
+import wx.lib.scrolledpanel as scrolled
 import numpy as np
 
 import utils
@@ -454,7 +455,7 @@ class MainFrame(wx.Frame):
         else:
             return False
 
-class CtrlsPanel(wx.Panel):
+class CtrlsPanel(scrolled.ScrolledPanel):
     """
     This is the base panel for laying out a group (tab) of control sets (buttons).
     It basically consists of a grid of buttons that can be clicked to open the
@@ -471,9 +472,11 @@ class CtrlsPanel(wx.Panel):
 
         :param wx.Frame main_frame: The :class:`MainFrame`.
         """
-        wx.Panel.__init__(self, *args, **kwargs)
+        scrolled.ScrolledPanel.__init__(self, *args, **kwargs)
         self.main_frame = main_frame
         self._create_layout(panel_data)
+
+        self.SetupScrolling()
 
         self.Bind(wx.EVT_RIGHT_UP, self._onRightMouseClick)
 
@@ -487,7 +490,7 @@ class CtrlsPanel(wx.Panel):
         """
         nitems = len(panel_data.keys())
 
-        self.grid_sizer = wx.FlexGridSizer(rows=(nitems+1)//2, cols=3, vgap=5, hgap=5)
+        self.grid_sizer = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
 
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)
@@ -919,7 +922,7 @@ class AddCtrlDialog(wx.Dialog):
         :returns: The index of the newly added control in the list.
         :rtype: int
         """
-        index = self.list_ctrl.InsertStringItem(sys.maxint, '')
+        index = self.list_ctrl.InsertStringItem(sys.maxsize, '')
         main_frame = self.GetParent()
 
         record_panel = wx.Panel(self.list_ctrl)
@@ -938,7 +941,7 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.SetItem(item)
 
         item = self.list_ctrl.GetItem(index, 1)
-        choice_ctrl = wx.Choice(self.list_ctrl, id=index, choices=main_frame.ctrl_types.keys(),
+        choice_ctrl = wx.Choice(self.list_ctrl, id=index, choices=list(main_frame.ctrl_types.keys()),
             style=wx.CB_SORT)
         choice_ctrl.SetStringSelection('Motor')
         choice_ctrl.Bind(wx.EVT_CHOICE, self._on_typechange)
@@ -1211,7 +1214,7 @@ class RemoveCtrlDialog(wx.Dialog):
         self.list_ctrl.InsertColumn(0, 'Control')
 
         for param in self._params.keys():
-            self.list_ctrl.InsertStringItem(sys.maxint, param)
+            self.list_ctrl.InsertStringItem(sys.maxsize, param)
 
         up_btn = wx.Button(self, label='Up')
         up_btn.Bind(wx.EVT_BUTTON, self._on_up)

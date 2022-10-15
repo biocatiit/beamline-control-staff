@@ -103,11 +103,6 @@ class MotorPanel(wx.Panel):
 
             self.pos_pv = self.epics_motor.PV('RBV')
 
-            # self.limit_pv = mpca.PV("{}.LVIO".format(self.epics_pv_name))
-            # self.callback = self.limit_pv.add_callback(mpca.DBE_VALUE,
-            #     custom_widgets.on_epics_limit, (self.limit_pv, self))
-            # self.limit_pv = self.epics_motor.PV('LVIO')
-
             if self.scale > 0:
                 nlimit = "LLM"
                 plimit = "HLM"
@@ -121,7 +116,6 @@ class MotorPanel(wx.Panel):
             self.set_pv = self.epics_motor.PV('SET')
 
             self.pos_pv.get()
-            # self.limit_pv.get()
             self.nlimit_pv.get()
             self.plimit_pv.get()
             self.set_pv.get()
@@ -129,7 +123,7 @@ class MotorPanel(wx.Panel):
             self.epics_motor.add_callback('LVIO', self._on_epics_soft_limit)
             self.epics_motor.add_callback('HLS', self._on_epics_hard_limit)
             self.epics_motor.add_callback('LLS', self._on_epics_hard_limit)
-            self.epics_motor.add_callback('SPMG', self._on_epics_disable)
+            # self.epics_motor.add_callback('SPMG', self._on_epics_disable)
 
         if self.mtr_type == 'network_motor':
             self.server_record_name = self.motor.get_field('server_record')
@@ -145,12 +139,12 @@ class MotorPanel(wx.Panel):
             slit_names = ['jjc_v', 'jjc_h', 'jj1v', 'jj1h', 'xenocsv',
                 'xenocsh', 'xenocs_colv', 'xenocs_colh', 'wbv', 'wbh']
 
-            r_type = remote_type.get()
-            print(r_type)
-            try:
-                str(r_type)
-            except Exception:
-                r_type = ''
+            # r_type = remote_type.get()
+            # print(r_type)
+            # try:
+            #     str(r_type)
+            # except Exception:
+            #     r_type = ''
 
             #if r_type == 'slit_motor':
             #    self.is_slit_mtr = True
@@ -175,10 +169,7 @@ class MotorPanel(wx.Panel):
             pos_name = "{}.position".format(self.remote_record_name)
             pos = mpwx.Value(self, self.server_record, pos_name,
                 function=custom_widgets.network_value_callback, args=(self.scale, self.offset))
-            # # setting limits this way currently doesn't work. So making it a static text, not a text entry
-            # self.low_limit = wx.StaticText(self, label=self.motor.get_field('negative_limit'))
-            # self.high_limit = wx.StaticText(self, label=self.motor.get_field('positive_limit'))
-            #
+
             if self.scale*self.remote_scale.get() > 0:
                 nlimit = "{}.raw_negative_limit".format(self.remote_record_name)
                 plimit = "{}.raw_positive_limit".format(self.remote_record_name)
@@ -191,7 +182,7 @@ class MotorPanel(wx.Panel):
                 function=custom_widgets.limit_network_value_callback,
                 args=(self.scale, self.offset, self.remote_scale.get(),
                     self.remote_offset.get()),
-                validator=utils.CharValidator('float_neg')
+                validator=utils.CharValidator('float_neg_te'),
                 )
 
             self.high_limit = custom_widgets.CustomLimitValueEntry(self,
@@ -199,37 +190,20 @@ class MotorPanel(wx.Panel):
                 function=custom_widgets.limit_network_value_callback,
                 args=(self.scale, self.offset, self.remote_scale.get(),
                     self.remote_offset.get()),
-                validator=utils.CharValidator('float_neg')
+                validator=utils.CharValidator('float_neg_te'),
                 )
 
             mname = wx.StaticText(self, label=self.motor.name)
 
         elif self.is_epics:
-            # pv = self.motor.get_field('epics_record_name')
-            # self.sever_record = None #Needed to get around some MP bugs
-            # pos = custom_widgets.CustomEpicsValue(self, "{}.RBV".format(pv),
-            #     custom_widgets.epics_value_callback, self.scale, self.offset)
-
-            # if self.scale > 0:
-            #     nlimit = "{}.LLM".format(pv)
-            #     plimit = "{}.HLM".format(pv)
-            # else:
-            #     nlimit = "{}.HLM".format(pv)
-            #     plimit = "{}.LLM".format(pv)
-
-            # self.low_limit = custom_widgets.CustomEpicsValueEntry(self, nlimit,
-            #     custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-            # self.high_limit = custom_widgets.CustomEpicsValueEntry(self, plimit,
-            #     custom_widgets.epics_value_callback, self.scale, self.offset, size=(-1,self.vert_size))
-
             pos = custom_epics_widgets.PVTextLabeled(self, self.pos_pv, scale=self.scale,
                 offset=self.offset)
             self.low_limit = custom_epics_widgets.PVTextCtrl2(self, self.nlimit_pv,
                 dirty_timeout=None, scale=self.scale, offset=self.offset,
-                validator=utils.CharValidator('float_neg'))
+                validator=utils.CharValidator('float_neg_te'))
             self.high_limit = custom_epics_widgets.PVTextCtrl2(self, self.plimit_pv,
                 dirty_timeout=None, scale=self.scale, offset=self.offset,
-                validator=utils.CharValidator('float_neg'))
+                validator=utils.CharValidator('float_neg_te'))
 
             mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name,
                 self.epics_pv_name))
@@ -324,7 +298,6 @@ class MotorPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
             if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, custom_widgets.CustomEpicsValue) 
                 or isinstance(item, wx.StaticBox))
                 and not (isinstance(item, custom_epics_widgets.PVTextLabeled) 
                 or isinstance(item, custom_epics_widgets.PVTextCtrl2))
@@ -551,8 +524,7 @@ class MotorPanel(wx.Panel):
 
         for item in self.GetChildren():
             if (not isinstance(item, wx.StaticText) and not isinstance(item, mpwx.Value)
-                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
-                isinstance(item, wx.StaticBox)):
+                and not isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
         if self.is_epics:

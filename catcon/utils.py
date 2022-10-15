@@ -120,9 +120,11 @@ class CharValidator(wx.Validator):
                 return
             elif self.flag == 'fname' and key not in self.fname_chars:
                 return
-            elif self.flag == 'float_te' and key not in string.digits+'-.\n\r':
+            elif self.flag == 'float_te' and key not in string.digits+'.\n\r':
                 return
             elif self.flag == 'float_neg' and key not in string.digits+'.-':
+                return
+            elif self.flag == 'float_neg_te' and key not in string.digits+'.-\n\r':
                 return
         event.Skip()
 

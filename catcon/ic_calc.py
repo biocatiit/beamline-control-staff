@@ -159,7 +159,7 @@ class ICCalcPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
             if (isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, custom_widgets.CustomEpicsValue) or isinstance(item, wx.StaticBox)):
+                or isinstance(item, wx.StaticBox)):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
 
         self.SetSizer(top_sizer)
@@ -253,8 +253,7 @@ class ICCalcPanel(wx.Panel):
 
         for item in self.GetChildren():
             if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
-                and not isinstance(item, custom_widgets.CustomEpicsValue) and not
-                isinstance(item, wx.StaticBox)):
+                and not isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
 class ICCalcFrame(wx.Frame):

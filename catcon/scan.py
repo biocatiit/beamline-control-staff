@@ -25,6 +25,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object, range, map
 from io import open
+import six
 
 import multiprocessing
 import queue
@@ -176,19 +177,20 @@ class ScanProcess(multiprocessing.Process):
         for r in self.mx_database.get_all_records():
             mx_class = r.get_field('mx_class')
 
+            name = r.name.encode('utf-8')
             if mx_class == 'scaler':
-                scalers.append(r.name)
+                scalers.append(name)
             elif mx_class == 'timer':
-                timers.append(r.name)
+                timers.append(name)
             elif mx_class == 'motor':
-                motors.append(r.name)
+                motors.append(name)
             elif mx_class == 'area_detector':
-                detectors.append(r.name)
+                detectors.append(name)
 
-        motors = sorted(motors, key=str.lower)
-        timers = sorted(timers, key=str.lower)
-        scalers = sorted(scalers, key=str.lower)
-        detectors = sorted(detectors, key=str.lower)
+        motors = sorted(motors, key=lambda v: v.lower())
+        timers = sorted(timers, key=lambda v: v.lower())
+        scalers = sorted(scalers, key=lambda v: v.lower())
+        detectors = sorted(detectors, key=lambda v: v.lower())
 
         self.return_queue.put_nowait([motors, scalers, timers, detectors])
 
@@ -720,9 +722,16 @@ class ScanPanel(wx.Panel):
         self.timer = wx.Choice(self, choices=self.timers)
         self.detector = wx.Choice(self, choices=self.detectors)
 
+        if six.PY3:
+            for i in range(len(self.scalers)):
+                self.scalers[i] = self.scalers[i].decode()
+
+            for i in range(len(self.timers)):
+                self.timers[i] = self.timers[i].decode()
+
         if 'i0' in self.scalers:
             self.scaler.SetStringSelection('i0')
-        if 'timer1' in self.timers:
+        if 'joerger_timer' in self.timers:
             self.timer.SetStringSelection('joerger_timer')
         self.detector.SetStringSelection('None')
 
@@ -1008,7 +1017,7 @@ class ScanPanel(wx.Panel):
 
         if 'i0' in self.scalers and 'i1' in self.scalers:
             self.scalers.append('i1/i0'.encode('utf-8'))
-            self.scalers = sorted(self.scalers, key=str.lower)
+            self.scalers = sorted(self.scalers, key=lambda v: v.lower())
 
     def _on_motorchoice(self, evt):
         if evt.GetEventObject() == self.motor:
