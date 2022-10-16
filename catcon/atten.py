@@ -86,6 +86,9 @@ class AttenuatorPanel(wx.Panel):
             self.atten_ctrl.SetStringSelection(self.atten_factors_reverse[self.current_attenuation])
             self.trans_ctrl.SetStringSelection(self.transmission_vals_reverse[self.current_attenuation])
 
+    def on_close(self):
+        pass
+
 
     def _create_layout(self):
         """
@@ -173,27 +176,6 @@ class AttenuatorPanel(wx.Panel):
                 16  : self.mx_database.get_record('di_4'),
                 32  : self.mx_database.get_record('di_5'),
             }
-
-            # for atten_out in self.mx_attens_outs.values():
-            #     dio_type = atten_out.get_field('mx_type')
-
-            #     if dio_type.startswith('epics'):
-            #         self.callback_pvs = []
-            #         self.callbacks = []
-
-            #         pv_name = atten_out.get_field('epics_variable_name')
-            #         pv = mpca.PV(pv_name)
-            #         self.callback_pvs.append(pv)
-
-            #         callback = pv.add_callback(mpca.DBE_VALUE, self._atten_callback, pv)
-            #         self.callbacks.append(callback)
-
-            #         try:
-            #             pv.caget()
-            #         except mp.Not_Found_Error:
-            #             pass
-
-            #         mpca.poll()
 
         self.get_atten_timer = wx.Timer()
         self.get_atten_timer.Bind(wx.EVT_TIMER, self._atten_poll)

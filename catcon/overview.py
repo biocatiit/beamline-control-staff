@@ -69,6 +69,10 @@ class MainStatusPanel(wx.Panel):
 
         self.SetMinSize((1600, 500))
 
+    def on_close(self):
+        for panel in self.panels:
+            panel.on_close()
+
     def _create_layout(self):
         """
         Creates the layout for the panel.
@@ -92,6 +96,8 @@ class MainStatusPanel(wx.Panel):
         top_sizer.Add(notebook, proportion=1, border=5, flag=wx.EXPAND|wx.ALL)
 
         self.SetSizer(top_sizer)
+
+        self.panels = [overview_page, bleps_page, aps_page, station_page, exp_page]
 
     def _initialize(self):
         self.pvs = {
@@ -615,6 +621,8 @@ class OverviewPanel(wx.Panel):
 
         self._create_layout()
 
+    def on_close(self):
+        pass
 
     def _create_layout(self):
         """
@@ -849,6 +857,8 @@ class BLEPSPanel(wx.ScrolledWindow):
 
         self._create_layout()
 
+    def on_close(self):
+        pass
 
     def _create_layout(self):
         """
@@ -1433,6 +1443,9 @@ class APSPanel(wx.Panel):
 
         self._initialize()
 
+    def on_close(self):
+        self.msg_pvs[0].clear_callbacks()
+        self.history_pvs[1].clear_callbacks()
 
     def _create_layout(self):
         """
@@ -1664,6 +1677,8 @@ class StationPanel(wx.ScrolledWindow):
 
         self._initialize()
 
+    def on_close(self):
+        pass
 
     def _create_layout(self):
         """
@@ -1998,6 +2013,13 @@ class ExpPanel(wx.Panel):
 
         self._initialize()
 
+    def on_close(self):
+        self.pvs['atten_1'].clear_callbacks()
+        self.pvs['atten_2'].clear_callbacks()
+        self.pvs['atten_4'].clear_callbacks()
+        self.pvs['atten_8'].clear_callbacks()
+        self.pvs['atten_16'].clear_callbacks()
+        self.pvs['atten_32'].clear_callbacks()
 
     def _create_layout(self):
         """

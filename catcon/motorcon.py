@@ -158,6 +158,12 @@ class MotorPanel(wx.Panel):
 
         self.SetSizer(top_sizer)
 
+    def on_close(self):
+        if self.is_epics:
+            self.epics_motor.clear_callback('LVIO')
+            self.epics_motor.clear_callback('HLS')
+            self.epics_motor.clear_callback('LLS')
+
     def _create_layout(self):
         """
         Creates the layout for the panel.

@@ -774,6 +774,8 @@ class CtrlsFrame(wx.Frame):
         """
         wx.Frame.__init__(self, title=ctrls[0]['title'], *args, **kwargs)
 
+        self._ctrls = []
+
         self._create_layout(ctrls, mx_db)
 
         self.Layout()
@@ -817,6 +819,8 @@ class CtrlsFrame(wx.Frame):
             box_sizer.Add(ctrl_panel, 1, flag=wx.EXPAND)
             grid_sizer.Add(box_sizer, 1, flag=wx.EXPAND)
 
+            self._ctrls.append(ctrl_panel)
+
         self.SetSizer(grid_sizer)
 
     def _on_closewindow(self, evt):
@@ -826,6 +830,10 @@ class CtrlsFrame(wx.Frame):
         """
         main_frame = self.GetParent()
         main_frame.mx_timer.Stop()
+
+        for ctrl in self._ctrls:
+            ctrl.on_close()
+            
         wx.CallLater(1000, main_frame.start_timer)
         self.Destroy()
 

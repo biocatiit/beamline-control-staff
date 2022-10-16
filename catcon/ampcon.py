@@ -81,6 +81,9 @@ class AmpPanel(wx.Panel):
 
         self.SetSizer(top_sizer)
 
+    def on_close(self):
+        pass
+
     def _create_layout(self):
         """
         Creates the layout for the panel.
@@ -229,6 +232,12 @@ class DBPMAmpPanel(wx.Panel):
         self._epics_gain_change(self.amp_gain_pv.get())
 
         self.SetSizer(top_sizer)
+
+    def on_close(self, evt):
+        self.amp_gain_pv.clear_callbacks()
+        self.amp_scale_pv.clear_callbacks()
+
+        self.Destroy()
 
     def _create_layout(self):
         """

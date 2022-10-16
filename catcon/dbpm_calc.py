@@ -69,6 +69,9 @@ class DBPMCalcPanel(wx.Panel):
         self._create_layout()
         self._initialize()
 
+    def on_close(self):
+        pass
+
     def _create_layout(self):
         """
         Creates the layout for the panel.

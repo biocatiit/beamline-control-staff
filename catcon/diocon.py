@@ -98,6 +98,10 @@ class DIOPanel(wx.Panel):
 
         self._initialize()
 
+    def on_close(self):
+        if self.is_epics  and not self.is_input:
+            self.pv.clear_callbacks()
+
     def _create_layout(self):
         """
         Creates the layout for the panel.
@@ -157,12 +161,10 @@ class DIOPanel(wx.Panel):
                     self.off.SetValue(True)
 
                 self.callback = self.pv.add_callback(self._on_epics_output, index=0)
-                
-
 
     def _on_output(self, event):
         if self.is_epics:
-            self.pv.remove_callback(0)
+            self.pv.remove_callback(self.callback)
 
         if event.GetEventObject() == self.off:
             if self.is_epics:
@@ -182,7 +184,7 @@ class DIOPanel(wx.Panel):
 
     def _update_output(self, value):
         if self.is_epics:
-            self.pv.remove_callback(0)
+            self.pv.remove_callback(self.callback)
 
         if value:
             self.on.SetValue(True)
@@ -274,6 +276,9 @@ class DOButtonPanel(wx.Panel):
         self._create_layout()
 
         self._initialize()
+
+    def on_close(self):
+        pass
 
     def _create_layout(self):
         """
