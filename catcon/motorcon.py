@@ -286,7 +286,7 @@ class MotorPanel(wx.Panel):
         if self.is_epics:
             ctrl_btn_sizer.Add(more_btn, flag=wx.ALIGN_LEFT)
         ctrl_btn_sizer.AddStretchSpacer(1)
-        ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT|wx.ALIGN_RIGHT)
+        ctrl_btn_sizer.Add(stop_btn, border=5, flag=wx.LEFT)
 
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
@@ -305,7 +305,7 @@ class MotorPanel(wx.Panel):
         for item in self.GetChildren():
             if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
                 or isinstance(item, wx.StaticBox))
-                and not (isinstance(item, custom_epics_widgets.PVTextLabeled) 
+                and not (isinstance(item, custom_epics_widgets.PVTextLabeled)
                 or isinstance(item, custom_epics_widgets.PVTextCtrl2))
                 ):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)

@@ -42,6 +42,7 @@ import copy
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
 import matplotlib
+import matplotlib.figure
 matplotlib.rcParams['backend'] = 'WxAgg'
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
@@ -285,8 +286,8 @@ class ScanProcess(multiprocessing.Process):
             if self.detector == 'Eiger2 XE 9M':
                 self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
                     use_tiff_writer=False, use_file_writer=True,
-                    photon_energy=12.0) 
-                
+                    photon_energy=12.0)
+
 
             else:
                 self.det = self.mx_database.get_record(self.detector)
@@ -366,7 +367,7 @@ class ScanProcess(multiprocessing.Process):
 
         if self.detector == 'Eiger2 XE 9M' and self.scan_dim == '1D':
             image_name = 'scan'
-            
+
             self.det.set_filename(image_name)
             self.det.set_trigger_mode('int_enable')
             self.det.set_manual_trigger(1)
@@ -379,7 +380,7 @@ class ScanProcess(multiprocessing.Process):
 
             if self.detector == 'Eiger2 XE 9M' and self.scan_dim == '2D':
                 image_name = 'scan_{:03}'.format(num+1)
-                
+
                 self.det.set_filename(image_name)
                 self.det.set_trigger_mode('int_enable')
                 self.det.set_manual_trigger(1)
@@ -444,13 +445,13 @@ class ScanProcess(multiprocessing.Process):
         return
 
     def _measure(self, scalers, timer, mtr1_pos, num, mtr2_pos=0, num2=0):
-        
+
         if self.scan_dim == '1D':
             image_name = 'scan_{:03}.tif'.format(num+1)
 
         elif self.scan_dim == '2D':
             image_name = 'scan_{:03}_{:03}.tif'.format(num+1, num2+1)
-        
+
         if self.detector != 'Eiger2 XE 9M':
             self.det_filename.put(image_name)
         else:
@@ -2235,7 +2236,7 @@ class ScanPanel(wx.Panel):
                 self.return_q.get_nowait()
             except Exception:
                 pass
-                
+
             self.cmd_q.put_nowait(['get_det_params', [], {}])
             det_datadir = self.return_q.get()[0]
 

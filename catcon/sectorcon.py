@@ -142,7 +142,7 @@ class MainFrame(wx.Frame):
 
 
         self.custom_list = ['Attenuators', 'Ion Chamber Calculator',
-            'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview', 
+            'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview',
             'D BPM Amplifier']
 
         for record in self.mx_db.get_all_records():
@@ -833,7 +833,7 @@ class CtrlsFrame(wx.Frame):
 
         for ctrl in self._ctrls:
             ctrl.on_close()
-            
+
         wx.CallLater(1000, main_frame.start_timer)
         self.Destroy()
 
@@ -883,11 +883,12 @@ class AddCtrlDialog(wx.Dialog):
         info_grid.Add(wx.StaticText(self, label='Number of columns:'))
         info_grid.Add(self.cols)
 
-        self.list_ctrl = ControlList(self, agwStyle=ULC.ULC_REPORT|ULC.ULC_USER_ROW_HEIGHT)
+        self.list_ctrl = ControlList(self,
+            agwStyle=ULC.ULC_REPORT|ULC.ULC_HAS_VARIABLE_ROW_HEIGHT)
         self.list_ctrl.InsertColumn(0, 'MX Record Name')
         self.list_ctrl.InsertColumn(1, 'Control Type')
         self.list_ctrl.InsertColumn(2, '')
-        self.list_ctrl.SetUserLineHeight(30)
+        # self.list_ctrl.SetUserLineHeight(30)
         self.list_ctrl.SetMinSize((370,250))
 
         add_btn = wx.Button(self, label='Add control')
@@ -930,7 +931,8 @@ class AddCtrlDialog(wx.Dialog):
         :returns: The index of the newly added control in the list.
         :rtype: int
         """
-        index = self.list_ctrl.InsertStringItem(sys.maxsize, '')
+        index = self.list_ctrl.GetItemCount()
+        self.list_ctrl.InsertStringItem(index, '')
         main_frame = self.GetParent()
 
         record_panel = wx.Panel(self.list_ctrl)
@@ -939,14 +941,11 @@ class AddCtrlDialog(wx.Dialog):
         button = wx.Button(record_panel, id=index, label='...', size=(30, -1))
         button.Bind(wx.EVT_BUTTON, self._show_motors)
         record_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        record_sizer.Add(textctrl, 1, flag=wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL)
-        record_sizer.Add(button, border=2, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.LEFT)
+        record_sizer.Add(textctrl, 1, flag=wx.EXPAND)
+        record_sizer.Add(button, border=2, flag=wx.LEFT)
         record_panel.SetSizer(record_sizer)
 
-        item = self.list_ctrl.GetItem(index, 0)
-        item.SetWindow(record_panel, expand=True)
-        item.SetAlign(ULC.ULC_FORMAT_LEFT)
-        self.list_ctrl.SetItem(item)
+        self.list_ctrl.SetItemWindow(index, 0, record_panel, expand=True)
 
         item = self.list_ctrl.GetItem(index, 1)
         choice_ctrl = wx.Choice(self.list_ctrl, id=index, choices=list(main_frame.ctrl_types.keys()),
@@ -974,9 +973,7 @@ class AddCtrlDialog(wx.Dialog):
             elif prev_choice == 'Custom':
                 textctrl.AutoComplete(main_frame.custom_list)
 
-        item.SetWindow(choice_ctrl)
-        item.SetAlign(ULC.ULC_FORMAT_LEFT)
-        self.list_ctrl.SetItem(item)
+        self.list_ctrl.SetItemWindow(index, 1, choice_ctrl, expand=True)
 
         c0_width = self.list_ctrl.GetColumnWidth(0)
         c1_width = self.list_ctrl.GetColumnWidth(1)

@@ -20,6 +20,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this software.  If not, see <http://www.gnu.org/licenses/>.
 
+# This is the old one. Use scan.py!!!!!!!!!!
 from __future__ import absolute_import, division, print_function, unicode_literals
 from builtins import object, range, map
 from io import open
