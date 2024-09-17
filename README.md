@@ -17,3 +17,5 @@ conda install wxpython numpy scipy matplotlib
 
 pip install pyepics
 
+For MEDM, install medm:
+conda install -c conda-forge epics-medm
