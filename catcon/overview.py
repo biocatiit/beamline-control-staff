@@ -189,6 +189,9 @@ class MainStatusPanel(wx.Panel):
             'bleps_warning'     : epics.PV('18ID:BLEPS:WARNING_EXISTS'),
             'bleps_fault_reset' : epics.PV('18ID:BLEPS:FAULT_RESET'),
             'bleps_trip_reset'  : epics.PV('18ID:BLEPS:TRIP_RESET'),
+            'fls_status'        : epics.PV('18ID:BLEPS:FLSretractedSwitch'),
+            'fls_in'            : epics.PV('18ID:BLEPS:FLSinsertEPICS'),
+            'fls_out'           : epics.PV('18ID:BLEPS:FLSretractEPICS'),
             'gv1_status'        : epics.PV('18ID:BLEPS:GV1_OPENED_LS'),
             'gv1_both_sw'       : epics.PV('18ID:BLEPS:GV1_BOTH_SWITCH'),
             'gv1_open_sw'       : epics.PV('18ID:BLEPS:GV1_OPENED_SWITCH'),
@@ -273,11 +276,23 @@ class MainStatusPanel(wx.Panel):
             'gv7_beam_exp'      : epics.PV('18ID:BLEPS:GV7_BEAM_EXPOSURE'),
             'gv7_open'          : epics.PV('18ID:BLEPS:GV7_EPICS_OPEN'),
             'gv7_close'         : epics.PV('18ID:BLEPS:GV7_EPICS_CLOSE'),
+            'gv8_status'        : epics.PV('18ID:BLEPS:GV8_OPENED_LS'),
+            'gv8_both_sw'       : epics.PV('18ID:BLEPS:GV8_BOTH_SWITCH'),
+            'gv8_open_sw'       : epics.PV('18ID:BLEPS:GV8_OPENED_SWITCH'),
+            'gv8_close_sw'      : epics.PV('18ID:BLEPS:GV8_CLOSED_SWITCH'),
+            'gv8_no_sw'         : epics.PV('18ID:BLEPS:GV8_NO_SWITCH'),
+            'gv8_fail_open'     : epics.PV('18ID:BLEPS:GV8_FAIL_TO_OPEN'),
+            'gv8_fail_close'    : epics.PV('18ID:BLEPS:GV8_FAIL_TO_CLOSE'),
+            'gv8_fully_open'    : epics.PV('18ID:BLEPS:GV8_FULLY_OPEN'),
+            'gv8_fully_close'   : epics.PV('18ID:BLEPS:GV8_FULLY_CLOSE'),
+            'gv8_beam_exp'      : epics.PV('18ID:BLEPS:GV8_BEAM_EXPOSURE'),
+            'gv8_open'          : epics.PV('18ID:BLEPS:GV8_EPICS_OPEN'),
+            'gv8_close'         : epics.PV('18ID:BLEPS:GV8_EPICS_CLOSE'),
             'comm_fault'        : epics.PV('18ID:BLEPS:COMMUNICATIONS_FAULT'),
             'plc_battery_wrn'   : epics.PV('18ID:BLEPS:PLC_BATTERY_DEAD_WRN'),
-            # 'ps1_wrn'           : epics.PV('18ID:BLEPS:PS_1_WARNING'),
-            # 'ps2_wrn'           : epics.PV('18ID:BLEPS:PS_2_WARNING'),
-            # 'or_wrn'            : epics.PV('18ID:BLEPS:OR_WARNING'),
+            'ps1_wrn'           : epics.PV('18ID:BLEPS:PS_1_WARNING'),
+            'ps2_wrn'           : epics.PV('18ID:BLEPS:PS_2_WARNING'),
+            'or_wrn'            : epics.PV('18ID:BLEPS:OR_WARNING'),
             'biv_fail_close'    : epics.PV('18ID:BLEPS:BIV_FAIL_TO_CLOSE'),
             'fes_fail_close'    : epics.PV('18ID:BLEPS:FES_FAIL_TO_CLOSE'),
             'sds_fail_close'    : epics.PV('18ID:BLEPS:SDS_FAIL_TO_CLOSE'),
@@ -361,6 +376,8 @@ class MainStatusPanel(wx.Panel):
             'vac8_ig_warn'      : epics.PV('18ID:BLEPS:IG8_WARNING'),
             'vac9_ig_warn'      : epics.PV('18ID:BLEPS:IG9_WARNING'),
             'vac10_ig_warn'     : epics.PV('18ID:BLEPS:IG10_WARNING'),
+            'vac11_ig_warn'     : epics.PV('18ID:BLEPS:IG11_WARNING'),
+            'vac12_ig_warn'     : epics.PV('18ID:BLEPS:IG12_WARNING'),
             'vac1_ig_status'    : epics.PV('18ID:BLEPS:IG1_STATUS'),
             'vac2_ig_status'    : epics.PV('18ID:BLEPS:IG2_STATUS'),
             'vac3_ig_status'    : epics.PV('18ID:BLEPS:IG3_STATUS'),
@@ -371,6 +388,8 @@ class MainStatusPanel(wx.Panel):
             'vac8_ig_status'    : epics.PV('18ID:BLEPS:IG8_STATUS'),
             'vac9_ig_status'    : epics.PV('18ID:BLEPS:IG9_STATUS'),
             'vac10_ig_status'   : epics.PV('18ID:BLEPS:IG10_STATUS'),
+            'vac11_ig_status'   : epics.PV('18ID:BLEPS:IG11_STATUS'),
+            'vac12_ig_status'   : epics.PV('18ID:BLEPS:IG12_STATUS'),
             'flow1_rate'        : epics.PV('18ID:BLEPS:FLOW1_CURRENT'),
             'flow1_status'      : epics.PV('18ID:BLEPS:FLOW1_STATUS'),
             'flow1_setpoint'    : epics.PV('18ID:BLEPS:FLOW1_SET_POINT'),
@@ -636,25 +655,32 @@ class OverviewPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         aps_box.SetOwnFont(font)
 
-        aps_status = epics.wx.PVText(aps_box, self.pvs['aps_status'],
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        aps_panel = wx.Panel(aps_box)
+        aps_panel.SetFont(font)
+
+        aps_status = epics.wx.PVText(aps_panel, self.pvs['aps_status'],
             fg='forest green')
-        beam_current = epics.wx.PVText(aps_box, self.pvs['current'],
+        beam_current = epics.wx.PVText(aps_panel, self.pvs['current'],
             auto_units=True, fg='forest green')
 
         aps_sub_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        aps_sub_sizer.Add(wx.StaticText(aps_box, label='Beam current:'), border=5,
+        aps_sub_sizer.Add(wx.StaticText(aps_panel, label='Beam current:'), border=5,
             flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer.Add(beam_current, border=5,
             flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer.AddSpacer(10)
-        aps_sub_sizer.Add(wx.StaticText(aps_box, label='APS beam status:'),
+        aps_sub_sizer.Add(wx.StaticText(aps_panel, label='APS beam status:'),
             border=5, flag=wx.RIGHT|wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer.Add(aps_status, border=5,
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer.AddStretchSpacer(1)
 
+        aps_panel.SetSizer(aps_sub_sizer)
+
         aps_sizer = wx.StaticBoxSizer(aps_box, wx.VERTICAL)
-        aps_sizer.Add(aps_sub_sizer, flag=wx.ALL, border=5)
+        aps_sizer.Add(aps_panel, flag=wx.ALL, border=5)
         aps_sizer.AddStretchSpacer(1)
 
 
@@ -663,29 +689,34 @@ class OverviewPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         bleps_box.SetOwnFont(font)
 
-        bleps_fault = epics.wx.PVText(bleps_box, self.pvs['bleps_fault'],
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        bleps_panel = wx.Panel(bleps_box)
+        bleps_panel.SetFont(font)
+
+        bleps_fault = epics.wx.PVText(bleps_panel, self.pvs['bleps_fault'],
             fg='forest green')
-        bleps_trip = epics.wx.PVText(bleps_box, self.pvs['bleps_trip'],
+        bleps_trip = epics.wx.PVText(bleps_panel, self.pvs['bleps_trip'],
             fg='forest green')
-        bleps_warning = epics.wx.PVText(bleps_box, self.pvs['bleps_warning'],
+        bleps_warning = epics.wx.PVText(bleps_panel, self.pvs['bleps_warning'],
             fg='forest green')
-        bleps_fault_reset = epics.wx.PVButton(bleps_box,
+        bleps_fault_reset = epics.wx.PVButton(bleps_panel,
             self.pvs['bleps_fault_reset'], label='Reset Fault')
-        bleps_trip_reset = epics.wx.PVButton(bleps_box,
+        bleps_trip_reset = epics.wx.PVButton(bleps_panel,
             self.pvs['bleps_trip_reset'], label='Reset Trip')
 
         bleps_grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS fault:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS fault:'),
             pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_fault, pos=(0,1),
             flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add((5, 0), (0,2))
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS trip:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS trip:'),
             pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_trip, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add((5, 0), (0,5))
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS warning:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS warning:'),
             pos=(0,6), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_warning, pos=(0,7),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -694,8 +725,10 @@ class OverviewPanel(wx.Panel):
         bleps_grid_sizer.Add(bleps_trip_reset, pos=(1,3), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
+        bleps_panel.SetSizer(bleps_grid_sizer)
+
         bleps_sizer = wx.StaticBoxSizer(bleps_box, wx.HORIZONTAL)
-        bleps_sizer.Add(bleps_grid_sizer, proportion=0, flag=wx.ALL|wx.EXPAND,
+        bleps_sizer.Add(bleps_panel, proportion=0, flag=wx.ALL|wx.EXPAND,
             border=5)
         bleps_sizer.AddStretchSpacer(1)
 
@@ -704,17 +737,22 @@ class OverviewPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         station_box.SetOwnFont(font)
 
-        fe_shutter = custom_epics_widgets.PVTextLabeled(station_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        station_panel = wx.Panel(station_box)
+        station_panel.SetFont(font)
+
+        fe_shutter = custom_epics_widgets.PVTextLabeled(station_panel,
             self.pvs['fe_shutter'], fg='forest green')
-        d_shutter = custom_epics_widgets.PVTextLabeled(station_box,
+        d_shutter = custom_epics_widgets.PVTextLabeled(station_panel,
             self.pvs['d_shutter'], fg='forest green')
-        fe_shutter_open = custom_epics_widgets.PVButton2(station_box,
+        fe_shutter_open = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['fe_shutter_open'], label='Open', size=(50, -1))
-        fe_shutter_close = custom_epics_widgets.PVButton2(station_box,
+        fe_shutter_close = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['fe_shutter_close'], label='Close', size=(50, -1))
-        d_shutter_open = custom_epics_widgets.PVButton2(station_box,
+        d_shutter_open = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['d_shutter_open'], label='Open', size=(50, -1))
-        d_shutter_close = custom_epics_widgets.PVButton2(station_box,
+        d_shutter_close = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['d_shutter_close'], label='Close', size=(50, -1))
 
         fe_shutter.SetTranslations({'OFF': 'Closed', 'ON': 'Open'})
@@ -731,12 +769,12 @@ class OverviewPanel(wx.Panel):
         d_shtr_ctrl.Add(d_shutter_close, border=5, flag=wx.RIGHT)
 
         station_grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        station_grid_sizer.Add(wx.StaticText(station_box, label='D shutter:'),
+        station_grid_sizer.Add(wx.StaticText(station_panel, label='D shutter:'),
             pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(d_shutter, pos=(0,1),
             flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(5, -1, pos=(0,2))
-        station_grid_sizer.Add(wx.StaticText(station_box, label='A shutter:'),
+        station_grid_sizer.Add(wx.StaticText(station_panel, label='A shutter:'),
             pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(fe_shutter, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -745,8 +783,10 @@ class OverviewPanel(wx.Panel):
         station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 0), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
+        station_panel.SetSizer(station_grid_sizer)
+
         station_sizer = wx.StaticBoxSizer(station_box, wx.HORIZONTAL)
-        station_sizer.Add(station_grid_sizer, proportion=0, flag=wx.EXPAND|wx.ALL,
+        station_sizer.Add(station_panel, proportion=0, flag=wx.EXPAND|wx.ALL,
             border=5)
         station_sizer.AddStretchSpacer(1)
 
@@ -756,11 +796,16 @@ class OverviewPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         exp_box.SetOwnFont(font)
 
-        exp_slow_shtr1 = custom_epics_widgets.PVTextLabeled(exp_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        exp_panel = wx.Panel(exp_box)
+        exp_panel.SetFont(font)
+
+        exp_slow_shtr1 = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['exp_slow_shtr1'], fg='forest green')
-        exp_slow_shtr2 = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_slow_shtr2 = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['exp_slow_shtr2'], fg='forest green')
-        exp_fast_shtr = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_fast_shtr = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['exp_fast_shtr'], fg='forest green')
 
         exp_slow_shtr1.SetTranslations({'Low': 'Open', 'High': 'Closed'})
@@ -771,57 +816,59 @@ class OverviewPanel(wx.Panel):
         exp_slow_shtr2.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
         exp_fast_shtr.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
 
-        exp_col_vac = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_col_vac = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['col_vac'], scale=1000, do_round=True)
-        exp_guard_vac = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_guard_vac = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['guard_vac'], scale=1000, do_round=True)
-        exp_scatter_vac = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_scatter_vac = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['scatter_vac'], scale=1000, do_round=True)
-        exp_sample_vac = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_sample_vac = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['sample_vac'], scale=1000, do_round=True)
 
-        exp_i0 = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_i0 = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['i0'], do_round=True, sig_fig=2)
-        exp_i1 = custom_epics_widgets.PVTextLabeled(exp_box,
+        exp_i1 = custom_epics_widgets.PVTextLabeled(exp_panel,
             self.pvs['i1'], do_round=True, sig_fig=2)
 
         exp_grid_sizer = wx.FlexGridSizer(cols=8, hgap=5, vgap=5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Slow shutter 1:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Slow shutter 1:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_slow_shtr1, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Slow shutter 2:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Slow shutter 2:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_slow_shtr2, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Fast shutter:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Fast shutter:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_fast_shtr, flag=wx.ALIGN_CENTER_VERTICAL)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Col. Vac. [mTorr]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Col. Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_col_vac, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Guard Vac. [mTorr]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Guard Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_guard_vac, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='Sample Vac.[mTorr]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='Sample Vac.[mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_sample_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='S.C. Vac.[mTorr]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='S.C. Vac.[mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_scatter_vac, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='I0 [V]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='I0 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_i0, flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.AddSpacer(5)
-        exp_grid_sizer.Add(wx.StaticText(exp_box, label='I1 [V]:'),
+        exp_grid_sizer.Add(wx.StaticText(exp_panel, label='I1 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         exp_grid_sizer.Add(exp_i1, flag=wx.ALIGN_CENTER_VERTICAL)
 
+        exp_panel.SetSizer(exp_grid_sizer)
+
         exp_sizer = wx.StaticBoxSizer(exp_box, wx.VERTICAL)
-        exp_sizer.Add(exp_grid_sizer, proportion=0, flag=wx.EXPAND|wx.ALL,
+        exp_sizer.Add(exp_panel, proportion=0, flag=wx.EXPAND|wx.ALL,
             border=5)
         exp_sizer.AddStretchSpacer(1)
 
@@ -872,29 +919,34 @@ class BLEPSPanel(wx.ScrolledWindow):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         bleps_box.SetOwnFont(font)
 
-        bleps_fault = epics.wx.PVText(bleps_box, self.pvs['bleps_fault'],
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        bleps_panel = wx.Panel(bleps_box)
+        bleps_panel.SetFont(font)
+
+        bleps_fault = epics.wx.PVText(bleps_panel, self.pvs['bleps_fault'],
             fg='forest green')
-        bleps_trip = epics.wx.PVText(bleps_box, self.pvs['bleps_trip'],
+        bleps_trip = epics.wx.PVText(bleps_panel, self.pvs['bleps_trip'],
             fg='forest green')
-        bleps_warning = epics.wx.PVText(bleps_box, self.pvs['bleps_warning'],
+        bleps_warning = epics.wx.PVText(bleps_panel, self.pvs['bleps_warning'],
             fg='forest green')
-        bleps_fault_reset = epics.wx.PVButton(bleps_box,
+        bleps_fault_reset = epics.wx.PVButton(bleps_panel,
             self.pvs['bleps_fault_reset'], label='Reset Fault')
-        bleps_trip_reset = epics.wx.PVButton(bleps_box,
+        bleps_trip_reset = epics.wx.PVButton(bleps_panel,
             self.pvs['bleps_trip_reset'], label='Reset Trip')
 
         bleps_grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS fault:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS fault:'),
             pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_fault, pos=(0,1),
             flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add((5, 0), (0,2))
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS trip:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS trip:'),
             pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_trip, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add((5, 0), (0,5))
-        bleps_grid_sizer.Add(wx.StaticText(bleps_box, label='BLEPS warning:'),
+        bleps_grid_sizer.Add(wx.StaticText(bleps_panel, label='BLEPS warning:'),
             pos=(0,6), flag=wx.ALIGN_CENTER_VERTICAL)
         bleps_grid_sizer.Add(bleps_warning, pos=(0,7),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -903,8 +955,10 @@ class BLEPSPanel(wx.ScrolledWindow):
         bleps_grid_sizer.Add(bleps_trip_reset, pos=(1,3), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
+        bleps_panel.SetSizer(bleps_grid_sizer)
+
         bleps_sizer = wx.StaticBoxSizer(bleps_box, wx.HORIZONTAL)
-        bleps_sizer.Add(bleps_grid_sizer, proportion=0, flag=wx.ALL|wx.EXPAND,
+        bleps_sizer.Add(bleps_panel, proportion=0, flag=wx.ALL|wx.EXPAND,
             border=5)
         bleps_sizer.AddStretchSpacer(1)
 
@@ -912,57 +966,94 @@ class BLEPSPanel(wx.ScrolledWindow):
         fsize = self.GetFont().Larger().GetPointSize()
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         misc_box.SetOwnFont(font)
-        comm_fault = epics.wx.PVText(misc_box, self.pvs['comm_fault'],
+
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        misc_panel = wx.Panel(misc_box)
+        misc_panel.SetFont(font)
+
+        comm_fault = epics.wx.PVText(misc_panel, self.pvs['comm_fault'],
             fg='forest green')
-        plc_battery_wrn = epics.wx.PVText(misc_box, self.pvs['plc_battery_wrn'],
+        plc_battery_wrn = epics.wx.PVText(misc_panel, self.pvs['plc_battery_wrn'],
             fg='forest green')
-        # ps1_wrn = epics.wx.PVText(misc_box, self.pvs['ps1_wrn'],
-        #     fg='forest green')
-        # ps2_wrn = epics.wx.PVText(misc_box, self.pvs['ps2_wrn'],
-        #     fg='forest green')
-        # or_wrn = epics.wx.PVText(misc_box, self.pvs['or_wrn'],
-        #     fg='forest green')
-        biv_fail_close = epics.wx.PVText(misc_box, self.pvs['biv_fail_close'],
+        ps1_wrn = epics.wx.PVText(misc_panel, self.pvs['ps1_wrn'],
             fg='forest green')
-        fes_fail_close = epics.wx.PVText(misc_box, self.pvs['fes_fail_close'],
+        ps2_wrn = epics.wx.PVText(misc_panel, self.pvs['ps2_wrn'],
             fg='forest green')
-        sds_fail_close = epics.wx.PVText(misc_box, self.pvs['sds_fail_close'],
+        or_wrn = epics.wx.PVText(misc_panel, self.pvs['or_wrn'],
+            fg='forest green')
+        biv_fail_close = epics.wx.PVText(misc_panel, self.pvs['biv_fail_close'],
+            fg='forest green')
+        fes_fail_close = epics.wx.PVText(misc_panel, self.pvs['fes_fail_close'],
+            fg='forest green')
+        sds_fail_close = epics.wx.PVText(misc_panel, self.pvs['sds_fail_close'],
             fg='forest green')
 
-        misc_grid = wx.FlexGridSizer(cols=11, vgap=10, hgap=5)
-        misc_grid.Add(wx.StaticText(misc_box, label='Comm. fault:'),
+        misc_grid = wx.FlexGridSizer(cols=8, vgap=10, hgap=5)
+        misc_grid.Add(wx.StaticText(misc_panel, label='Comm. fault:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         misc_grid.Add(comm_fault)
-        misc_grid.AddSpacer(5)
-        misc_grid.Add(wx.StaticText(misc_box, label='Battery wrn.:'),
+        misc_grid.Add(wx.StaticText(misc_panel, label='Battery wrn.:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         misc_grid.Add(plc_battery_wrn)
-        misc_grid.AddSpacer(5)
-        # misc_grid.Add(wx.StaticText(misc_box, label='P.S. 1 wrn.:'),
-        #     flag=wx.ALIGN_CENTER_VERTICAL)
-        # misc_grid.Add(ps1_wrn)
-        # misc_grid.AddSpacer(5)
-        # misc_grid.Add(wx.StaticText(misc_box, label='P.S. 2 wrn.:'),
-        #     flag=wx.ALIGN_CENTER_VERTICAL)
-        # misc_grid.Add(ps2_wrn)
-        # misc_grid.AddSpacer(5)
-        # misc_grid.Add(wx.StaticText(misc_box, label='OR Module wrn.:'),
-        #     flag=wx.ALIGN_CENTER_VERTICAL)
-        # misc_grid.Add(or_wrn)
-        # misc_grid.AddSpacer(5)
-        misc_grid.Add(wx.StaticText(misc_box, label='BIV fail to close:'),
+        misc_grid.Add(wx.StaticText(misc_panel, label='PS 1 wrn.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(ps1_wrn)
+        misc_grid.Add(wx.StaticText(misc_panel, label='PS 2 wrn.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(ps2_wrn)
+        misc_grid.Add(wx.StaticText(misc_panel, label='OR Module wrn.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        misc_grid.Add(or_wrn)
+        misc_grid.Add(wx.StaticText(misc_panel, label='BIV fail to close:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         misc_grid.Add(biv_fail_close)
-        misc_grid.AddSpacer(5)
-        misc_grid.Add(wx.StaticText(misc_box, label='FES fail to close:'),
+        misc_grid.Add(wx.StaticText(misc_panel, label='FES fail to close:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         misc_grid.Add(fes_fail_close)
-        misc_grid.Add(wx.StaticText(misc_box, label='SDS fail to close:'),
+        misc_grid.Add(wx.StaticText(misc_panel, label='SDS fail to close:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         misc_grid.Add(sds_fail_close)
 
+        misc_panel.SetSizer(misc_grid)
+
         misc_sizer = wx.StaticBoxSizer(misc_box, wx.VERTICAL)
-        misc_sizer.Add(misc_grid, flag=wx.ALL|wx.EXPAND, border=5)
+        misc_sizer.Add(misc_panel, flag=wx.ALL|wx.EXPAND, border=5)
+
+
+        screen_box = wx.StaticBox(self, label='Fluorescent Screen')
+        fsize = self.GetFont().Larger().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        screen_box.SetOwnFont(font)
+        screen_sizer = wx.StaticBoxSizer(screen_box, wx.VERTICAL)
+
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        screen_panel = wx.Panel(screen_box)
+        screen_panel.SetFont(font)
+
+        screen_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        screen_status = epics.wx.PVText(screen_panel,
+            self.pvs['fls_status'], fg='forest green')
+
+        screen_out = custom_epics_widgets.PVButton2(screen_panel,
+            self.pvs['fls_out'], label='Out', size=(50, -1))
+        screen_in = custom_epics_widgets.PVButton2(screen_panel,
+            self.pvs['fls_in'], label='In', size=(50, -1))
+
+        screen_panel_sizer.Add(wx.StaticText(screen_panel, label='Status:'),
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, border=5)
+        screen_panel_sizer.Add(screen_status, border=5,
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT)
+        screen_panel_sizer.Add(screen_out, border=5,
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT)
+        screen_panel_sizer.Add(screen_in, flag=wx.ALIGN_CENTER_VERTICAL)
+        screen_panel_sizer.AddStretchSpacer(1)
+
+        screen_panel.SetSizer(screen_panel_sizer)
+        screen_sizer.Add(screen_panel, flag=wx.EXPAND|wx.ALL, border=5)
+
 
         gate_valve_box = wx.StaticBox(self, label='Gate Valves')
         fsize = self.GetFont().Larger().GetPointSize()
@@ -971,7 +1062,7 @@ class BLEPSPanel(wx.ScrolledWindow):
         gate_valve_sizer = wx.StaticBoxSizer(gate_valve_box, wx.VERTICAL)
 
         gate_valve_layout = wx.FlexGridSizer(cols=3, vgap=5, hgap=5)
-        for i in range(1, 8):
+        for i in range(1, 9):
             gate_valve_layout.Add(self.make_gv_sizer(gate_valve_box, i))
 
         gate_valve_sizer.Add(gate_valve_layout, flag=wx.EXPAND|wx.ALL, border=5)
@@ -1053,7 +1144,7 @@ class BLEPSPanel(wx.ScrolledWindow):
         vac_ig_box.SetOwnFont(font)
 
         vac_ig_warn_layout = wx.FlexGridSizer(cols=4, vgap=10, hgap=10)
-        for i in range(1, 11):
+        for i in range(1, 13):
             vac_ig_warn_layout.Add(self.make_vac_ig_warn_sizer(vac_ig_box, i))
 
         vac_ig_sizer = wx.StaticBoxSizer(vac_ig_box, wx.VERTICAL)
@@ -1099,6 +1190,7 @@ class BLEPSPanel(wx.ScrolledWindow):
 
         sub_sizer1 = wx.BoxSizer(wx.VERTICAL)
         sub_sizer1.Add(bleps_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
+        sub_sizer1.Add(screen_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
         sub_sizer1.Add(gate_valve_sizer, flag=wx.EXPAND|wx.BOTTOM, border=5)
         sub_sizer1.Add(stack_sizer, flag=wx.EXPAND)
 
@@ -1397,34 +1489,44 @@ class BLEPSPanel(wx.ScrolledWindow):
 
     def make_pv_datetime(self, parent):
 
-        year = epics.wx.PVText(parent, self.pvs['plc_year'])
-        month = epics.wx.PVText(parent, self.pvs['plc_month'])
-        day = epics.wx.PVText(parent, self.pvs['plc_day'])
-        hour = epics.wx.PVText(parent, self.pvs['plc_hour'])
-        mi = epics.wx.PVText(parent, self.pvs['plc_mi'])
-        sec = epics.wx.PVText(parent, self.pvs['plc_sec'])
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        datetime_panel = wx.Panel(parent)
+        datetime_panel.SetFont(font)
+
+        year = epics.wx.PVText(datetime_panel, self.pvs['plc_year'])
+        month = epics.wx.PVText(datetime_panel, self.pvs['plc_month'])
+        day = epics.wx.PVText(datetime_panel, self.pvs['plc_day'])
+        hour = epics.wx.PVText(datetime_panel, self.pvs['plc_hour'])
+        mi = epics.wx.PVText(datetime_panel, self.pvs['plc_mi'])
+        sec = epics.wx.PVText(datetime_panel, self.pvs['plc_sec'])
 
         date_sizer = wx.BoxSizer(wx.HORIZONTAL)
         date_sizer.Add(year, flag=wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(wx.StaticText(parent, label='/'),
+        date_sizer.Add(wx.StaticText(datetime_panel, label='/'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         date_sizer.Add(month, flag=wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(wx.StaticText(parent, label='/'),
+        date_sizer.Add(wx.StaticText(datetime_panel, label='/'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         date_sizer.Add(day, flag=wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, border=10)
 
         date_sizer.Add(hour, flag=wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(wx.StaticText(parent, label=':'),
+        date_sizer.Add(wx.StaticText(datetime_panel, label=':'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         date_sizer.Add(mi, flag=wx.ALIGN_CENTER_VERTICAL)
-        date_sizer.Add(wx.StaticText(parent, label=':'),
+        date_sizer.Add(wx.StaticText(datetime_panel, label=':'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         date_sizer.Add(sec, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(wx.StaticText(parent, label='Current PLC time:'),
+        panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        panel_sizer.Add(wx.StaticText(datetime_panel, label='Current PLC time:'),
             flag=wx.BOTTOM, border=5)
-        top_sizer.Add(date_sizer)
+        panel_sizer.Add(date_sizer)
+
+        datetime_panel.SetSizer(panel_sizer)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(datetime_panel)
 
         return top_sizer
 
@@ -1466,44 +1568,54 @@ class APSPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         aps_box.SetOwnFont(font)
 
-        aps_status = epics.wx.PVText(aps_box, self.pvs['aps_status'],
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        aps_panel = wx.Panel(aps_box)
+        aps_panel.SetFont(font)
+
+        aps_status = epics.wx.PVText(aps_panel, self.pvs['aps_status'],
             fg='forest green')
-        aps_expected_status = epics.wx.PVText(aps_box, self.pvs['aps_nominal'])
-        beam_current = epics.wx.PVText(aps_box, self.pvs['current'],
+        aps_expected_status = epics.wx.PVText(aps_panel, self.pvs['aps_nominal'])
+        beam_current = epics.wx.PVText(aps_panel, self.pvs['current'],
             auto_units=True, fg='forest green')
-        shutter_permit = epics.wx.PVText(aps_box, self.pvs['aps_shutter_permit'],
+        shutter_permit = epics.wx.PVText(aps_panel, self.pvs['aps_shutter_permit'],
             fg='forest green')
-        self.aps_msg = wx.StaticText(aps_box)
+        self.aps_msg = wx.StaticText(aps_panel)
         self.aps_msg.Wrap(60)
-        # next_update = epics.wx.PVText(aps_box, self.pvs['aps_update_msg'])
+        # next_update = epics.wx.PVText(aps_panel, self.pvs['aps_update_msg'])
 
         aps_sub_sizer1 = wx.FlexGridSizer(cols=2, vgap=5, hgap=5)
-        aps_sub_sizer1.Add(wx.StaticText(aps_box, label='Beam current:'),
+        aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='Beam current:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer1.Add(beam_current, flag=wx.ALIGN_CENTER_VERTICAL)
-        aps_sub_sizer1.Add(wx.StaticText(aps_box, label='Current status:'),
+        aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='Current status:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer1.Add(aps_status, flag=wx.ALIGN_CENTER_VERTICAL)
-        aps_sub_sizer1.Add(wx.StaticText(aps_box, label='APS Mode:'),
+        aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='APS Mode:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer1.Add(aps_expected_status, flag=wx.ALIGN_CENTER_VERTICAL)
-        aps_sub_sizer1.Add(wx.StaticText(aps_box, label='Shutter permit:'),
+        aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='Shutter permit:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer1.Add(shutter_permit, flag=wx.ALIGN_CENTER_VERTICAL)
-        aps_sub_sizer1.Add(wx.StaticText(aps_box, label='Operator msg.:'),
+        aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='Operator msg.:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         aps_sub_sizer1.Add(self.aps_msg, flag=wx.ALIGN_CENTER_VERTICAL)
-        # aps_sub_sizer1.Add(wx.StaticText(aps_box, label='Next update:'))
+        # aps_sub_sizer1.Add(wx.StaticText(aps_panel, label='Next update:'))
         # aps_sub_sizer1.Add(next_update, flag=wx.ALIGN_CENTER_VERTICAL)
 
         aps_sub_sizer2 = wx.BoxSizer(wx.VERTICAL)
-        aps_sub_sizer2.Add(self._make_beam_current_plot(aps_box),
+        aps_sub_sizer2.Add(self._make_beam_current_plot(aps_panel),
             proportion=1, flag=wx.EXPAND)
 
-        aps_sizer = wx.StaticBoxSizer(aps_box, wx.HORIZONTAL)
-        aps_sizer.Add(aps_sub_sizer1, flag=wx.ALL, border=5)
-        aps_sizer.Add(aps_sub_sizer2, proportion=1, flag=wx.ALL|wx.EXPAND,
+        panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        panel_sizer.Add(aps_sub_sizer1, flag=wx.ALL, border=5)
+        panel_sizer.Add(aps_sub_sizer2, proportion=1, flag=wx.ALL|wx.EXPAND,
             border=5)
+
+        aps_panel.SetSizer(panel_sizer)
+
+        aps_sizer = wx.StaticBoxSizer(aps_box, wx.HORIZONTAL)
+        aps_sizer.Add(aps_panel, proportion=1, flag=wx.EXPAND)
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(aps_sizer, proportion=1, flag=wx.ALL|wx.EXPAND, border=5)
@@ -1541,7 +1653,6 @@ class APSPanel(wx.Panel):
         y_vals = self.pvs['aps_bc_current'].get()
         # self.bc_hist_line = self.bc_hist_plot.plot(self.pvs['aps_bc_time'].get(),
         #     y_vals)
-        print(y_vals)
         self.bc_hist_plot.fill_between(self.pvs['aps_bc_time'].get(), 0,
             y_vals)
         self.bc_hist_plot.set_ylim(min(min(y_vals)*0.98, 95), max(y_vals)*1.002)
@@ -1578,8 +1689,8 @@ class APSPanel(wx.Panel):
 
     def _make_bpm_sizer(self, parent):
         bpm_box = wx.StaticBox(parent, label='APS BPMS')
-        rf_bpm_box = wx.StaticBox(bpm_box, label='RF BPMS')
-        x_bpm_box = wx.StaticBox(bpm_box, label='X-ray BPMS')
+        # rf_bpm_box = wx.StaticBox(bpm_box, label='RF BPMS')
+        # x_bpm_box = wx.StaticBox(bpm_box, label='X-ray BPMS')
 
         # rf_bpm_18b_p0_x = epics.wx.PVText(rf_bpm_box, self.pvs['rf_bpm_18b_p0_x'],
         #     fg='forest green')
@@ -1699,17 +1810,22 @@ class StationPanel(wx.ScrolledWindow):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         station_box.SetOwnFont(font)
 
-        fe_shutter = custom_epics_widgets.PVTextLabeled(station_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        station_panel = wx.Panel(station_box)
+        station_panel.SetFont(font)
+
+        fe_shutter = custom_epics_widgets.PVTextLabeled(station_panel,
             self.pvs['fe_shutter'], fg='forest green')
-        d_shutter = custom_epics_widgets.PVTextLabeled(station_box,
+        d_shutter = custom_epics_widgets.PVTextLabeled(station_panel,
             self.pvs['d_shutter'], fg='forest green')
-        fe_shutter_open = custom_epics_widgets.PVButton2(station_box,
+        fe_shutter_open = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['fe_shutter_open'], label='Open', size=(50, -1))
-        fe_shutter_close = custom_epics_widgets.PVButton2(station_box,
+        fe_shutter_close = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['fe_shutter_close'], label='Close', size=(50, -1))
-        d_shutter_open = custom_epics_widgets.PVButton2(station_box,
+        d_shutter_open = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['d_shutter_open'], label='Open', size=(50, -1))
-        d_shutter_close = custom_epics_widgets.PVButton2(station_box,
+        d_shutter_close = custom_epics_widgets.PVButton2(station_panel,
             self.pvs['d_shutter_close'], label='Close', size=(50, -1))
 
         fe_shutter.SetTranslations({'OFF': 'Closed', 'ON': 'Open'})
@@ -1726,12 +1842,12 @@ class StationPanel(wx.ScrolledWindow):
         d_shtr_ctrl.Add(d_shutter_close, border=5, flag=wx.RIGHT)
 
         station_grid_sizer = wx.GridBagSizer(vgap=5, hgap=5)
-        station_grid_sizer.Add(wx.StaticText(station_box, label='D shutter:'),
+        station_grid_sizer.Add(wx.StaticText(station_panel, label='D shutter:'),
             pos=(0,0), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(d_shutter, pos=(0,1),
             flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(5, -1, pos=(0,2))
-        station_grid_sizer.Add(wx.StaticText(station_box, label='A shutter:'),
+        station_grid_sizer.Add(wx.StaticText(station_panel, label='A shutter:'),
             pos=(0,3), flag=wx.ALIGN_CENTER_VERTICAL)
         station_grid_sizer.Add(fe_shutter, pos=(0,4),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -1740,8 +1856,10 @@ class StationPanel(wx.ScrolledWindow):
         station_grid_sizer.Add(d_shtr_ctrl, pos=(1, 0), span=(0, 2),
             flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 
+        station_panel.SetSizer(station_grid_sizer)
+
         station_sizer = wx.StaticBoxSizer(station_box, wx.HORIZONTAL)
-        station_sizer.Add(station_grid_sizer, proportion=0, flag=wx.EXPAND|wx.ALL,
+        station_sizer.Add(station_panel, proportion=0, flag=wx.EXPAND|wx.ALL,
             border=5)
         station_sizer.AddStretchSpacer(1)
 
@@ -2064,41 +2182,48 @@ class ExpPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         vac_box.SetOwnFont(font)
 
-        col_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        vac_panel = wx.Panel(vac_box)
+        vac_panel.SetFont(font)
+
+        col_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['col_vac'], scale=1000, do_round=True)
-        guard_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        guard_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['guard_vac'], scale=1000, do_round=True)
-        scatter_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        scatter_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['scatter_vac'], scale=1000, do_round=True)
-        sample_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        sample_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['sample_vac'], scale=1000, do_round=True)
-        vs1_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        vs1_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['vs1_vac'], scale=1000, do_round=True)
-        vs2_vac = custom_epics_widgets.PVTextLabeled(vac_box,
+        vs2_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['vs2_vac'], scale=1000, do_round=True)
 
         vac_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
-        vac_layout.Add(wx.StaticText(vac_box, label='Col. Vac. [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='Col. Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(col_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='Guard Vac. [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='Guard Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(guard_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='Sample Vac. [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='Sample Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(sample_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='S.C. Vac. [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='S.C. Vac. [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(scatter_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='Vac Sec. 1 [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='Vac Sec. 1 [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(vs1_vac, flag=wx.ALIGN_CENTER_VERTICAL)
-        vac_layout.Add(wx.StaticText(vac_box, label='Vac Sec. 2 [mTorr]:'),
+        vac_layout.Add(wx.StaticText(vac_panel, label='Vac Sec. 2 [mTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(vs2_vac, flag=wx.ALIGN_CENTER_VERTICAL)
 
+        vac_panel.SetSizer(vac_layout)
+
         vac_sizer = wx.StaticBoxSizer(vac_box, wx.VERTICAL)
-        vac_sizer.Add(vac_layout, flag=wx.ALL|wx.EXPAND, border=5)
+        vac_sizer.Add(vac_panel, flag=wx.ALL|wx.EXPAND, border=5)
 
         return vac_sizer
 
@@ -2108,11 +2233,16 @@ class ExpPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         shutter_box.SetOwnFont(font)
 
-        slow_shtr1 = custom_epics_widgets.PVTextLabeled(shutter_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        shutter_panel = wx.Panel(shutter_box)
+        shutter_panel.SetFont(font)
+
+        slow_shtr1 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['exp_slow_shtr1'], fg='forest green')
-        slow_shtr2 = custom_epics_widgets.PVTextLabeled(shutter_box,
+        slow_shtr2 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['exp_slow_shtr2'], fg='forest green')
-        fast_shtr = custom_epics_widgets.PVTextLabeled(shutter_box,
+        fast_shtr = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['exp_fast_shtr'], fg='forest green')
 
         slow_shtr1.SetTranslations({'Low': 'Open', 'High': 'Closed'})
@@ -2123,30 +2253,32 @@ class ExpPanel(wx.Panel):
         slow_shtr2.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
         fast_shtr.SetForegroundColourTranslations({'Open': 'forest green', 'Closed': 'red'})
 
-        i0 = custom_epics_widgets.PVTextLabeled(shutter_box,
+        i0 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['i0'], do_round=True, sig_fig=2)
-        i1 = custom_epics_widgets.PVTextLabeled(shutter_box,
+        i1 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['i1'], do_round=True, sig_fig=2)
 
         shutter_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
-        shutter_layout.Add(wx.StaticText(shutter_box, label='Slow shutter 1:'),
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='Slow shutter 1:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(slow_shtr1, flag=wx.ALIGN_CENTER_VERTICAL)
-        shutter_layout.Add(wx.StaticText(shutter_box, label='Slow shutter 2:'),
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='Slow shutter 2:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(slow_shtr2, flag=wx.ALIGN_CENTER_VERTICAL)
-        shutter_layout.Add(wx.StaticText(shutter_box, label='Fast shutter:'),
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='Fast shutter:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(fast_shtr, flag=wx.ALIGN_CENTER_VERTICAL)
-        shutter_layout.Add(wx.StaticText(shutter_box, label='I0 [V]:'),
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I0 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(i0, flag=wx.ALIGN_CENTER_VERTICAL)
-        shutter_layout.Add(wx.StaticText(shutter_box, label='I1 [V]:'),
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I1 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(i1, flag=wx.ALIGN_CENTER_VERTICAL)
 
+        shutter_panel.SetSizer(shutter_layout)
+
         shutter_sizer = wx.StaticBoxSizer(shutter_box, wx.VERTICAL)
-        shutter_sizer.Add(shutter_layout, flag=wx.ALL|wx.EXPAND, border=5)
+        shutter_sizer.Add(shutter_panel, flag=wx.ALL|wx.EXPAND, border=5)
 
         return shutter_sizer
 
@@ -2156,17 +2288,22 @@ class ExpPanel(wx.Panel):
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         atten_box.SetOwnFont(font)
 
-        atten_1 = custom_epics_widgets.PVTextLabeled(atten_box,
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        atten_panel = wx.Panel(atten_box)
+        atten_panel.SetFont(font)
+
+        atten_1 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_1'], fg='forest green')
-        atten_2 = custom_epics_widgets.PVTextLabeled(atten_box,
+        atten_2 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_2'], fg='forest green')
-        atten_4 = custom_epics_widgets.PVTextLabeled(atten_box,
+        atten_4 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_4'], fg='forest green')
-        atten_8 = custom_epics_widgets.PVTextLabeled(atten_box,
+        atten_8 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_8'], fg='forest green')
-        atten_16 = custom_epics_widgets.PVTextLabeled(atten_box,
+        atten_16 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_16'], fg='forest green')
-        atten_32 = custom_epics_widgets.PVTextLabeled(atten_box,
+        atten_32 = custom_epics_widgets.PVTextLabeled(atten_panel,
             self.pvs['atten_32'], fg='forest green')
 
         atten_1.SetTranslations({'High': 'Out', 'Low': 'In'})
@@ -2190,36 +2327,41 @@ class ExpPanel(wx.Panel):
             'In': 'red'})
 
         atten_layout = wx.FlexGridSizer(cols=6, hgap=5, vgap=5)
-        atten_layout.Add(wx.StaticText(atten_box, label='1 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='1 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_1, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_layout.Add(wx.StaticText(atten_box, label='2 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='2 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_2, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_layout.Add(wx.StaticText(atten_box, label='4 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='4 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_4, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_layout.Add(wx.StaticText(atten_box, label='8 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='8 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_8, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_layout.Add(wx.StaticText(atten_box, label='16 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='16 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_16, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_layout.Add(wx.StaticText(atten_box, label='32 foil:'),
+        atten_layout.Add(wx.StaticText(atten_panel, label='32 foil:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_layout.Add(atten_32, flag=wx.ALIGN_CENTER_VERTICAL)
 
 
-        self.transmission = wx.StaticText(atten_box, label='')
+        self.transmission = wx.StaticText(atten_panel, label='')
 
         trans_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        trans_sizer.Add(wx.StaticText(atten_box, label='Nominal Trans. (12 keV):', size=(220,-1)))
-        trans_sizer.Add(self.transmission)
+        trans_sizer.Add(wx.StaticText(atten_panel, label='Nominal Trans. (12 keV):'))
+        trans_sizer.Add(self.transmission, border=5, flag=wx.LEFT)
+
+        panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        panel_sizer.Add(atten_layout, flag=wx.ALL|wx.EXPAND, border=5)
+        panel_sizer.Add(trans_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=5)
+
+        atten_panel.SetSizer(panel_sizer)
 
         atten_sizer = wx.StaticBoxSizer(atten_box, wx.VERTICAL)
-        atten_sizer.Add(atten_layout, flag=wx.ALL|wx.EXPAND, border=5)
-        atten_sizer.Add(trans_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=5)
+        atten_sizer.Add(atten_panel, flag=wx.EXPAND)
 
         return atten_sizer
 
