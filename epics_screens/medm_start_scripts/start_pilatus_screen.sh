@@ -16,5 +16,5 @@ fi
 # Digital IO naming
 # $(DMC)$(R)<Byte or word num><Type Bo or Bi><Bit>
 
-medm -x -noMsg -macro "P=18ID:LJT4:${PREFIX}:" LabJack_T7.adl &
+medm -x -noMsg -macro "P=18IDpil1M:, R=cam1:" pilatusDetector.adl &
 
