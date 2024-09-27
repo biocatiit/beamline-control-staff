@@ -1,0 +1,39 @@
+--- Start BURT header
+Time:     Tue Apr  6 17:06:50 2004
+Login ID: biocat (BioCAT Staff)
+Eff  UID: 500
+Group ID: 500
+Keywords: 
+Comments: No Comment
+Type:     Absolute
+Directory /home/biocat
+Req File: /opt/18id/OMS-VME58/config/temp.req
+--- End BURT header
+18ID:e:M.SSET 1 0
+18ID:e:M.DESC 1 VelmexPos1Vert
+18ID:e:M.EGU 1 degrees
+18ID:e:M.SREV 1 200
+18ID:e:M.MRES 1 2.540000e-02
+18ID:e:M.ERES 1 2.500000e-03
+18ID:e:M.RRES 1 0.000000e+00
+18ID:e:M.VBAS 1 0.000000e+00
+18ID:e:M.VELO 1 1.000000e+00
+18ID:e:M.ACCL 1 1.000000e+00
+18ID:e:M.BDST 1 5.000000e-03
+18ID:e:M.BVEL 1 1.000000e+00
+18ID:e:M.BACC 1 1.000000e+00
+18ID:e:M.FOFF 1 Variable
+18ID:e:M.DIR 1 Pos
+18ID:e:M.OFF 1 0.000000000000000e+00
+18ID:e:M.DHLM 1 5.500000e+01
+18ID:e:M.DLLM 1 -5.500000e+01
+18ID:e:M.TWV 1 5.000000e+00
+18ID:e:M.RDBD 1 1.295400e-02
+18ID:e:M.RTRY 1 0
+18ID:e:M.UEIP 1 No
+18ID:e:M.URIP 1 No
+18ID:e:M.FRAC 1 1.000000e+00
+18ID:e:M.PREC 1 5
+18ID:e:M.PROC 1 0
+18ID:e:M.SUSE 1 0
+18ID:e:M_able.VAL 1 Enable

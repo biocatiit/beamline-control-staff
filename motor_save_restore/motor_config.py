@@ -53,15 +53,19 @@ class MotorConfigFrame(wx.Frame):
         motor_sizer.Add(self.pv_list, flag=wx.EXPAND|wx.ALL, proportion=1,
             border=self._FromDIP(2))
 
-        save_config = wx.Button(top_panel, label='Save Motor Config.')
+        save_config = wx.Button(top_panel, label='Save Config.')
         save_config.Bind(wx.EVT_BUTTON, self._on_save_config)
 
-        load_config = wx.Button(top_panel, label='Load Motor Config.')
+        load_config = wx.Button(top_panel, label='Load Config.')
         load_config.Bind(wx.EVT_BUTTON, self._on_load_config)
 
+        view_config = wx.Button(top_panel, label='View Config.')
+        view_config.Bind(wx.EVT_BUTTON, self._on_view_config)
+
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer.Add(save_config, flag=wx.RIGHT, border=self._FromDIP(20))
-        button_sizer.Add(load_config)
+        button_sizer.Add(save_config, flag=wx.RIGHT, border=self._FromDIP(5))
+        button_sizer.Add(load_config, flag=wx.RIGHT, border=self._FromDIP(5))
+        button_sizer.Add(view_config)
 
 
         panel_sizer.Add(motor_sizer, flag=wx.EXPAND, proportion=1)
@@ -187,9 +191,6 @@ class MotorConfigFrame(wx.Frame):
         epics.autosave.save_pvs(current_save, fname)
 
     def _load_settings(self, pv, fname):
-        print(pv)
-        print(fname)
-
         load_pref = self.settings['load_pref']
 
         current_load = os.path.join(self._base_path, 'current_load.cfg')
@@ -219,8 +220,67 @@ class MotorConfigFrame(wx.Frame):
         else:
             wx.CallAfter(wx.MessageBox, 'Failed to load settings', 'Error')
 
+    def _on_view_config(self, evt):
+        fname = self._create_file_dialog(wx.FD_OPEN, '')
+
+        if fname is not None:
+            wx.CallAfter(self._view_config, fname)
+
+    def _view_config(self, fname):
+
+        view_dlg = ConfigDialog(self, fname)
+        view_dlg.Show()
+
     def _on_exit(self, evt):
         logger.debug('Closing the MotorConfigFrame')
+
+        self.Destroy()
+
+class ConfigDialog(wx.Dialog):
+
+    def __init__(self, parent, fname, *args, **kwargs):
+
+        wx.Dialog.__init__(self, parent, -1, 'Motor Config. Display',
+            *args, style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX, **kwargs)
+
+        self.CenterOnParent()
+
+        self.SetSize(self._FromDIP((500,600)))
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.fname = fname
+
+        with open(fname, 'r') as f:
+            fdata = f.readlines()
+
+        self.text = wx.TextCtrl(self, -1, style = wx.TE_MULTILINE | wx.TE_READONLY)
+        self.text.AppendText('#############################################\n')
+        self.text.AppendText('Config from: %s\n' %(fname))
+        self.text.AppendText('#############################################\n\n')
+
+        self.text.AppendText(''.join(fdata))
+        self.text.ShowPosition(0)
+
+        self.sizer.Add(self.text, 1, wx.ALL | wx.EXPAND, border=self._FromDIP(10))
+
+        self.sizer.Add(self.CreateButtonSizer(wx.OK), 0, wx.ALIGN_RIGHT|wx.RIGHT
+            |wx.BOTTOM, border=self._FromDIP(10))
+
+        self.Bind(wx.EVT_BUTTON, self._onOk, id=wx.ID_OK)
+
+        self.SetSizer(self.sizer)
+
+        self.CenterOnParent()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _onOk(self, event):
 
         self.Destroy()
 
