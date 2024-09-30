@@ -111,7 +111,10 @@ class MotorConfigFrame(wx.Frame):
         fname = self._create_file_dialog(wx.FD_SAVE, desc)
 
         if fname is not None:
-            self._last_path = pathlib.Path(fname).parent.resolve()
+            if os.path.splitext(fname)[1] != '.sav':
+                fname = fname + '.sav'
+
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
 
             wx.CallAfter(self._save_settings, pv, fname)
 
@@ -120,10 +123,7 @@ class MotorConfigFrame(wx.Frame):
         fname = self._create_file_dialog(wx.FD_OPEN, desc)
 
         if fname is not None:
-            if os.path.splitext(fname)[1] != '.cfg':
-                fname = fname + '.cfg'
-
-            self._last_path = pathlib.Path(fname).parent.resolve()
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
 
             wx.CallAfter(self._load_settings, pv, fname)
 
@@ -142,7 +142,7 @@ class MotorConfigFrame(wx.Frame):
         return pv, desc
 
     def _create_file_dialog(self, mode, desc, name='Motor Config files',
-        ext='*.cfg'):
+        ext='*.sav'):
 
         f = None
 
@@ -155,7 +155,7 @@ class MotorConfigFrame(wx.Frame):
             filters = name + ' ('+ext+')|'+ext
             dialog = wx.FileDialog(None, style=mode|wx.FD_OVERWRITE_PROMPT,
                 wildcard=filters, defaultDir=self._last_path,
-                defaultFile=desc+'.cfg')
+                defaultFile=desc+'.sav')
 
         # Show the dialog and get user input
         if dialog.ShowModal() == wx.ID_OK:
@@ -193,23 +193,37 @@ class MotorConfigFrame(wx.Frame):
     def _load_settings(self, pv, fname):
         load_pref = self.settings['load_pref']
 
-        current_load = os.path.join(self._base_path, 'current_load.cfg')
+        current_load = os.path.join(self._base_path, 'current_load.sav')
 
         with open(fname, 'r') as f:
             lines = f.readlines()
 
         old_pv = None
-        for line in lines:
+        for i, line in enumerate(lines):
             if line.startswith(load_pref):
                 full_pv = line.split()[0]
                 old_pv = '.'.join(full_pv.split('.')[:-1])
+
+                if os.path.splitext(fname)[1] == '.usnap':
+                    start = i
                 break
+
+        if os.path.splitext(fname)[1] == '.usnap':
+            lines = lines[start:]
 
         if old_pv != None:
             for i in range(len(lines)):
                 line = lines[i]
                 if old_pv in line:
                     line = line.replace(old_pv, pv)
+
+                if os.path.splitext(fname)[1] == '.usnap':
+                    temp_line = line.split(' ')
+                    pv_temp = temp_line[0]
+                    val_temp = ' '.join(temp_line[2:])
+                    val_temp = val_temp.replace('"', '')
+                    line = '{} {}'.format(pv_temp, val_temp)
+
                 lines[i] = line
 
             with open(current_load, 'w') as f:
