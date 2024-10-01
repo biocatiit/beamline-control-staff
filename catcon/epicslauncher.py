@@ -80,8 +80,7 @@ class EPICSLauncherPanel(wx.Panel):
     def _on_labjack1_button(self, evt):
         script = self._epics_path / 'start_labjack_screen.sh'
         cmd = '{} 1'.format(script)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
         print(output)
         print(error)
