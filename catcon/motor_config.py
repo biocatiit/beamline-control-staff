@@ -161,7 +161,7 @@ class MotorConfigPanel(wx.Panel):
         f = None
 
         if mode == wx.FD_OPEN:
-            filters = name + ' (' + ext + ')|' + ext + '|All files (*.*)|*.*'
+            filters = name + ' (' + ext + ';*.usnap)|' + ext + ';*.usnap|All files (*.*)|*.*'
             dialog = wx.FileDialog( None, style = mode, wildcard = filters,
                 defaultDir = self._last_path)
 

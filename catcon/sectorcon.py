@@ -94,6 +94,7 @@ class MainFrame(wx.Frame):
             'D BPM Amplifier'   : ac.DBPMAmpPanel,
             'EPICS Launcher'    : epics_launcher.EPICSLauncherPanel,
             'Motor Config'  : motor_config.MotorConfigPanel,
+            'Motor Channels'    : epics_launcher.MotorChannelPanel,
             }
 
         self.ctrl_panels = {}
@@ -153,9 +154,7 @@ class MainFrame(wx.Frame):
         self.aio_list = []
 
 
-        self.custom_list = ['Attenuators', 'Ion Chamber Calculator',
-            'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview',
-            'D BPM Amplifier', 'EPICS Launcher', 'Motor Config']
+        self.custom_list = list(self.custom_ctrl_type.keys())
 
         for record in self.mx_db.get_all_records():
             try:

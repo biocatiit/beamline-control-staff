@@ -197,7 +197,7 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _on_motor_channel_button(self, evt):
-        motor_channel_frame = MotorChannelFrame(self._epics_path, self,
+        motor_channel_frame = MotorChannelFrame(self,
             title='Motor Channels')
         motor_channel_frame.Show()
 
@@ -219,11 +219,13 @@ class EPICSLauncherPanel(wx.Panel):
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
 
-class MotorChannelFrame(wx.Frame):
-    def __init__(self, epics_path, *args, **kwargs):
-        wx.Frame.__init__(self, *args, **kwargs)
+class MotorChannelPanel(wx.Panel):
+    def __init__(self, name, mx_database, *args, **kwargs):
+        wx.Panel.__init__(self, *args, **kwargs)
 
-        self._epics_path = epics_path
+        self._base_path = pathlib.Path(__file__).parent.resolve()
+        self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
+        self._epics_path = self._epics_path.resolve()
 
         self._channels = [
             ('18ID_DMC_E03', 17, 24),
@@ -248,10 +250,13 @@ class MotorChannelFrame(wx.Frame):
         except Exception:
             return size
 
-    def _create_layout(self):
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
+    def on_close(self):
+        pass
 
-        motor_panel = wx.Panel(self)
+    def _create_layout(self):
+        # top_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        motor_panel = self
 
         motor_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
@@ -266,9 +271,9 @@ class MotorChannelFrame(wx.Frame):
 
         motor_panel.SetSizer(motor_sizer)
 
-        top_sizer.Add(motor_panel, flag=wx.EXPAND, proportion=1)
+        # top_sizer.Add(motor_panel, flag=wx.EXPAND, proportion=1)
 
-        self.SetSizer(top_sizer)
+        # self.SetSizer(top_sizer)
 
     def _create_channels_sizer(self, channel, parent):
         prefix, start, end = channel
@@ -311,6 +316,48 @@ class MotorChannelFrame(wx.Frame):
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
 
+class MotorChannelFrame(wx.Frame):
+    """
+    A lightweight amplifier frame designed to hold the EPICS launcher panel.
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        """
+        wx.Frame.__init__(self, *args, **kwargs)
+
+
+        self._create_layout()
+
+        self.Layout()
+        self.Fit()
+        self.Raise()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _create_layout(self):
+        """
+        Creates the layout.
+
+        :param list dios: The amplifier names in the Mp database.
+
+        :param tuple shape: A tuple containing the shape of the amp grid.
+            It is given as: (rows, cols). Note that rows*cols should be equal
+            to or greater than the number of dios, but the AmpFrame doesn't
+            check this. If it isn't, it will just fail to propely display the last
+            few dios.
+        """
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        epics_panel = MotorChannelPanel('EpicsLauncher', None, self)
+
+        top_sizer.Add(epics_panel, flag=wx.EXPAND, proportion=1)
+
+        self.SetSizer(top_sizer)
 
 
 class EPICSLauncherFrame(wx.Frame):
