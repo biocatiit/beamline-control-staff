@@ -187,8 +187,9 @@ class EPICSLauncherPanel(wx.Panel):
         cmd = '{}'.format(script)
         self._start_epics(cmd)
 
-    def _on_motor_channels(self, evt):
-        pass
+    def _on_motor_channel_button(self, evt):
+        motor_channel_frame = MotorChannelFrame(self)
+        motor_channel_frame.Show()
 
     def _on_dmc_e03_button(self, evt):
         self._start_dmc('E03')
@@ -205,11 +206,99 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _start_epics(self, cmd):
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, shell=True)
         output, error = process.communicate()
-        print(output)
-        print(error)
+
+class MotorChannelFrame(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, *args, **kwargs)
+
+        self._channels = [
+            ('18ID_DMC_E03', 17, 24),
+            ('18ID_DMC_E04', 25, 32),
+            ('18ID_DMC_E05', 33, 40),
+            ]
+
+        self._channel_show = {}
+
+        self._create_layout()
+
+        # self.SetMinSize(self._FromDIP((600, -1)))
+
+        self.Layout()
+        self.Fit()
+        self.Raise()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _create_layout(self):
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        motor_panel = wx.Panel(self)
+
+        motor_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+
+        for channel in self._channels:
+            channel_sizer = self._create_channels_sizer(channel, motor_panel)
+
+            motor_sizer.Add(channel_sizer, flag=wx.EXPAND)
+
+        motor_sizer.AddGrowableCol(0)
+        motor_sizer.AddGrowableCol(1)
+
+        motor_panel.SetSizer(motor_sizer)
+
+        top_sizer.Add(motor_panel, flag=wx.EXPAND, proportion=1)
+
+        self.SetSizer(top_sizer)
+
+    def _create_channels_sizer(self, channel, parent):
+        prefix, start, end = channel
+        channel_box = wx.StaticBox(parent, label=prefix)
+
+        channel_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+
+        for mnum in range(start, end+1):
+            pv = '{}:{}'.format(prefix, mnum)
+            descrip = epics.wx.PVText(channel_box, '{}.DESC'.format(pv),
+                minor_alarm=None, major_alarm=None, invalid_alarm=None,
+                size=self._FromDIP((150,-1)), bg='white')
+
+            show = wx.Button(channel_box, label='Show')
+            show.Bind(wx.EVT_BUTTON, self._on_show_button)
+
+            self._channel_show[show] = (prefix, mnum)
+
+            channel_sizer.Add(wx.StaticText(channel_box, label='{}:'.format(mnum)),
+                flag=wx.ALIGN_CENTER_VERTICAL)
+            channel_sizer.Add(descrip, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
+            channel_sizer.Add(show, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        channel_sizer.AddGrowableCol(1)
+
+        top_sizer = wx.StaticBoxSizer(channel_box, wx.VERTICAL)
+        top_sizer.Add(channel_sizer, flag=wx.ALL|wx.EXPAND, border=self._FromDIP(5))
+
+        return top_sizer
+
+    def _on_show_button(self, evt):
+        button = evt.GetEventObject()
+
+        prefix, mnum = self._channel_show[button]
+
+        script = self._epics_path / 'start_dmc_screen.sh'
+        cmd = '{} {}: {}'.format(script, prefix, mnum)
+
+        process = subprocess.Popen(cmd, shell=True)
+        output, error = process.communicate()
+
 
 
 class EPICSLauncherFrame(wx.Frame):
@@ -218,22 +307,6 @@ class EPICSLauncherFrame(wx.Frame):
     """
     def __init__(self, *args, **kwargs):
         """
-        Initializes the amp frame. This frame is designed to function either as
-        a stand alone application, or as part of a larger application.
-
-        :param Mp.RecordList mx_database: The Mp database containing the amp records.
-
-        :param list dios: The amp names in the Mp database.
-
-        :param tuple shape: A tuple containing the shape of the motor grid.
-            It is given as: (rows, cols). Note that rows*cols should be equal
-            to or greater than the number of motors, but the MotorFrame doesn't
-            check this. If it isn't, it will just fail to propely display the last
-            few motors.
-
-        :param bool timer: Whether or not the frame should start a timer to call
-            the mx_database.wait_for_messages. I suspect this should only be done
-            if this is standalone, hence why it can be turned on/off.
         """
         wx.Frame.__init__(self, *args, **kwargs)
 
@@ -243,6 +316,13 @@ class EPICSLauncherFrame(wx.Frame):
         self.Layout()
         self.Fit()
         self.Raise()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
 
     def _create_layout(self):
         """
