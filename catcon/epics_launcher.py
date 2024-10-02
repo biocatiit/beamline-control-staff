@@ -48,9 +48,6 @@ class EPICSLauncherPanel(wx.Panel):
         self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
         self._epics_path = self._epics_path.resolve()
 
-        print(self._base_path)
-        print(self._epics_path)
-
         self._create_layout()
 
         self._initialize()
@@ -83,9 +80,12 @@ class EPICSLauncherPanel(wx.Panel):
         labjack3_button.Bind(wx.EVT_BUTTON, self._on_labjack3_button)
 
         io_sizer = wx.StaticBoxSizer(io_box, wx.VERTICAL)
-        io_sizer.Add(labjack1_button)
-        io_sizer.Add(labjack2_button, flag=wx.TOP, border=self._FromDIP(5))
-        io_sizer.Add(labjack3_button, flag=wx.TOP, border=self._FromDIP(5))
+        io_sizer.Add(labjack1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(labjack2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(labjack3_button, flag=wx.ALL,
+            border=self._FromDIP(5))
 
 
         scaler_box = wx.StaticBox(parent, label='Scalers')
@@ -96,8 +96,10 @@ class EPICSLauncherPanel(wx.Panel):
         joerger_button.Bind(wx.EVT_BUTTON, self._on_joerger_button)
 
         scaler_sizer = wx.StaticBoxSizer(scaler_box, wx.VERTICAL)
-        scaler_sizer.Add(struck_button)
-        scaler_sizer.Add(joerger_button, flag=wx.TOP, border=self._FromDIP(5))
+        scaler_sizer.Add(struck_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        scaler_sizer.Add(joerger_button, flag=wx.ALL,
+            border=self._FromDIP(5))
 
 
         ad_box = wx.StaticBox(parent, label='Area Detectors')
@@ -110,9 +112,12 @@ class EPICSLauncherPanel(wx.Panel):
         mar_button.Bind(wx.EVT_BUTTON, self._on_mar_button)
 
         ad_sizer = wx.StaticBoxSizer(ad_box, wx.VERTICAL)
-        ad_sizer.Add(eiger_button)
-        ad_sizer.Add(pilatus_button, flag=wx.TOP, border=self._FromDIP(5))
-        ad_sizer.Add(mar_button, flag=wx.TOP, border=self._FromDIP(5))
+        ad_sizer.Add(eiger_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        ad_sizer.Add(pilatus_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        ad_sizer.Add(mar_button, flag=wx.ALL,
+            border=self._FromDIP(5))
 
 
         motor_box = wx.StaticBox(parent, label='Motors')
@@ -127,10 +132,14 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
-        motor_sizer.Add(motor_channel_button)
-        motor_sizer.Add(dmc_e03_button, flag=wx.TOP, border=self._FromDIP(5))
-        motor_sizer.Add(dmc_e04_button, flag=wx.TOP, border=self._FromDIP(5))
-        motor_sizer.Add(dmc_e05_button, flag=wx.TOP, border=self._FromDIP(5))
+        motor_sizer.Add(motor_channel_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_e03_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_e04_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_e05_button, flag=wx.ALL,
+            border=self._FromDIP(5))
 
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -188,7 +197,7 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _on_motor_channel_button(self, evt):
-        motor_channel_frame = MotorChannelFrame(self)
+        motor_channel_frame = MotorChannelFrame(self._epics_path, self)
         motor_channel_frame.Show()
 
     def _on_dmc_e03_button(self, evt):
@@ -206,12 +215,14 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _start_epics(self, cmd):
-        process = subprocess.Popen(cmd, shell=True)
+        process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
 
 class MotorChannelFrame(wx.Frame):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, epics_path, *args, **kwargs):
         wx.Frame.__init__(self, *args, **kwargs)
+
+        self._epics_path = epics_path
 
         self._channels = [
             ('18ID_DMC_E03', 17, 24),
@@ -289,14 +300,16 @@ class MotorChannelFrame(wx.Frame):
         return top_sizer
 
     def _on_show_button(self, evt):
+        print('here')
         button = evt.GetEventObject()
 
         prefix, mnum = self._channel_show[button]
 
-        script = self._epics_path / 'start_dmc_screen.sh'
+        script = self._epics_path / 'start_motor_screen.sh'
         cmd = '{} {}: {}'.format(script, prefix, mnum)
 
-        process = subprocess.Popen(cmd, shell=True)
+        print(cmd)
+        process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
 
 
