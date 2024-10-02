@@ -15,14 +15,23 @@ import wx
 import wx.lib.agw.ultimatelistctrl as ULC
 import epics, epics.wx, epics.autosave
 
-class MotorConfigFrame(wx.Frame):
-    def __init__(self, settings, *args, **kwargs):
-        super(MotorConfigFrame, self).__init__(*args, **kwargs)
-        logger.debug('Setting up the MotorConfigFrame')
+class MotorConfigPanel(wx.Panel):
+    def __init__(self, name, mx_database, *args, **kwargs):
+        super(MotorConfigPanel, self).__init__(*args, name=name, **kwargs)
+        logger.debug('Setting up the MotorConfigPanel')
 
-        self.settings = settings
-        self._base_path = pathlib.Path(__file__).parent.resolve()
-        self._last_path = os.path.join(self._base_path, 'motor_configs')
+        self.settings = {
+            'motors'    : [
+                            ['18ID_DMC_E03:', 17, 24],
+                            ['18ID_DMC_E04:', 25, 32],
+                            ['18ID_DMC_E05:', 33, 40],
+                            ],
+            'load_pref' : '18ID' #string key all PVs in the config files are expected to start with
+            }
+
+        self._base_path = pathlib.Path(__file__).parent.resolve().parent / 'motor_save_restore'
+        self._last_path = self._base_path / 'motor_configs'
+        self._last_path = str(self._last_path)
 
         self.Bind(wx.EVT_CLOSE, self._on_exit)
 
@@ -39,9 +48,12 @@ class MotorConfigFrame(wx.Frame):
         except Exception:
             return size
 
+    def on_close(self):
+        pass
+
     def _create_layout(self):
         """Creates the layout"""
-        top_panel = wx.Panel(self)
+        top_panel = self
 
         panel_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -68,17 +80,19 @@ class MotorConfigFrame(wx.Frame):
         button_sizer.Add(view_config)
 
 
-        panel_sizer.Add(motor_sizer, flag=wx.EXPAND, proportion=1)
-        panel_sizer.Add(button_sizer, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL,
+        panel_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5),
+            proportion=1)
+        panel_sizer.Add(button_sizer,
+            flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL,
             border=self._FromDIP(5))
 
         top_panel.SetSizer(panel_sizer)
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(top_panel, flag=wx.EXPAND|wx.ALL, proportion=1,
-            border=self._FromDIP(5))
+        # top_sizer = wx.BoxSizer(wx.VERTICAL)
+        # top_sizer.Add(top_panel, flag=wx.EXPAND|wx.ALL, proportion=1,
+        #     border=self._FromDIP(5))
 
-        self.SetSizer(top_sizer)
+        # self.SetSizer(top_sizer)
 
     def _create_pv_list(self, parent):
         self.pv_list = ULC.UltimateListCtrl(parent, agwStyle=ULC.ULC_SINGLE_SEL|
@@ -298,6 +312,50 @@ class ConfigDialog(wx.Dialog):
 
         self.Destroy()
 
+class MotorConfigFrame(wx.Frame):
+    """
+    A lightweight amplifier frame designed to hold the Motor config panel.
+    """
+    def __init__(self, *args, **kwargs):
+        """
+        """
+        wx.Frame.__init__(self, *args, **kwargs)
+
+
+        self._create_layout()
+
+        self.Layout()
+        self.Fit()
+        self.Raise()
+        self.SendSizeEvent()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _create_layout(self):
+        """
+        Creates the layout.
+
+        :param list dios: The amplifier names in the Mp database.
+
+        :param tuple shape: A tuple containing the shape of the amp grid.
+            It is given as: (rows, cols). Note that rows*cols should be equal
+            to or greater than the number of dios, but the AmpFrame doesn't
+            check this. If it isn't, it will just fail to propely display the last
+            few dios.
+        """
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        motor_panel = MotorConfigPanel('motorpanel', None, self)
+
+        top_sizer.Add(motor_panel, flag=wx.EXPAND, proportion=1)
+
+        self.SetSizer(top_sizer)
+
 if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -326,17 +384,10 @@ if __name__ == '__main__':
 
     # logger.addHandler(h2)
 
-    settings = {
-        'motors'    : [
-                        ['18ID_DMC_E03:', 17, 24],
-                        ['18ID_DMC_E04:', 25, 32],
-                        ['18ID_DMC_E05:', 33, 40],
-                        ],
-        'load_pref' : '18ID' #string key all PVs in the config files are expected to start with
-        }
+
 
     logger.debug('Setting up wx app')
-    frame = MotorConfigFrame(settings, None, title='Motor Config Save/Restore',
+    frame = MotorConfigFrame(None, title='Motor Config Save/Restore',
         name='motorconfig')
     frame.Show()
     app.MainLoop()

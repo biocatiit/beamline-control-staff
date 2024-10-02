@@ -54,6 +54,8 @@ import ic_calc
 import dbpm_calc
 import switch_monos
 import overview
+import epics_launcher
+import motor_config
 
 
 class MainFrame(wx.Frame):
@@ -83,12 +85,15 @@ class MainFrame(wx.Frame):
                         'Custom'            : self.make_custom_ctrl,
                         }
 
-        self.custom_ctrl_type = {'Attenuators'  : atten.AttenuatorPanel,
+        self.custom_ctrl_type = {
+            'Attenuators'  : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             'Diamond BPM Calculator'    : dbpm_calc.DBPMCalcPanel,
             'Switch Monos'  : switch_monos.SWMonosPanel,
             'Beamline Overview' : overview.MainStatusPanel,
             'D BPM Amplifier'   : ac.DBPMAmpPanel,
+            'EPICS Launcher'    : epics_launcher.EPICSLauncherPanel,
+            'Motor Config'  : motor_config.MotorConfigPanel,
             }
 
         self.ctrl_panels = {}
@@ -105,11 +110,18 @@ class MainFrame(wx.Frame):
         self.mx_timer.Start(10)
 
         if int(wx.__version__.split('.')[0]) > 3:
-            self.SetSizeHints((550,350))
+            self.SetSizeHints(self._FromDIP((600,350)))
         else:
-            self.SetSizeHints(550,350)
+            self.SetSizeHints(self._FromDIP(600),self._FromDIP(350))
         self.Layout()
         self.Fit()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
 
     def _start_mxdatabase(self):
         """
@@ -143,7 +155,7 @@ class MainFrame(wx.Frame):
 
         self.custom_list = ['Attenuators', 'Ion Chamber Calculator',
             'Diamond BPM Calculator', 'Switch Monos', 'Beamline Overview',
-            'D BPM Amplifier']
+            'D BPM Amplifier', 'EPICS Launcher', 'Motor Config']
 
         for record in self.mx_db.get_all_records():
             try:
@@ -231,7 +243,8 @@ class MainFrame(wx.Frame):
         ctrlnb_info.Gripper(False).PaneBorder(False).CaptionVisible(False)
 
         for group in self.controls.keys():
-            ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self.ctrl_nb, name=group)
+            ctrl_panel = CtrlsPanel(self.controls[group], self,
+                parent=self.ctrl_nb, name=group)
             self.ctrl_panels[group] = ctrl_panel
             self.ctrl_nb.AddPage(ctrl_panel, group)
 
@@ -244,8 +257,8 @@ class MainFrame(wx.Frame):
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.AddStretchSpacer(1)
-        btn_sizer.Add(add_ctrl_btn,0, border=5, flag=wx.ALL)
-        btn_sizer.Add(show_ctrl_btn,0, border=5, flag=wx.ALL)
+        btn_sizer.Add(add_ctrl_btn,0, border=self._FromDIP(5), flag=wx.ALL)
+        btn_sizer.Add(show_ctrl_btn,0, border=self._FromDIP(5), flag=wx.ALL)
         btn_sizer.AddStretchSpacer(1)
         btn_panel.SetSizer(btn_sizer)
         btn_panel.Layout()
@@ -309,9 +322,11 @@ class MainFrame(wx.Frame):
         sfile = os.path.join(savedir, sname)
         with open(sfile, 'w', encoding='utf-8') as f:
             if six.PY2:
-                out = unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder))
+                out = unicode(json.dumps(self.controls, indent=4, sort_keys=False,
+                    cls=MyEncoder))
             else:
-                out = json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)
+                out = json.dumps(self.controls, indent=4, sort_keys=False,
+                    cls=MyEncoder)
             f.write(out)
 
         try:
@@ -323,9 +338,11 @@ class MainFrame(wx.Frame):
                 sfile = os.path.join(savedir, sname)
                 with open(sfile, 'w', encoding='utf-8') as f:
                     if six.PY2:
-                        out = unicode(json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder))
+                        out = unicode(json.dumps(self.controls, indent=4,
+                            sort_keys=False, cls=MyEncoder))
                     else:
-                        out = json.dumps(self.controls, indent=4, sort_keys=False, cls=MyEncoder)
+                        out = json.dumps(self.controls, indent=4,
+                            sort_keys=False, cls=MyEncoder)
                     f.write(out)
 
         except Exception:
@@ -399,7 +416,8 @@ class MainFrame(wx.Frame):
                 if group not in self.controls:
                     self.controls[group]=collections.OrderedDict()
                     self.controls[group][ctrl] = ctrl_data
-                    ctrl_panel = CtrlsPanel(self.controls[group], self, parent=self.ctrl_nb, name=group)
+                    ctrl_panel = CtrlsPanel(self.controls[group], self,
+                        parent=self.ctrl_nb, name=group)
                     self.ctrl_panels[group] = ctrl_panel
                     self.ctrl_nb.AddPage(ctrl_panel, group)
                     self.Layout()
@@ -480,6 +498,13 @@ class CtrlsPanel(scrolled.ScrolledPanel):
 
         self.Bind(wx.EVT_RIGHT_UP, self._onRightMouseClick)
 
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
     def _create_layout(self, panel_data):
         """
         Creates the layout for the panel
@@ -490,7 +515,8 @@ class CtrlsPanel(scrolled.ScrolledPanel):
         """
         nitems = len(panel_data.keys())
 
-        self.grid_sizer = wx.FlexGridSizer(cols=4, vgap=5, hgap=5)
+        self.grid_sizer = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
 
         for label in panel_data.keys():
             button = wx.Button(self, label=label, name=label)
@@ -500,7 +526,7 @@ class CtrlsPanel(scrolled.ScrolledPanel):
 
         top_sizer = wx.BoxSizer()
 
-        top_sizer.Add(self.grid_sizer, border=5, flag=wx.ALL)
+        top_sizer.Add(self.grid_sizer, border=self._FromDIP(5), flag=wx.ALL)
 
         self.SetSizer(top_sizer)
 
@@ -571,7 +597,8 @@ class CtrlsPanel(scrolled.ScrolledPanel):
         if choice == 1:
             group = self.GetName()
             dlg = RemoveCtrlDialog(self.main_frame.controls[group], parent=self,
-                title='Modify Control Sets', style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+                title='Modify Control Sets',
+                style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
             if dlg.ShowModal() == wx.ID_OK:
                 new_ctrls = dlg.keys
 
@@ -592,7 +619,8 @@ class CtrlsPanel(scrolled.ScrolledPanel):
         elif choice == 2:
             group = self.GetName()
             dlg = RemoveCtrlDialog(self.main_frame.controls, parent=self,
-                title='Modify Control Groups', style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
+                title='Modify Control Groups',
+                style=wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.CAPTION)
             if dlg.ShowModal() == wx.ID_OK:
                 new_groups = dlg.keys
 
@@ -661,8 +689,8 @@ class CtrlsPanel(scrolled.ScrolledPanel):
             if new_group not in self.main_frame.controls:
                 self.main_frame.controls[new_group]=collections.OrderedDict()
                 self.main_frame.controls[new_group][new_ctrl] = ctrl_data
-                ctrl_panel = CtrlsPanel(self.main_frame.controls[new_group], self.main_frame,
-                    parent=self.main_frame.ctrl_nb, name=new_group)
+                ctrl_panel = CtrlsPanel(self.main_frame.controls[new_group],
+                    self.main_frame, parent=self.main_frame.ctrl_nb, name=new_group)
                 self.main_frame.ctrl_panels[group] = ctrl_panel
                 self.main_frame.ctrl_nb.AddPage(ctrl_panel, new_group)
                 button.Destroy()
@@ -864,9 +892,17 @@ class AddCtrlDialog(wx.Dialog):
         self.Layout()
         self.Fit()
 
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
     def _create_layout(self):
         """ Creates the dialog layout."""
-        info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
+        info_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
         if self._set_group:
             self.group_ctrl = wx.TextCtrl(self)
         self.title = wx.TextCtrl(self)
@@ -889,7 +925,7 @@ class AddCtrlDialog(wx.Dialog):
         self.list_ctrl.InsertColumn(1, 'Control Type')
         self.list_ctrl.InsertColumn(2, '')
         # self.list_ctrl.SetUserLineHeight(30)
-        self.list_ctrl.SetMinSize((370,250))
+        self.list_ctrl.SetMinSize(self._FromDIP((370,250)))
 
         add_btn = wx.Button(self, label='Add control')
         add_btn.Bind(wx.EVT_BUTTON, self._on_add)
@@ -899,17 +935,20 @@ class AddCtrlDialog(wx.Dialog):
 
         list_ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         list_ctrl_btn_sizer.Add(add_btn)
-        list_ctrl_btn_sizer.Add(remove_btn, border=5, flag=wx.LEFT)
+        list_ctrl_btn_sizer.Add(remove_btn, border=self._FromDIP(5), flag=wx.LEFT)
 
         button_sizer = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         self.Bind(wx.EVT_BUTTON, self._on_ok, id=wx.ID_OK)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(info_grid, border=5, flag=wx.LEFT|wx.RIGHT|wx.TOP)
-        top_sizer.Add(self.list_ctrl, 1, border=5, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP)
-        top_sizer.Add(list_ctrl_btn_sizer, border=5, flag=wx.ALL|wx.CENTER)
+        top_sizer.Add(info_grid, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.RIGHT|wx.TOP)
+        top_sizer.Add(self.list_ctrl, 1, border=self._FromDIP(5),
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP)
+        top_sizer.Add(list_ctrl_btn_sizer, border=self._FromDIP(5),
+            flag=wx.ALL|wx.CENTER)
         top_sizer.Add(wx.StaticLine(self), flag=wx.EXPAND)
-        top_sizer.Add(button_sizer, border=5, flag=wx.ALL)
+        top_sizer.Add(button_sizer, border=self._FromDIP(5), flag=wx.ALL)
 
         self.list_ctrl.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
         self.list_ctrl.SetColumnWidth(1, wx.LIST_AUTOSIZE_USEHEADER)
@@ -938,11 +977,12 @@ class AddCtrlDialog(wx.Dialog):
         record_panel = wx.Panel(self.list_ctrl)
         textctrl = wx.TextCtrl(record_panel, name='record')
         textctrl.AutoComplete(main_frame.motor_list)
-        button = wx.Button(record_panel, id=index, label='...', size=(30, -1))
+        button = wx.Button(record_panel, id=index, label='...',
+            size=self._FromDIP((30, -1)))
         button.Bind(wx.EVT_BUTTON, self._show_motors)
         record_sizer = wx.BoxSizer(wx.HORIZONTAL)
         record_sizer.Add(textctrl, 1, flag=wx.EXPAND)
-        record_sizer.Add(button, border=2, flag=wx.LEFT)
+        record_sizer.Add(button, border=self._FromDIP(2), flag=wx.LEFT)
         record_panel.SetSizer(record_sizer)
 
         self.list_ctrl.SetItemWindow(index, 0, record_panel, expand=True)
@@ -1212,6 +1252,13 @@ class RemoveCtrlDialog(wx.Dialog):
         self._params = params
         self._create_layout()
 
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
     def _create_layout(self):
         """Creates the layout for the dialog."""
 
@@ -1219,7 +1266,7 @@ class RemoveCtrlDialog(wx.Dialog):
         self.list_ctrl.InsertColumn(0, 'Control')
 
         for param in self._params.keys():
-            self.list_ctrl.InsertStringItem(sys.maxsize, param)
+            self.list_ctrl.InsertItem(sys.maxsize, param)
 
         up_btn = wx.Button(self, label='Up')
         up_btn.Bind(wx.EVT_BUTTON, self._on_up)
@@ -1265,7 +1312,7 @@ class RemoveCtrlDialog(wx.Dialog):
             if selected > 0:
                 data = self.list_ctrl.GetItemText(selected)
                 self.list_ctrl.DeleteItem(selected)
-                self.list_ctrl.InsertStringItem(selected-1, data)
+                self.list_ctrl.InsertItem(selected-1, data)
                 selected = self.list_ctrl.GetFirstSelected()
             else:
                 self.list_ctrl.Select(0, False)
@@ -1297,12 +1344,12 @@ class RemoveCtrlDialog(wx.Dialog):
         for idx in selected_items[::-1]:
             data = self.list_ctrl.GetItemText(idx)
             self.list_ctrl.DeleteItem(idx)
-            self.list_ctrl.InsertStringItem(idx+1, data)
+            self.list_ctrl.InsertItem(idx+1, data)
 
         if selected_items[-1] == nitems-1:
             item = self.list_ctrl.FindItem(-1, last_data)
             self.list_ctrl.DeleteItem(item)
-            self.list_ctrl.InsertStringItem(nitems, last_data)
+            self.list_ctrl.InsertItem(nitems, last_data)
 
 
         for idx in selected_items:

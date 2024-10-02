@@ -39,10 +39,10 @@ import utils
 class EPICSLauncherPanel(wx.Panel):
     """
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name, mx_database, *args, **kwargs):
         """
         """
-        wx.Panel.__init__(self, *args, **kwargs)
+        wx.Panel.__init__(self, *args, name=name, **kwargs)
 
         self._base_path = pathlib.Path(__file__).parent.resolve()
         self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
@@ -197,7 +197,8 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _on_motor_channel_button(self, evt):
-        motor_channel_frame = MotorChannelFrame(self._epics_path, self)
+        motor_channel_frame = MotorChannelFrame(self._epics_path, self,
+            title='Motor Channels')
         motor_channel_frame.Show()
 
     def _on_dmc_e03_button(self, evt):
@@ -300,7 +301,6 @@ class MotorChannelFrame(wx.Frame):
         return top_sizer
 
     def _on_show_button(self, evt):
-        print('here')
         button = evt.GetEventObject()
 
         prefix, mnum = self._channel_show[button]
@@ -308,7 +308,6 @@ class MotorChannelFrame(wx.Frame):
         script = self._epics_path / 'start_motor_screen.sh'
         cmd = '{} {}: {}'.format(script, prefix, mnum)
 
-        print(cmd)
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
 
@@ -351,7 +350,7 @@ class EPICSLauncherFrame(wx.Frame):
         """
         top_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        epics_panel = EPICSLauncherPanel(self)
+        epics_panel = EPICSLauncherPanel('EpicsLauncher', None, self)
 
         top_sizer.Add(epics_panel, flag=wx.EXPAND, proportion=1)
 
