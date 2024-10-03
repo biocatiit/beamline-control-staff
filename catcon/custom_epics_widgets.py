@@ -227,7 +227,7 @@ class PVTextMonitor(epics.wx.PVText):
 
     def SetTranslations(self, translations):
         """
-        Pass a dictionary of value->value translations here if you want some P
+        Pass a dictionary of value->value translations here if you want some
         PV values to automatically appear in the event callback as a different
         value.
         ie, to override PV value 0.0 to say "Disabled", call this method as

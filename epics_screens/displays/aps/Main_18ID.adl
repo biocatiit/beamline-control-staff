@@ -1,0 +1,6223 @@
+
+file {
+	name="/home/phoebus/NGUYEN/iocapps/adlsys/sr/pss/modified2015sept/Main_18ID.adl"
+	version=030108
+}
+display {
+	object {
+		x=10
+		y=60
+		width=1460
+		height=515
+	}
+	clr=55
+	bclr=55
+	cmap=""
+	gridSpacing=5
+	gridOn=1
+	snapToGrid=0
+}
+"color map" {
+	ncolors=65
+	colors {
+		ffffff,
+		ececec,
+		dadada,
+		c8c8c8,
+		bbbbbb,
+		aeaeae,
+		9e9e9e,
+		919191,
+		858585,
+		787878,
+		696969,
+		5a5a5a,
+		464646,
+		2d2d2d,
+		000000,
+		00d800,
+		1ebb00,
+		339900,
+		2d7f00,
+		216c00,
+		fd0000,
+		de1309,
+		be190b,
+		a01207,
+		820400,
+		5893ff,
+		597ee1,
+		4b6ec7,
+		3a5eab,
+		27548d,
+		fbf34a,
+		f9da3c,
+		eeb62b,
+		e19015,
+		cd6100,
+		ffb0ff,
+		d67fe2,
+		ae4ebc,
+		8b1a96,
+		610a75,
+		a4aaff,
+		8793e2,
+		6a73c1,
+		4d52a4,
+		343386,
+		c7bb6d,
+		b79d5c,
+		a47e3c,
+		7d5627,
+		58340f,
+		99ffff,
+		73dfff,
+		4ea5f9,
+		2a63e4,
+		0a00b8,
+		ebf1b5,
+		d4db9d,
+		bbc187,
+		a6a462,
+		8b8239,
+		73ff6b,
+		52da3b,
+		3cb420,
+		289315,
+		1a7309,
+	}
+}
+rectangle {
+	object {
+		x=1373
+		y=189
+		width=44
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+}
+composite {
+	object {
+		x=1375
+		y=192
+		width=38
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=1375
+				y=192
+				width=38
+				height=14
+			}
+			"basic attribute" {
+				clr=20
+			}
+		}
+		text {
+			object {
+				x=1376
+				y=195
+				width=35
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="CLOSED"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):FES_PS1_CLOSED_LS.VAL"
+		chanB="PB:$(xx)$(yy):FES_PS1_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=1224
+		y=74
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):FEEPS_FES_PERMIT.VAL"
+	}
+}
+oval {
+	object {
+		x=1207
+		y=74
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		clr="alarm"
+		chan="S18ID-FEEPS:FES_PermitM"
+	}
+}
+oval {
+	object {
+		x=1207
+		y=60
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="SR-ACIS:$(xx)$(yy):FesPermitM"
+	}
+}
+oval {
+	object {
+		x=1224
+		y=60
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):ACIS_FES_PERMIT.VAL"
+	}
+}
+text {
+	object {
+		x=630
+		y=10
+		width=200
+		height=22
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="$(xx)-$(yy) PSS"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=383
+		y=307
+		width=180
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=495
+		y=197
+		width=250
+		height=5
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+polygon {
+	object {
+		x=483
+		y=193
+		width=15
+		height=13
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+	points {
+		(483,199)
+		(497,193)
+		(498,206)
+		(483,199)
+	}
+}
+oval {
+	object {
+		x=1224
+		y=46
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):ACIS_GLOBAL_ONLINE.VAL"
+	}
+}
+oval {
+	object {
+		x=1223
+		y=59
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1242
+		y=46
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:$(xx)$(yy):ACIS_GLOBAL_ONLINE.VAL"
+	}
+}
+oval {
+	object {
+		x=1223
+		y=73
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1161
+		y=45
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Global Online:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=1161
+		y=61
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="ACIS Permit:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=1141
+		y=30
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="PSS Chain:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=1161
+		y=75
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="FE-EPS Permit:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=1205
+		y=45
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1206
+		y=46
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=61
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="SR-ACIS:$(xx)$(yy):GolPermitM"
+	}
+}
+oval {
+	object {
+		x=1206
+		y=59
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1206
+		y=73
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1222
+		y=29
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1241
+		y=29
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1205
+		y=29
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="CR"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=1223
+		y=45
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1241
+		y=45
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1297
+		y=45
+		width=78
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="PS1 Open Request"
+}
+oval {
+	object {
+		x=1408
+		y=45
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):FEEPS_PS1_OPEN.VAL"
+	}
+}
+oval {
+	object {
+		x=1407
+		y=44
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1408
+		y=30
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1422
+		y=30
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1297
+		y=61
+		width=78
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="PS1 Permits"
+}
+oval {
+	object {
+		x=1423
+		y=60
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:$(xx)$(yy):FES_PS1_PERMIT.VAL"
+	}
+}
+oval {
+	object {
+		x=1422
+		y=59
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1297
+		y=77
+		width=78
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="PS1 CMD"
+}
+oval {
+	object {
+		x=1409
+		y=74
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):FES_PS1_OPEN_CMD.VAL"
+	}
+}
+oval {
+	object {
+		x=1408
+		y=73
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=687
+		y=292
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_C_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=686
+		y=291
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=682
+		y=277
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB1"
+}
+rectangle {
+	object {
+		x=679
+		y=275
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_C_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_CB1.VAL"
+	}
+}
+text {
+	object {
+		x=972
+		y=257
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Searched:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=972
+		y=229
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="User Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=972
+		y=243
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="APS Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=972
+		y=271
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Ready:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=1014
+		y=229
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=1013
+		y=228
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1012
+		y=215
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1026
+		y=215
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=1014
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_APS_ENBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1013
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1028
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_A_APSDISBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1027
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1014
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1013
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1028
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_A_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1027
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=1014
+		y=271
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_BEAMREADY_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1013
+		y=270
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=1009
+		y=226
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=1009
+		y=240
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=1009
+		y=254
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=1009
+		y=268
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+text {
+	object {
+		x=1332
+		y=175
+		width=38
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="FES"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=1423
+		y=195
+		width=25
+		height=5
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+polygon {
+	object {
+		x=1416
+		y=191
+		width=15
+		height=13
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+	points {
+		(1416,197)
+		(1430,191)
+		(1431,204)
+		(1416,197)
+	}
+}
+rectangle {
+	object {
+		x=542
+		y=72
+		width=129
+		height=15
+	}
+	"basic attribute" {
+		clr=58
+		width=1
+	}
+}
+text {
+	object {
+		x=586
+		y=75
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="--  Station C  --"
+	align="horiz. centered"
+}
+composite {
+	object {
+		x=1065
+		y=105
+		width=129
+		height=15
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=1065
+				y=105
+				width=129
+				height=15
+			}
+			"basic attribute" {
+				clr=58
+				width=1
+			}
+		}
+		text {
+			object {
+				x=1110
+				y=108
+				width=36
+				height=12
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="--  Station A  --"
+			align="horiz. centered"
+		}
+	}
+}
+text {
+	object {
+		x=586
+		y=257
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Searched:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=586
+		y=229
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="User Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=586
+		y=243
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="APS Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=586
+		y=271
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Ready:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=628
+		y=229
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=627
+		y=228
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=627
+		y=216
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=641
+		y=216
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=628
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_APS_ENBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=627
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=642
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_C_APSDISBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=641
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=628
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=627
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=642
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_C_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=641
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=628
+		y=271
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_BEAMREADY_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=627
+		y=270
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=623
+		y=226
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=623
+		y=240
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=623
+		y=254
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=623
+		y=268
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+polyline {
+	object {
+		x=757
+		y=132
+		width=8
+		height=62
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(761,136)
+		(761,190)
+	}
+}
+rectangle {
+	object {
+		x=685
+		y=307
+		width=75
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=912
+		y=197
+		width=400
+		height=5
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+polygon {
+	object {
+		x=906
+		y=193
+		width=15
+		height=13
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+	points {
+		(906,199)
+		(920,193)
+		(921,206)
+		(906,199)
+	}
+}
+oval {
+	object {
+		x=571
+		y=124
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_C_CB2.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=570
+		y=123
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=566
+		y=139
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB2"
+}
+rectangle {
+	object {
+		x=563
+		y=137
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_C_CB2.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_CB2.VAL"
+	}
+}
+text {
+	object {
+		x=1353
+		y=498
+		width=100
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="08-01-2013 JBS"
+	align="horiz. centered"
+}
+polyline {
+	object {
+		x=1322
+		y=136
+		width=8
+		height=60
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(1326,140)
+		(1326,192)
+	}
+}
+rectangle {
+	object {
+		x=1152
+		y=306
+		width=73
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+polyline {
+	object {
+		x=1218
+		y=246
+		width=8
+		height=71
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(1222,250)
+		(1222,313)
+	}
+}
+rectangle {
+	object {
+		x=1218
+		y=250
+		width=110
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+polyline {
+	object {
+		x=1322
+		y=203
+		width=8
+		height=59
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(1326,207)
+		(1326,258)
+	}
+}
+polyline {
+	object {
+		x=88
+		y=207
+		width=1240
+		height=2
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(89,208)
+		(1327,208)
+	}
+}
+text {
+	object {
+		x=1097
+		y=152
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STROBE"
+}
+composite {
+	object {
+		x=1077
+		y=149
+		width=15
+		height=15
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=1077
+				y=149
+				width=15
+				height=15
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(1091,150)
+				(1078,163)
+			}
+		}
+		polyline {
+			object {
+				x=1077
+				y=150
+				width=15
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(1078,151)
+				(1091,162)
+			}
+		}
+		oval {
+			object {
+				x=1079
+				y=151
+				width=11
+				height=11
+			}
+			"basic attribute" {
+				clr=14
+				fill="outline"
+				width=2
+			}
+		}
+	}
+}
+oval {
+	object {
+		x=1080
+		y=152
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=56
+		width=1
+	}
+}
+oval {
+	object {
+		x=1080
+		y=152
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_STROBE.VAL"
+	}
+}
+oval {
+	object {
+		x=1077
+		y=149
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):A_STRblinker.VAL"
+	}
+}
+polyline {
+	object {
+		x=87
+		y=190
+		width=1240
+		height=2
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(88,191)
+		(1326,191)
+	}
+}
+polyline {
+	object {
+		x=885
+		y=137
+		width=8
+		height=59
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(889,141)
+		(889,192)
+	}
+}
+text {
+	object {
+		x=430
+		y=154
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB2"
+}
+rectangle {
+	object {
+		x=26
+		y=307
+		width=50
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=98
+		y=197
+		width=310
+		height=5
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&&B"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+		chanB="PA:$(xx)$(yy):STA_D_SDS_OPEN_PL.VAL"
+	}
+}
+polygon {
+	object {
+		x=93
+		y=193
+		width=15
+		height=13
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&&B"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+		chanB="PA:$(xx)$(yy):STA_D_SDS_OPEN_PL.VAL"
+	}
+	points {
+		(93,199)
+		(107,193)
+		(108,206)
+		(93,199)
+	}
+}
+oval {
+	object {
+		x=53
+		y=292
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_D_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=52
+		y=291
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=48
+		y=278
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB1"
+}
+rectangle {
+	object {
+		x=45
+		y=276
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB1.VAL"
+	}
+}
+rectangle {
+	object {
+		x=168
+		y=53
+		width=129
+		height=15
+	}
+	"basic attribute" {
+		clr=58
+		width=1
+	}
+}
+text {
+	object {
+		x=212
+		y=56
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="--  Station D  --"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=1322
+		y=182
+		width=8
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+rectangle {
+	object {
+		x=757
+		y=182
+		width=8
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+rectangle {
+	object {
+		x=885
+		y=306
+		width=200
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+polyline {
+	object {
+		x=885
+		y=205
+		width=8
+		height=109
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(889,209)
+		(889,310)
+	}
+}
+polyline {
+	object {
+		x=417
+		y=84
+		width=8
+		height=111
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(421,88)
+		(421,191)
+	}
+}
+polyline {
+	object {
+		x=417
+		y=203
+		width=8
+		height=115
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(421,207)
+		(421,314)
+	}
+}
+polyline {
+	object {
+		x=757
+		y=203
+		width=8
+		height=116
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(761,207)
+		(761,315)
+	}
+}
+oval {
+	object {
+		x=555
+		y=335
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=574
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 1"
+}
+text {
+	object {
+		x=557
+		y=325
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="M"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=569
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=559
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=559
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(560,308)
+				(621,308)
+			}
+		}
+		polyline {
+			object {
+				x=559
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(560,314)
+				(621,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=621
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(622,307)
+		(622,315)
+	}
+}
+oval {
+	object {
+		x=619
+		y=336
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=637
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 2"
+}
+text {
+	object {
+		x=618
+		y=325
+		width=15
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=632
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=622
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=622
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(623,308)
+				(684,308)
+			}
+		}
+		polyline {
+			object {
+				x=622
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(623,314)
+				(684,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=683
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(684,307)
+		(684,315)
+	}
+}
+rectangle {
+	object {
+		x=26
+		y=88
+		width=395
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+polyline {
+	object {
+		x=26
+		y=85
+		width=8
+		height=229
+	}
+	"basic attribute" {
+		clr=14
+		width=8
+	}
+	points {
+		(30,89)
+		(30,310)
+	}
+}
+rectangle {
+	object {
+		x=417
+		y=182
+		width=8
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="!(A&&B)"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+		chanB="PA:$(xx)$(yy):STA_D_SDS_OPEN_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=620
+		y=337
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=556
+		y=336
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_C_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=431
+		y=134
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=435
+		y=138
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=435
+		y=138
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_SB2_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=432
+		y=135
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_C_SB2_PL.VAL"
+	}
+}
+rectangle {
+	object {
+		x=885
+		y=136
+		width=445
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=885
+		y=182
+		width=8
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+	}
+}
+text {
+	object {
+		x=724
+		y=368
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Input Listings"
+}
+text {
+	object {
+		x=724
+		y=384
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Output Listings"
+}
+text {
+	object {
+		x=724
+		y=402
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Fault-Trip-Warning Listings"
+}
+"related display" {
+	object {
+		x=702
+		y=366
+		width=13
+		height=13
+	}
+	display[0] {
+		name="Inputs_18ID.adl"
+		args="xx=18,yy=ID"
+	}
+	clr=14
+	bclr=51
+}
+"related display" {
+	object {
+		x=702
+		y=384
+		width=13
+		height=13
+	}
+	display[0] {
+		name="Outputs_18ID.adl"
+		args="xx=18,yy=ID"
+	}
+	clr=14
+	bclr=51
+}
+"related display" {
+	object {
+		x=702
+		y=402
+		width=13
+		height=13
+	}
+	display[0] {
+		label="Faults, Trips, & Warnings"
+		name="18ID_FTW.adl"
+		args="xx=18,yy=ID"
+	}
+	clr=14
+	bclr=51
+}
+text {
+	object {
+		x=724
+		y=421
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="PLC CPU Status"
+}
+"related display" {
+	object {
+		x=702
+		y=421
+		width=13
+		height=13
+	}
+	display[0] {
+		label="Allen-Bradley "
+		name="ABPlc5.adl"
+		args="xx=18,yy=ID"
+	}
+	display[1] {
+		label="GE RX3i Fanuc "
+		name="GE9079Plc.adl"
+		args="xx=18,yy=ID"
+	}
+	clr=14
+	bclr=51
+}
+text {
+	object {
+		x=591
+		y=377
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Fault"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=591
+		y=395
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Trip"
+}
+text {
+	object {
+		x=591
+		y=413
+		width=36
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Warning"
+}
+oval {
+	object {
+		x=561
+		y=378
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_FAULT_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=560
+		y=377
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=575
+		y=378
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:$(xx)$(yy):STA_A_FAULT_PL"
+	}
+}
+oval {
+	object {
+		x=574
+		y=377
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=561
+		y=415
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=30
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_WARNING_PL"
+	}
+}
+oval {
+	object {
+		x=560
+		y=414
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=575
+		y=415
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=30
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:$(xx)$(yy):STA_A_WARNING_PL"
+	}
+}
+oval {
+	object {
+		x=574
+		y=414
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=572
+		y=366
+		width=15
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=558
+		y=366
+		width=15
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=554
+		y=362
+		width=125
+		height=75
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+oval {
+	object {
+		x=561
+		y=398
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_TRIP_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=560
+		y=397
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=575
+		y=398
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:$(xx)$(yy):STA_A_TRIP_PL"
+	}
+}
+oval {
+	object {
+		x=574
+		y=397
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=571
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=634
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+polyline {
+	object {
+		x=88
+		y=190
+		width=2
+		height=19
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(89,191)
+		(89,208)
+	}
+}
+rectangle {
+	object {
+		x=1329
+		y=189
+		width=44
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+}
+composite {
+	object {
+		x=1332
+		y=192
+		width=38
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=1332
+				y=192
+				width=38
+				height=14
+			}
+			"basic attribute" {
+				clr=20
+			}
+		}
+		text {
+			object {
+				x=1334
+				y=194
+				width=35
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="CLOSED"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(B=1)&&(A=0)"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_FES_CLSD_PL.VAL"
+	}
+}
+composite {
+	object {
+		x=1332
+		y=192
+		width=38
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=1332
+				y=192
+				width=38
+				height=14
+			}
+			"basic attribute" {
+				clr=15
+			}
+		}
+		text {
+			object {
+				x=1334
+				y=194
+				width=35
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="OPEN"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A=1)||(A=B)"
+		chan="PA:$(xx)$(yy):STA_A_FES_OPEN_PL.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_FES_CLSD_PL.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1105
+		y=12
+		width=340
+		height=80
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=1375
+		y=175
+		width=38
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="PS1"
+	align="horiz. centered"
+}
+composite {
+	object {
+		x=1375
+		y=192
+		width=38
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=1375
+				y=192
+				width=38
+				height=14
+			}
+			"basic attribute" {
+				clr=15
+			}
+		}
+		text {
+			object {
+				x=1376
+				y=194
+				width=35
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="OPEN"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A||B"
+		chan="PA:$(xx)$(yy):FES_PS1_OPENED_LS.VAL"
+		chanB="PB:$(xx)$(yy):FES_PS1_OPENED_LS.VAL"
+	}
+}
+text {
+	object {
+		x=972
+		y=285
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Active:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=1014
+		y=285
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_NO_ACCESS.VAL"
+	}
+}
+oval {
+	object {
+		x=1013
+		y=284
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=1009
+		y=282
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+text {
+	object {
+		x=586
+		y=285
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Active:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=628
+		y=285
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_NO_ACCESS.VAL"
+	}
+}
+oval {
+	object {
+		x=627
+		y=284
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=623
+		y=282
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+composite {
+	object {
+		x=12
+		y=452
+		width=625
+		height=55
+	}
+	"composite name"=""
+	children {
+		text {
+			object {
+				x=16
+				y=455
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="Legend:"
+			align="horiz. centered"
+		}
+		text {
+			object {
+				x=80
+				y=455
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="A = ESD Chain-A"
+		}
+		text {
+			object {
+				x=80
+				y=473
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="B = ESD Chain-B"
+		}
+		text {
+			object {
+				x=212
+				y=456
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="CR = Control Room"
+		}
+		text {
+			object {
+				x=212
+				y=490
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="M = Manual Door"
+		}
+		text {
+			object {
+				x=212
+				y=474
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="A = Auto Door"
+		}
+		composite {
+			object {
+				x=479
+				y=459
+				width=11
+				height=11
+			}
+			"composite name"=""
+			children {
+				oval {
+					object {
+						x=480
+						y=460
+						width=9
+						height=9
+					}
+					"basic attribute" {
+						clr=61
+						width=1
+					}
+				}
+				oval {
+					object {
+						x=479
+						y=459
+						width=11
+						height=11
+					}
+					"basic attribute" {
+						clr=14
+						fill="outline"
+						width=1
+					}
+				}
+			}
+		}
+		text {
+			object {
+				x=357
+				y=474
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="Signal Mismatch Chain-A/B or C ="
+		}
+		rectangle {
+			object {
+				x=586
+				y=473
+				width=25
+				height=14
+			}
+			"basic attribute" {
+				clr=20
+				fill="outline"
+				width=2
+			}
+		}
+		rectangle {
+			object {
+				x=12
+				y=452
+				width=625
+				height=55
+			}
+			"basic attribute" {
+				clr=14
+				fill="outline"
+				width=2
+			}
+		}
+		text {
+			object {
+				x=80
+				y=489
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="C = C&C Chain-C"
+		}
+		text {
+			object {
+				x=358
+				y=459
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="Signal Present ="
+		}
+		text {
+			object {
+				x=552
+				y=458
+				width=60
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			textix="Fault/Trip ="
+			align="horiz. right"
+		}
+		oval {
+			object {
+				x=617
+				y=459
+				width=9
+				height=9
+			}
+			"basic attribute" {
+				clr=20
+				width=1
+			}
+		}
+		oval {
+			object {
+				x=616
+				y=458
+				width=11
+				height=11
+			}
+			"basic attribute" {
+				clr=14
+				fill="outline"
+				width=1
+			}
+		}
+	}
+}
+text {
+	object {
+		x=903
+		y=277
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB2"
+}
+oval {
+	object {
+		x=904
+		y=286
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=908
+		y=290
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=908
+		y=290
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_SB2_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=905
+		y=287
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_A_SB2_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1065
+		y=292
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_A_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_CB1.VAL"
+	}
+}
+text {
+	object {
+		x=1060
+		y=278
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB1"
+}
+oval {
+	object {
+		x=1064
+		y=291
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=1057
+		y=275
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_A_CB1.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_CB1.VAL"
+	}
+}
+text {
+	object {
+		x=1182
+		y=277
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB1"
+}
+oval {
+	object {
+		x=1183
+		y=286
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=1187
+		y=290
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=1187
+		y=290
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_A_SB1_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1184
+		y=287
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_A_SB1_PL.VAL"
+	}
+}
+text {
+	object {
+		x=728
+		y=260
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB1"
+}
+oval {
+	object {
+		x=729
+		y=270
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=733
+		y=274
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=733
+		y=274
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_SB1_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=730
+		y=271
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_C_SB1_PL.VAL"
+	}
+}
+text {
+	object {
+		x=617
+		y=132
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STROBE"
+}
+composite {
+	object {
+		x=599
+		y=129
+		width=15
+		height=15
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=599
+				y=129
+				width=15
+				height=15
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(600,130)
+				(613,143)
+			}
+		}
+		polyline {
+			object {
+				x=599
+				y=130
+				width=15
+				height=13
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(613,131)
+				(600,142)
+			}
+		}
+		oval {
+			object {
+				x=601
+				y=131
+				width=11
+				height=11
+			}
+			"basic attribute" {
+				clr=14
+				fill="outline"
+				width=2
+			}
+		}
+	}
+}
+oval {
+	object {
+		x=602
+		y=132
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=56
+		width=1
+	}
+}
+oval {
+	object {
+		x=602
+		y=132
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_C_STROBE.VAL"
+	}
+}
+oval {
+	object {
+		x=599
+		y=129
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):C_STRblinker.VAL"
+	}
+}
+text {
+	object {
+		x=391
+		y=217
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB1"
+}
+oval {
+	object {
+		x=391
+		y=227
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=395
+		y=231
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=395
+		y=231
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_SB1_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=392
+		y=228
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_D_SB1_PL.VAL"
+	}
+}
+text {
+	object {
+		x=58
+		y=121
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB2"
+}
+oval {
+	object {
+		x=59
+		y=100
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=63
+		y=104
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=63
+		y=104
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_SB2_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=60
+		y=101
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_D_SB2_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=1090
+		y=334
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=1109
+		y=324
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 1"
+}
+text {
+	object {
+		x=1092
+		y=324
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=1104
+		y=334
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=1084
+		y=306
+		width=70
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=1084
+				y=306
+				width=68
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(1085,307)
+				(1151,307)
+			}
+		}
+		polyline {
+			object {
+				x=1084
+				y=312
+				width=68
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(1085,313)
+				(1151,313)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=1150
+		y=305
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(1151,306)
+		(1151,314)
+	}
+}
+oval {
+	object {
+		x=1091
+		y=335
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_A_DR1_CLOSE_LS.VAL"
+	}
+}
+text {
+	object {
+		x=1106
+		y=336
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=201
+		y=257
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Searched:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=201
+		y=229
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="User Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=201
+		y=243
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="APS Key:"
+	align="horiz. right"
+}
+text {
+	object {
+		x=201
+		y=271
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Ready:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=243
+		y=229
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=242
+		y=228
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=242
+		y=216
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=256
+		y=216
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="B"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=243
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_APS_ENBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=242
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=257
+		y=243
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_D_APSDISBLE_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=256
+		y=242
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=243
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=242
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=257
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):STA_D_SEARCHED_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=256
+		y=256
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=243
+		y=271
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_BEAMREADY_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=242
+		y=270
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=238
+		y=226
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=238
+		y=240
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=238
+		y=254
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+rectangle {
+	object {
+		x=238
+		y=268
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+text {
+	object {
+		x=201
+		y=285
+		width=36
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Beam Active:"
+	align="horiz. right"
+}
+oval {
+	object {
+		x=243
+		y=285
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_NO_ACCESS.VAL"
+	}
+}
+oval {
+	object {
+		x=242
+		y=284
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=238
+		y=282
+		width=32
+		height=16
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+polyline {
+	object {
+		x=1084
+		y=305
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(1085,306)
+		(1085,314)
+	}
+}
+polyline {
+	object {
+		x=559
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(560,307)
+		(560,315)
+	}
+}
+oval {
+	object {
+		x=70
+		y=335
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=89
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 1"
+}
+text {
+	object {
+		x=72
+		y=325
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="A"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=84
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=74
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=74
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(75,308)
+				(136,308)
+			}
+		}
+		polyline {
+			object {
+				x=74
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(75,314)
+				(136,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=136
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(137,307)
+		(137,315)
+	}
+}
+oval {
+	object {
+		x=134
+		y=336
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=152
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 2"
+}
+text {
+	object {
+		x=133
+		y=325
+		width=15
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="M"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=147
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=137
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=137
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(138,308)
+				(199,308)
+			}
+		}
+		polyline {
+			object {
+				x=137
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(138,314)
+				(199,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=198
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(199,307)
+		(199,315)
+	}
+}
+oval {
+	object {
+		x=135
+		y=337
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=71
+		y=336
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR1_CLOSE_LS.VAL"
+	}
+}
+text {
+	object {
+		x=86
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=149
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+polyline {
+	object {
+		x=75
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(76,307)
+		(76,315)
+	}
+}
+composite {
+	object {
+		x=414
+		y=88
+		width=349
+		height=54
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=414
+				y=93
+				width=341
+				height=49
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			points {
+				(754,141)
+				(414,93)
+			}
+		}
+		polyline {
+			object {
+				x=422
+				y=88
+				width=341
+				height=49
+			}
+			"basic attribute" {
+				clr=14
+				width=1
+			}
+			points {
+				(762,136)
+				(422,88)
+			}
+		}
+		polygon {
+			object {
+				x=418
+				y=88
+				width=343
+				height=54
+			}
+			"basic attribute" {
+				clr=14
+				width=8
+			}
+			points {
+				(759,142)
+				(419,94)
+				(418,88)
+				(761,135)
+				(759,142)
+			}
+		}
+	}
+}
+text {
+	object {
+		x=38
+		y=237
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SB3"
+}
+oval {
+	object {
+		x=38
+		y=247
+		width=17
+		height=17
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+}
+oval {
+	object {
+		x=42
+		y=251
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=55
+		width=1
+	}
+}
+oval {
+	object {
+		x=42
+		y=251
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=32
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_SB3_PL.VAL"
+	}
+}
+oval {
+	object {
+		x=39
+		y=248
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=30
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):STA_D_SB3_PL.VAL"
+	}
+}
+text {
+	object {
+		x=350
+		y=257
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STROBE"
+}
+composite {
+	object {
+		x=392
+		y=254
+		width=15
+		height=15
+	}
+	"composite name"=""
+	children {
+		composite {
+			object {
+				x=392
+				y=254
+				width=15
+				height=15
+			}
+			"composite name"=""
+			children {
+				polyline {
+					object {
+						x=392
+						y=254
+						width=15
+						height=15
+					}
+					"basic attribute" {
+						clr=14
+						width=2
+					}
+					points {
+						(393,255)
+						(406,268)
+					}
+				}
+				polyline {
+					object {
+						x=392
+						y=255
+						width=15
+						height=13
+					}
+					"basic attribute" {
+						clr=14
+						width=2
+					}
+					points {
+						(406,256)
+						(393,267)
+					}
+				}
+				oval {
+					object {
+						x=394
+						y=256
+						width=11
+						height=11
+					}
+					"basic attribute" {
+						clr=14
+						fill="outline"
+						width=2
+					}
+				}
+			}
+		}
+		oval {
+			object {
+				x=395
+				y=257
+				width=9
+				height=9
+			}
+			"basic attribute" {
+				clr=56
+				width=1
+			}
+		}
+	}
+}
+oval {
+	object {
+		x=395
+		y=257
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):STA_D_STROBE.VAL"
+	}
+}
+oval {
+	object {
+		x=392
+		y=254
+		width=15
+		height=15
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A=1"
+		chan="PA:$(xx)$(yy):D_STRblinker.VAL"
+	}
+}
+oval {
+	object {
+		x=253
+		y=335
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=272
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 3"
+}
+text {
+	object {
+		x=255
+		y=325
+		width=11
+		height=12
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="M"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=267
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=257
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=257
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(258,308)
+				(319,308)
+			}
+		}
+		polyline {
+			object {
+				x=257
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(258,314)
+				(319,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=319
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(320,307)
+		(320,315)
+	}
+}
+oval {
+	object {
+		x=317
+		y=336
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=335
+		y=325
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Door 4"
+}
+text {
+	object {
+		x=316
+		y=325
+		width=15
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="M"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=330
+		y=335
+		width=45
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+	}
+}
+composite {
+	object {
+		x=320
+		y=307
+		width=65
+		height=8
+	}
+	"composite name"=""
+	children {
+		polyline {
+			object {
+				x=320
+				y=307
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(321,308)
+				(382,308)
+			}
+		}
+		polyline {
+			object {
+				x=320
+				y=313
+				width=63
+				height=2
+			}
+			"basic attribute" {
+				clr=14
+				width=2
+			}
+			points {
+				(321,314)
+				(382,314)
+			}
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+	}
+}
+polyline {
+	object {
+		x=381
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(382,307)
+		(382,315)
+	}
+}
+oval {
+	object {
+		x=318
+		y=337
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR4_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=254
+		y=336
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A&B"
+		chan="PA:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_DR3_CLOSE_LS.VAL"
+	}
+}
+text {
+	object {
+		x=269
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=332
+		y=337
+		width=40
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Closed"
+	align="horiz. centered"
+}
+polyline {
+	object {
+		x=258
+		y=306
+		width=2
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+	points {
+		(259,307)
+		(259,315)
+	}
+}
+rectangle {
+	object {
+		x=200
+		y=307
+		width=60
+		height=8
+	}
+	"basic attribute" {
+		clr=14
+		width=2
+	}
+}
+oval {
+	object {
+		x=385
+		y=292
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_D_CB2.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=384
+		y=291
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=380
+		y=278
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB2"
+}
+rectangle {
+	object {
+		x=377
+		y=276
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_CB2.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=249
+		y=101
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=20
+		width=1
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(!A)&(!B)"
+		chan="PA:$(xx)$(yy):STA_D_CB3.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB3.VAL"
+	}
+}
+oval {
+	object {
+		x=248
+		y=100
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=244
+		y=115
+		width=20
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CB3"
+}
+rectangle {
+	object {
+		x=241
+		y=113
+		width=25
+		height=14
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A#B"
+		chan="PA:$(xx)$(yy):STA_D_CB3.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_CB3.VAL"
+	}
+}
+rectangle {
+	object {
+		x=941
+		y=377
+		width=500
+		height=105
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+text {
+	object {
+		x=1123
+		y=380
+		width=130
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="DIW Water Flows"
+}
+polyline {
+	object {
+		x=941
+		y=395
+		width=501
+		height=2
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+	points {
+		(942,396)
+		(1441,396)
+	}
+}
+polyline {
+	object {
+		x=1230
+		y=396
+		width=2
+		height=86
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+	points {
+		(1231,397)
+		(1231,481)
+	}
+}
+"text update" {
+	object {
+		x=1254
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_1_CALC"
+		clr=20
+		bclr=14
+	}
+	clrmod="alarm"
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=1030
+		y=400
+		width=120
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Chain A Flow"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1276
+		y=400
+		width=120
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Chain B Flow"
+	align="horiz. centered"
+}
+"text update" {
+	object {
+		x=1317
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_1_SET"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=1047
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Actual"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1108
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Setpoint"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1253
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Actual"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=1314
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Setpoint"
+	align="horiz. centered"
+}
+"text update" {
+	object {
+		x=1049
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_1_CALC"
+		clr=20
+		bclr=14
+	}
+	clrmod="alarm"
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1112
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_1_SET"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=959
+		y=434
+		width=80
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="WBStop-St.C-F"
+	align="horiz. right"
+}
+"text update" {
+	object {
+		x=1254
+		y=456
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_2_CALC"
+		clr=20
+		bclr=14
+	}
+	clrmod="alarm"
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1317
+		y=456
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_2_SET"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1049
+		y=455
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_2_CALC"
+		clr=20
+		bclr=14
+	}
+	clrmod="alarm"
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1112
+		y=456
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_2_SET"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=959
+		y=456
+		width=80
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Mask-St.C-F"
+	align="horiz. right"
+}
+text {
+	object {
+		x=1169
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Scaling"
+	align="horiz. centered"
+}
+"text update" {
+	object {
+		x=1173
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_1_SCALE"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1173
+		y=456
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PA:$(xx)$(yy):CHANNEL_2_SCALE"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=1375
+		y=416
+		width=55
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Scaling"
+	align="horiz. centered"
+}
+"text update" {
+	object {
+		x=1379
+		y=434
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_1_SCALE"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+"text update" {
+	object {
+		x=1379
+		y=456
+		width=50
+		height=14
+	}
+	monitor {
+		chan="PB:$(xx)$(yy):CHANNEL_2_SCALE"
+		clr=15
+		bclr=14
+	}
+	align="horiz. centered"
+	limits {
+	}
+}
+text {
+	object {
+		x=428
+		y=175
+		width=44
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="SDS"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=425
+		y=189
+		width=50
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+}
+composite {
+	object {
+		x=428
+		y=192
+		width=44
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=428
+				y=192
+				width=44
+				height=14
+			}
+			"basic attribute" {
+				clr=20
+			}
+		}
+		text {
+			object {
+				x=430
+				y=194
+				width=40
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="CLOSED"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(B=1)&&(A=0)"
+		chan="PA:$(xx)$(yy):STA_D_SDS_OPEN_PL.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_SDS_CLSD_PL.VAL"
+	}
+}
+composite {
+	object {
+		x=428
+		y=192
+		width=44
+		height=14
+	}
+	"composite name"=""
+	children {
+		rectangle {
+			object {
+				x=428
+				y=192
+				width=44
+				height=14
+			}
+			"basic attribute" {
+				clr=15
+			}
+		}
+		text {
+			object {
+				x=430
+				y=194
+				width=40
+				height=10
+			}
+			"basic attribute" {
+				clr=14
+			}
+			textix="OPEN"
+			align="horiz. centered"
+		}
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A=1)||(A=B)"
+		chan="PA:$(xx)$(yy):STA_D_SDS_OPEN_PL.VAL"
+		chanB="PB:$(xx)$(yy):STA_D_SDS_CLSD_PL.VAL"
+	}
+}
+text {
+	object {
+		x=650
+		y=485
+		width=210
+		height=20
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:$(xx)$(yy):dcm.STAT"
+	}
+	textix="Chain A PLC Link Down"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=875
+		y=485
+		width=210
+		height=20
+	}
+	"basic attribute" {
+		clr=20
+		fill="outline"
+	}
+	"dynamic attribute" {
+		vis="if zero"
+		chan="PB:$(xx)$(yy):PLCLinkStatus"
+	}
+	textix="Chain B PLC Link Down"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=1046
+		y=431
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=32
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A||B)&!C&!D"
+		chan="PA:$(xx)$(yy):DIW_FLOW_1_WARN.VAL"
+		chanB="PA:$(xx)$(yy):DIW_CHANNEL_01_WARN.VAL"
+		chanC="PA:$(xx)$(yy):DIW_LOW_01_PERT.VAL"
+		chanD="PA:$(xx)$(yy):DIW_OVER_01_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1046
+		y=452
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=32
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A||B)&!C&!D"
+		chan="PA:$(xx)$(yy):DIW_FLOW_2_WARN.VAL"
+		chanB="PA:$(xx)$(yy):DIW_CHANNEL_02_WARN.VAL"
+		chanC="PA:$(xx)$(yy):DIW_LOW_02_PERT.VAL"
+		chanD="PA:$(xx)$(yy):DIW_OVER_02_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1046
+		y=431
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=21
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A||B"
+		chan="PA:$(xx)$(yy):DIW_LOW_01_PERT.VAL"
+		chanB="PA:$(xx)$(yy):DIW_OVER_01_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1046
+		y=452
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=21
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A||B"
+		chan="PA:$(xx)$(yy):DIW_LOW_02_PERT.VAL"
+		chanB="PA:$(xx)$(yy):DIW_OVER_02_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1251
+		y=431
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=32
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A||B)&!C&!D"
+		chan="PB:$(xx)$(yy):DIW_FLOW_1_WARN.VAL"
+		chanB="PB:$(xx)$(yy):DIW_CHANNEL_01_WARN.VAL"
+		chanC="PB:$(xx)$(yy):DIW_LOW_01_PERT.VAL"
+		chanD="PB:$(xx)$(yy):DIW_OVER_01_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1251
+		y=431
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=21
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A||B"
+		chan="PB:$(xx)$(yy):DIW_LOW_01_PERT.VAL"
+		chanB="PB:$(xx)$(yy):DIW_OVER_01_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1251
+		y=453
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=32
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="(A||B)&!C&!D"
+		chan="PB:$(xx)$(yy):DIW_FLOW_2_WARN.VAL"
+		chanB="PB:$(xx)$(yy):DIW_CHANNEL_02_WARN.VAL"
+		chanC="PB:$(xx)$(yy):DIW_LOW_02_PERT.VAL"
+		chanD="PB:$(xx)$(yy):DIW_OVER_02_PERT.VAL"
+	}
+}
+rectangle {
+	object {
+		x=1251
+		y=453
+		width=56
+		height=20
+	}
+	"basic attribute" {
+		clr=21
+		fill="outline"
+		width=2
+	}
+	"dynamic attribute" {
+		vis="calc"
+		calc="A||B"
+		chan="PB:$(xx)$(yy):DIW_LOW_02_PERT.VAL"
+		chanB="PB:$(xx)$(yy):DIW_OVER_02_PERT.VAL"
+	}
+}

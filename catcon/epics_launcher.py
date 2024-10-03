@@ -142,6 +142,24 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
 
 
+        aps_box = wx.StaticBox(parent, label='APS')
+        id_button = wx.Button(aps_box, label='Undulator')
+        aps_bpm_button = wx.Button(aps_box, label='APS BPMs')
+        pss_button = wx.Button(aps_box, label='PSS')
+
+        id_button.Bind(wx.EVT_BUTTON, self._on_id_button)
+        aps_bpm_button.Bind(wx.EVT_BUTTON, self._on_aps_bpm_button)
+        pss_button.Bind(wx.EVT_BUTTON, self._on_pss_button)
+
+        aps_sizer = wx.StaticBoxSizer(aps_box, wx.VERTICAL)
+        aps_sizer.Add(id_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        aps_sizer.Add(aps_bpm_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        aps_sizer.Add(pss_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+
+
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5))
         top_sizer.Add(io_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
@@ -149,6 +167,8 @@ class EPICSLauncherPanel(wx.Panel):
         top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
 
@@ -193,6 +213,21 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_mar_button(self, evt):
         script = self._epics_path / 'start_mar_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_id_button(self, evt):
+        script = self._epics_path / 'start_undulator_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_aps_bpm_button(self, evt):
+        script = self._epics_path / 'start_aps_bpm_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_pss_button(self, evt):
+        script = self._epics_path / 'start_pss_screen.sh'
         cmd = '{}'.format(script)
         self._start_epics(cmd)
 

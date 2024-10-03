@@ -1,0 +1,5381 @@
+
+file {
+	name="/home/helios5/JBS/iocapps/adlsys/sr/pss/adl/Inputs_18ID.adl"
+	version=030118
+}
+display {
+	object {
+		x=309
+		y=64
+		width=775
+		height=650
+	}
+	clr=14
+	bclr=56
+	cmap=""
+	gridSpacing=5
+	gridOn=0
+	snapToGrid=0
+}
+"color map" {
+	ncolors=65
+	colors {
+		ffffff,
+		ececec,
+		dadada,
+		c8c8c8,
+		bbbbbb,
+		aeaeae,
+		9e9e9e,
+		919191,
+		858585,
+		787878,
+		696969,
+		5a5a5a,
+		464646,
+		2d2d2d,
+		000000,
+		00d800,
+		1ebb00,
+		339900,
+		2d7f00,
+		216c00,
+		fd0000,
+		de1309,
+		be190b,
+		a01207,
+		820400,
+		5893ff,
+		597ee1,
+		4b6ec7,
+		3a5eab,
+		27548d,
+		fbf34a,
+		f9da3c,
+		eeb62b,
+		e19015,
+		cd6100,
+		ffb0ff,
+		d67fe2,
+		ae4ebc,
+		8b1a96,
+		610a75,
+		a4aaff,
+		8793e2,
+		6a73c1,
+		4d52a4,
+		343386,
+		c7bb6d,
+		b79d5c,
+		a47e3c,
+		7d5627,
+		58340f,
+		99ffff,
+		73dfff,
+		4ea5f9,
+		2a63e4,
+		0a00b8,
+		ebf1b5,
+		d4db9d,
+		bbc187,
+		a6a462,
+		8b8239,
+		73ff6b,
+		52da3b,
+		3cb420,
+		289315,
+		1a7309,
+	}
+}
+rectangle {
+	object {
+		x=10
+		y=63
+		width=755
+		height=570
+	}
+	"basic attribute" {
+		clr=40
+	}
+}
+text {
+	object {
+		x=238
+		y=10
+		width=300
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Sector 18ID PSS Inputs"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=287
+		y=35
+		width=200
+		height=20
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="PSS CHAIN A & B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=232
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=208
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="A"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=44
+		y=395
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS1_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=394
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=408
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS1_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=407
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=421
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS2_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=420
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=434
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS2_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=433
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=447
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS1_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=446
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=460
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS1_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=459
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=473
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS2_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=472
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=486
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS2_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=485
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=395
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS1 OPENED LS"
+}
+text {
+	object {
+		x=71
+		y=408
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS1 CLOSED LS"
+}
+text {
+	object {
+		x=71
+		y=421
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS2 OPENED LS"
+}
+text {
+	object {
+		x=71
+		y=434
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS2 CLOSED LS"
+}
+text {
+	object {
+		x=71
+		y=447
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS1 OPENED LS"
+}
+text {
+	object {
+		x=71
+		y=460
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS1 CLOSED LS"
+}
+text {
+	object {
+		x=71
+		y=473
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS2 OPENED LS"
+}
+text {
+	object {
+		x=71
+		y=486
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS2 CLOSED LS"
+}
+text {
+	object {
+		x=71
+		y=161
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="CROSSTRIP REQ IN"
+}
+oval {
+	object {
+		x=44
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:CROSSTRIP_REQ_IN.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=343
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS1 OVERRIDE"
+}
+text {
+	object {
+		x=71
+		y=356
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PS2 OVERRIDE"
+}
+oval {
+	object {
+		x=44
+		y=343
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS1_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=342
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=356
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_PS2_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=355
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=369
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS1 OVERRIDE"
+}
+oval {
+	object {
+		x=44
+		y=369
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS1_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=368
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=382
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FES_SS2_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=381
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=382
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES SS2 OVERRIDE"
+}
+oval {
+	object {
+		x=19
+		y=395
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS1_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=394
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=408
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS1_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=407
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=421
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS2_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=420
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=434
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS2_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=433
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=447
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS1_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=446
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=460
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS1_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=459
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=473
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS2_OPENED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=472
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=486
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS2_CLOSED_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=485
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:CROSSTRIP_REQ_IN.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=343
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS1_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=342
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=356
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PS2_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=355
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=369
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS1_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=368
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=19
+		y=382
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_SS2_OVERRIDE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=381
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=233
+		y=187
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_A_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=186
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=233
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:TRIP_RESET_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=233
+		y=252
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_A_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=251
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=233
+		y=265
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_A_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=264
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=187
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A APS KEY SW"
+}
+text {
+	object {
+		x=266
+		y=122
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="TRIP RESET KEY SW"
+}
+text {
+	object {
+		x=266
+		y=252
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A CB1"
+}
+text {
+	object {
+		x=266
+		y=265
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A DR1 CLOSE LS"
+}
+oval {
+	object {
+		x=233
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:WARNING_RESET_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=148
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="WARNING RESET PB"
+}
+oval {
+	object {
+		x=233
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:FAULT_RESET_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=135
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FAULT RESET KEY SW"
+}
+oval {
+	object {
+		x=208
+		y=187
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=186
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:TRIP_RESET_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=252
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=251
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=265
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=264
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:WARNING_RESET_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FAULT_RESET_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=200
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A USER KEY SW"
+}
+oval {
+	object {
+		x=208
+		y=200
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=199
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=226
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A SB1 PB"
+}
+oval {
+	object {
+		x=208
+		y=226
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_SB1_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=225
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=174
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A FES CLOSE PB"
+}
+text {
+	object {
+		x=266
+		y=161
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A FES OPEN PB"
+}
+oval {
+	object {
+		x=208
+		y=174
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_FES_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=173
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=208
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_FES_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=203
+		y=105
+		width=180
+		height=215
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=266
+		y=239
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A SB2 PB"
+}
+oval {
+	object {
+		x=208
+		y=239
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_SB2_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=238
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=304
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A DR1 LOCK FB"
+}
+oval {
+	object {
+		x=208
+		y=304
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_DR1_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=303
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=391
+		y=105
+		width=180
+		height=215
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=421
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=396
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="A"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=422
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=122
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C APS KEY SW"
+}
+oval {
+	object {
+		x=398
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=422
+		y=187
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=186
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=187
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C CB1"
+}
+oval {
+	object {
+		x=398
+		y=187
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=186
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=422
+		y=200
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=199
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=200
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C CB2"
+}
+oval {
+	object {
+		x=398
+		y=200
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=199
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=422
+		y=213
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=212
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=213
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR1 CLOSE LS"
+}
+oval {
+	object {
+		x=398
+		y=213
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=212
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=422
+		y=239
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=238
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=239
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR2 CLOSE LS"
+}
+oval {
+	object {
+		x=398
+		y=239
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=238
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=135
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C USER KEY SW"
+}
+oval {
+	object {
+		x=398
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=161
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C SB1 PB"
+}
+oval {
+	object {
+		x=398
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_SB1_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=174
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C SB2 PB"
+}
+oval {
+	object {
+		x=398
+		y=174
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_SB2_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=173
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=226
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR1 LOCK FB"
+}
+oval {
+	object {
+		x=398
+		y=226
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR1_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=225
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+rectangle {
+	object {
+		x=579
+		y=105
+		width=180
+		height=475
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+text {
+	object {
+		x=609
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=584
+		y=108
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="A"
+	align="horiz. centered"
+}
+oval {
+	object {
+		x=609
+		y=200
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=199
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=200
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D APS KEY SW"
+}
+oval {
+	object {
+		x=585
+		y=200
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_APS_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=199
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=356
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=355
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=356
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D CB1"
+}
+oval {
+	object {
+		x=585
+		y=356
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_CB1.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=355
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=395
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=394
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=395
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR1 CLOSE LS"
+}
+oval {
+	object {
+		x=585
+		y=395
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR1_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=394
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=213
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D USER KEY SW"
+}
+oval {
+	object {
+		x=585
+		y=213
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_USER_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=212
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=317
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SB1 PB"
+}
+oval {
+	object {
+		x=585
+		y=317
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_SB1_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=316
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=330
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SB2 PB"
+}
+oval {
+	object {
+		x=585
+		y=330
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_SB2_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=329
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=291
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SDS CLOSE PB"
+}
+text {
+	object {
+		x=642
+		y=304
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SDS OPEN PB"
+}
+oval {
+	object {
+		x=585
+		y=291
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_SDS_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=290
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=585
+		y=304
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_SDS_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=303
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=434
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR1 LOCK FB"
+}
+oval {
+	object {
+		x=585
+		y=434
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR1_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=433
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=43
+		y=110
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=18
+		y=110
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=38
+		y=80
+		width=126
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Mezzanine"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=15
+		y=105
+		width=180
+		height=85
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+rectangle {
+	object {
+		x=15
+		y=70
+		width=180
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+oval {
+	object {
+		x=44
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:ACIS_GLOBAL_ONLINE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=122
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="ACIS GLOBAL ONLINE"
+}
+oval {
+	object {
+		x=19
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:ACIS_GLOBAL_ONLINE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:WATCHDOG_PULSES_IN.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=135
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="WATCHDOG PULSES IN"
+}
+oval {
+	object {
+		x=19
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:WATCHDOG_PULSES_IN.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:EPICS_CLOCK_SYNC.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=148
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="EPICS CLOCK SYNC"
+}
+oval {
+	object {
+		x=19
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:EPICS_CLOCK_SYNC.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=43
+		y=241
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="B"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=18
+		y=241
+		width=10
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="A"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=38
+		y=214
+		width=126
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=15
+		y=201
+		width=180
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+rectangle {
+	object {
+		x=15
+		y=236
+		width=180
+		height=265
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+oval {
+	object {
+		x=19
+		y=252
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:ACIS_FES_PERMIT.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=251
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=252
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="ACIS FES PERMIT "
+}
+oval {
+	object {
+		x=19
+		y=265
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FEEPS_FES_PERMIT.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=264
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=265
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FEEPS FES PERMIT "
+}
+oval {
+	object {
+		x=19
+		y=278
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FEEPS_PS1_OPEN.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=277
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=278
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FEEPS PS1 OPEN"
+}
+oval {
+	object {
+		x=19
+		y=291
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PERMIT_FROM_B.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=290
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=291
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PERMIT FROM B"
+}
+oval {
+	object {
+		x=19
+		y=304
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_PRESS_OK.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=303
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=304
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES PRESS OK "
+}
+oval {
+	object {
+		x=19
+		y=317
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_OPEN_FROM_RSI.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=316
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=317
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES OPEN FROM RSI "
+}
+oval {
+	object {
+		x=19
+		y=330
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:FES_CLOSE_FROM_RSI.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=329
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=330
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="FES CLOSE FROM RSI"
+}
+text {
+	object {
+		x=226
+		y=80
+		width=126
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Station A"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=203
+		y=70
+		width=180
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+oval {
+	object {
+		x=233
+		y=213
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_A_SRCHD_FROM_A.VAL"
+	}
+}
+oval {
+	object {
+		x=232
+		y=212
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=213
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A SRCHD FROM A"
+}
+text {
+	object {
+		x=414
+		y=80
+		width=126
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Station C"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=391
+		y=70
+		width=180
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+oval {
+	object {
+		x=422
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_C_SRCHD_FROM_A.VAL"
+	}
+}
+oval {
+	object {
+		x=421
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=148
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C SRCHD FROM A"
+}
+text {
+	object {
+		x=602
+		y=80
+		width=126
+		height=15
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="Station D"
+	align="horiz. centered"
+}
+rectangle {
+	object {
+		x=579
+		y=70
+		width=180
+		height=35
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+	}
+}
+oval {
+	object {
+		x=609
+		y=226
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_SRCHD_FROM_A.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=225
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=226
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SRCHD FROM A"
+}
+text {
+	object {
+		x=18
+		y=514
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="Legend:"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=85
+		y=514
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="LS = Limit Switch"
+}
+text {
+	object {
+		x=85
+		y=529
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="PB = Push Button"
+}
+rectangle {
+	object {
+		x=14
+		y=508
+		width=290
+		height=120
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=2
+	}
+}
+text {
+	object {
+		x=78
+		y=544
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="SBS = Station B Shutter"
+}
+text {
+	object {
+		x=78
+		y=559
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="RSI = Remote Shutter Interface"
+}
+text {
+	object {
+		x=85
+		y=575
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="SB = Search Box"
+}
+text {
+	object {
+		x=85
+		y=590
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="CB = Crash Button"
+}
+text {
+	object {
+		x=85
+		y=605
+		width=60
+		height=13
+	}
+	"basic attribute" {
+		clr=14
+		width=1
+	}
+	textix="DR = Door"
+}
+text {
+	object {
+		x=674
+		y=635
+		width=90
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="JBS 07/29/13"
+	align="horiz. centered"
+}
+text {
+	object {
+		x=455
+		y=278
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR2 LOCK FB"
+}
+oval {
+	object {
+		x=398
+		y=278
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR2_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=277
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=585
+		y=239
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_PERMIT_FROM_B.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=238
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=239
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS PERMIT FROM B "
+}
+oval {
+	object {
+		x=585
+		y=252
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_PERM_FRM_BLEPS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=251
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=252
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS PERM FRM BLEPS"
+}
+oval {
+	object {
+		x=585
+		y=265
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_OPEN_FROM_RSI.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=264
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=265
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS OPEN FROM RSI "
+}
+oval {
+	object {
+		x=585
+		y=278
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_CLOSE_FROM_RSI.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=277
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=278
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS CLOSE FROM RSI "
+}
+oval {
+	object {
+		x=609
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:SDS_MS1_SS1_CLSD_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=122
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS MS1 SS1 CLSD LS"
+}
+oval {
+	object {
+		x=585
+		y=122
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_MS1_SS1_CLSD_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=121
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:SDS_MS1_SS1_OPEN_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=135
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS MS1 SS1 OPEN LS"
+}
+oval {
+	object {
+		x=585
+		y=135
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_MS1_SS1_OPEN_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=134
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:SDS_MS2_SS2_CLSD_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=148
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS MS2 SS2 CLSD LS"
+}
+oval {
+	object {
+		x=585
+		y=148
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_MS2_SS2_CLSD_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=147
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:SDS_MS2_SS2_OPEN_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=161
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS MS2 SS2 OPEN LS"
+}
+oval {
+	object {
+		x=585
+		y=161
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_MS2_SS2_OPEN_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=160
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=174
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS BLSIE KEYSW"
+}
+text {
+	object {
+		x=642
+		y=408
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR1 OPEN PB"
+}
+oval {
+	object {
+		x=585
+		y=408
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR1_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=407
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=421
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR1 CLOSE PB"
+}
+oval {
+	object {
+		x=585
+		y=421
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR1_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=420
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=187
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="SDS PRESS OK"
+}
+oval {
+	object {
+		x=585
+		y=187
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_PRESS_OK.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=186
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=585
+		y=174
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:SDS_BLSIE_KEY_SW.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=173
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=278
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A DR1 OPEN PB"
+}
+oval {
+	object {
+		x=208
+		y=278
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_DR1_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=277
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=266
+		y=291
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA A DR1 CLOSE PB"
+}
+oval {
+	object {
+		x=208
+		y=291
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_A_DR1_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=207
+		y=290
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=291
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C FES CLOSE PB"
+}
+text {
+	object {
+		x=455
+		y=304
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C FES OPEN PB"
+}
+oval {
+	object {
+		x=398
+		y=291
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_FES_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=290
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=398
+		y=304
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_FES_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=303
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=252
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR2 OPEN PB"
+}
+oval {
+	object {
+		x=398
+		y=252
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR2_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=251
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=455
+		y=265
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA C DR2 CLOSE PB"
+}
+oval {
+	object {
+		x=398
+		y=265
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_C_DR2_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=397
+		y=264
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=369
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=368
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=369
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D CB2"
+}
+oval {
+	object {
+		x=585
+		y=369
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_CB2.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=368
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=382
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_CB3.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=381
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=382
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D CB3"
+}
+oval {
+	object {
+		x=585
+		y=382
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_CB3.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=381
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=343
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D SB3 PB"
+}
+oval {
+	object {
+		x=585
+		y=343
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_SB3_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=342
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=460
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR2 LOCK FB"
+}
+oval {
+	object {
+		x=585
+		y=460
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR2_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=459
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=486
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR3 LOCK FB"
+}
+oval {
+	object {
+		x=585
+		y=486
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR3_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=485
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=538
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR4 LOCK FB"
+}
+oval {
+	object {
+		x=585
+		y=538
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR4_LOCK_FB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=537
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=551
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D FES CLOSE PB"
+}
+text {
+	object {
+		x=642
+		y=564
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D FES OPEN PB"
+}
+oval {
+	object {
+		x=585
+		y=551
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_FES_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=550
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=585
+		y=564
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_FES_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=563
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=447
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=446
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=447
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR2 CLOSE LS"
+}
+oval {
+	object {
+		x=585
+		y=447
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR2_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=446
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=473
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_DR3_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=472
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=473
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR3 CLOSE LS"
+}
+oval {
+	object {
+		x=585
+		y=473
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR3_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=472
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=609
+		y=499
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:STA_D_DR4_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=608
+		y=498
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=499
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR4 CLOSE LS"
+}
+oval {
+	object {
+		x=585
+		y=499
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR4_CLOSE_LS.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=498
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=512
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR4 OPEN PB"
+}
+oval {
+	object {
+		x=585
+		y=512
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR4_OPEN_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=511
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=642
+		y=525
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="STA D DR4 CLOSE PB"
+}
+oval {
+	object {
+		x=585
+		y=525
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:STA_D_DR4_CLOSE_PB.VAL"
+	}
+}
+oval {
+	object {
+		x=584
+		y=524
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+oval {
+	object {
+		x=44
+		y=174
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PB:18ID:DIW_FAULTS_DISABLE.VAL"
+	}
+}
+oval {
+	object {
+		x=43
+		y=173
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
+text {
+	object {
+		x=71
+		y=174
+		width=110
+		height=10
+	}
+	"basic attribute" {
+		clr=14
+	}
+	textix="DIW FAULTS DISABLE"
+}
+oval {
+	object {
+		x=19
+		y=174
+		width=9
+		height=9
+	}
+	"basic attribute" {
+		clr=15
+		width=1
+	}
+	"dynamic attribute" {
+		vis="if not zero"
+		chan="PA:18ID:DIW_FAULTS_DISABLE.VAL"
+	}
+}
+oval {
+	object {
+		x=18
+		y=173
+		width=11
+		height=11
+	}
+	"basic attribute" {
+		clr=14
+		fill="outline"
+		width=1
+	}
+}
