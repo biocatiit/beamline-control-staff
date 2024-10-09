@@ -9,11 +9,9 @@ $(P)$(M).MRES
 $(P)$(M).ERES
 $(P)$(M).RRES
 $(P)$(M).VBAS
-$(P)$(M).VELO
 $(P)$(M).ACCL
 $(P)$(M).ACCU
 $(P)$(M).BDST
-$(P)$(M).BVEL
 $(P)$(M).BACC
 $(P)$(M).RDBD
 $(P)$(M).SPDB
@@ -46,3 +44,5 @@ $(P)$(M).POST
 $(P)$(M).FLNK
 $(P)$(M).RMOD
 $(P)$(M).RSTM
+$(P)$(M).VELO
+$(P)$(M).BVEL
