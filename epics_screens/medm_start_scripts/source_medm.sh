@@ -17,9 +17,11 @@ marpath=$base_display_path/marCCDApp/op/adl
 pilatuspath=$base_display_path/pilatusApp/op/adl
 labjackpath=$base_display_path/LabJackApp/op/adl
 apspath=$base_display_path/aps
+meascomppath=$base_display_path/measCompApp/op/adl
 
 EPICS_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$adcorepath:$eigerpath:$marpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$pilatuspath:$labjackpath:$apspath
+EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$meascomppath:
 
 export EPICS_DISPLAY_PATH

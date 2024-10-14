@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Saved on 2024-09-24 14:24:36 by epics-->
+<display version="2.0.0">
+  <name>measCompTop</name>
+  <x>10</x>
+  <y>184</y>
+  <width>212</width>
+  <height>390</height>
+  <background_color>
+    <color red="187" green="187" blue="187">
+    </color>
+  </background_color>
+  <grid_visible>false</grid_visible>
+  <grid_step_x>5</grid_step_x>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #6</name>
+    <actions>
+      <action type="open_display">
+        <file>1608G_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>1608G:</P>
+          <Pg>PulseGen1</Pg>
+          <Tg>Trig</Tg>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-1608G module</description>
+      </action>
+    </actions>
+    <text>USB-1608G</text>
+    <x>30</x>
+    <y>35</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #9</name>
+    <actions>
+      <action type="open_display">
+        <file>USB1208LS_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB1208:</P>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-1208LS module</description>
+      </action>
+    </actions>
+    <text>USB-1208LS</text>
+    <x>30</x>
+    <y>10</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #12</name>
+    <actions>
+      <action type="open_display">
+        <file>USB1608G_2AO_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB1608G_2AO:</P>
+          <Pg>PulseGen</Pg>
+          <Tg>Trig</Tg>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-1608G-2AO module</description>
+      </action>
+    </actions>
+    <text>USB-1608G-2AO</text>
+    <x>30</x>
+    <y>60</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #15</name>
+    <actions>
+      <action type="open_display">
+        <file>USBCTR.opi</file>
+        <macros>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <MP>USBCTR:MCS:</MP>
+          <P>USBCTR:</P>
+          <Pg>PulseGen</Pg>
+          <S>scaler1</S>
+          <SP>USBCTR:</SP>
+          <Tg>Trig</Tg>
+        </macros>
+        <target>tab</target>
+        <description>USB-CTR08 module</description>
+      </action>
+    </actions>
+    <text>USB-CTR08</text>
+    <x>30</x>
+    <y>185</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #18</name>
+    <actions>
+      <action type="open_display">
+        <file>USB2408_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB2408:</P>
+          <Tg>Trig</Tg>
+          <Ti>Ti</Ti>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-2408 module</description>
+      </action>
+    </actions>
+    <text>USB-2408</text>
+    <x>30</x>
+    <y>160</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #21</name>
+    <actions>
+      <action type="open_display">
+        <file>TC32_module.opi</file>
+        <macros>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>TC32:</P>
+          <Ti>Ti</Ti>
+        </macros>
+        <target>tab</target>
+        <description>TC32 module</description>
+      </action>
+    </actions>
+    <text>TC32</text>
+    <x>30</x>
+    <y>210</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #24</name>
+    <actions>
+      <action type="open_display">
+        <file>USB231_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB231:</P>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-231 module</description>
+      </action>
+    </actions>
+    <text>USB-231</text>
+    <x>30</x>
+    <y>135</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #27</name>
+    <actions>
+      <action type="open_display">
+        <file>E1608_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>E1608:</P>
+          <Tg>Trig</Tg>
+          <Wd>WaveDig</Wd>
+        </macros>
+        <target>tab</target>
+        <description>E-1608 module #1</description>
+      </action>
+      <action type="open_display">
+        <file>E1608_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>E1608_1:</P>
+          <Tg>Trig</Tg>
+          <Wd>WaveDig</Wd>
+        </macros>
+        <target>tab</target>
+        <description>E-1608 module #2</description>
+      </action>
+    </actions>
+    <text>E-1608</text>
+    <x>30</x>
+    <y>110</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #31</name>
+    <actions>
+      <action type="open_display">
+        <file>ETC_module.opi</file>
+        <macros>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>ETC:</P>
+          <Ti>Ti</Ti>
+        </macros>
+        <target>tab</target>
+        <description>E-TC module</description>
+      </action>
+    </actions>
+    <text>E-TC</text>
+    <x>30</x>
+    <y>235</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #34</name>
+    <actions>
+      <action type="open_display">
+        <file>USBTEMP_AI_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USBTEMP_AI:</P>
+          <Ti>Ti</Ti>
+        </macros>
+        <target>tab</target>
+        <description>USB-TEMP-AI module</description>
+      </action>
+    </actions>
+    <text>USB-TEMP-AI</text>
+    <x>30</x>
+    <y>260</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #37</name>
+    <actions>
+      <action type="open_display">
+        <file>USBTEMP_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USBTEMP:</P>
+          <Ti>Ti</Ti>
+        </macros>
+        <target>tab</target>
+        <description>USB-TEMP module</description>
+      </action>
+    </actions>
+    <text>USB-TEMP</text>
+    <x>30</x>
+    <y>285</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #40</name>
+    <actions>
+      <action type="open_display">
+        <file>EDIO24_module.opi</file>
+        <macros>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>EDIO24:</P>
+        </macros>
+        <target>tab</target>
+        <description>E-DIO24 module</description>
+      </action>
+    </actions>
+    <text>E-DIO24</text>
+    <x>30</x>
+    <y>310</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #43</name>
+    <actions>
+      <action type="open_display">
+        <file>USB3105_module.opi</file>
+        <macros>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB3105:</P>
+        </macros>
+        <target>tab</target>
+        <description>USB-3105 module</description>
+      </action>
+      <action type="open_display">
+        <file>USB3104_module.opi</file>
+        <macros>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB3104:</P>
+        </macros>
+        <target>tab</target>
+        <description>USB-3104 module</description>
+      </action>
+    </actions>
+    <text>USB-31XX</text>
+    <x>30</x>
+    <y>335</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #47</name>
+    <actions>
+      <action type="open_display">
+        <file>USB1808_module.opi</file>
+        <macros>
+          <Ai>Ai</Ai>
+          <Ao>Ao</Ao>
+          <Bd>Bd</Bd>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Ct>Counter</Ct>
+          <Enc>Encoder</Enc>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USB1808:</P>
+          <Pg>PulseGen</Pg>
+          <Tg>Trig</Tg>
+          <Wd>WaveDig</Wd>
+          <Wg>WaveGen</Wg>
+        </macros>
+        <target>tab</target>
+        <description>USB-1808 module</description>
+      </action>
+    </actions>
+    <text>USB-1808</text>
+    <x>30</x>
+    <y>85</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+  <widget type="action_button" version="3.0.0">
+    <name>related display #50</name>
+    <actions>
+      <action type="open_display">
+        <file>USBERB24_module.opi</file>
+        <macros>
+          <Bi>Bi</Bi>
+          <Bo>Bo</Bo>
+          <Li>Li</Li>
+          <Lo>Lo</Lo>
+          <P>USBERB24:</P>
+        </macros>
+        <target>tab</target>
+        <description>USB-ERB24 module</description>
+      </action>
+    </actions>
+    <text>USB-ERB24</text>
+    <x>30</x>
+    <y>360</y>
+    <width>150</width>
+    <height>20</height>
+    <background_color>
+      <color red="115" green="223" blue="255">
+      </color>
+    </background_color>
+  </widget>
+</display>
