@@ -47,3 +47,8 @@ widgetDM_36 12x24
 widgetDM_40 widgetDM_36
 widgetDM_48 widgetDM_40
 widgetDM_60 widgetDM_48
+
+
+Also on installing MEDM:
+https://epics.anl.gov/tech-talk/2023/msg00441.php
+https://epics.anl.gov/tech-talk/2020/msg01773.php
