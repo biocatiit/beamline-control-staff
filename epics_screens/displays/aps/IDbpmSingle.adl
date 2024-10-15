@@ -1412,7 +1412,7 @@ rectangle {
 	}
 	display[0] {
 		label="Normalized3CM"
-		name="/C2/screens/adl/iocs/xbpm/normalized3CM.adl"
+		name="normalized3CM.adl"
 		args="S=S$(sec)ID,P=S$(sec)IDFE-XBPM:,R=P1ds:,CM1=CM1ds:,CM2=CM2ds:,CM3=CM3ds:,CM4=CM4ds:"
 	}
 	clr=14

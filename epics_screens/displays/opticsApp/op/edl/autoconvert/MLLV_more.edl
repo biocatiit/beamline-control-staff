@@ -1,0 +1,237 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 905
+y 346
+w 640
+h 250
+font "helvetica-medium-r-18.0"
+ctlFont "helvetica-bold-r-10.0"
+btnFont "helvetica-medium-r-18.0"
+fgColor rgb 0 0 0
+bgColor rgb 51200 51200 51200
+textColor rgb 0 0 0
+ctlFgColor1 rgb 64256 62208 18944
+ctlFgColor2 rgb 60928 46592 11008
+ctlBgColor1 rgb 52480 24832 0
+ctlBgColor2 rgb 65280 45056 65280
+topShadowColor rgb 44544 19968 48128
+botShadowColor rgb 13312 13056 34304
+showGrid
+snapToGrid
+gridSize 4
+endScreenProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 0
+w 640
+h 206
+
+beginGroup
+
+# (Embedded Window)
+object activePipClass
+beginObjectProperties
+major 4
+minor 1
+release 0
+x 0
+y 0
+w 640
+h 206
+fgColor rgb 0 0 0
+bgColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+displaySource "file"
+file "MLLV_bare.edl;P=$(P),Q=$(Q)"
+sizeOfs 5
+numDsps 1
+displayFileName {
+  0 "MLLV_bare.edl;P=$(P),Q=$(Q)"
+}
+noScroll
+endObjectProperties
+
+endGroup
+
+visMin "A"
+visMax "1"
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 555
+y 215
+w 70
+h 20
+fgColor rgb 65280 65280 65280
+bgColor rgb 13056 39168 0
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+font "helvetica-medium-r-12.0"
+buttonLabel "Less"
+numPvs 2
+numDsps 1
+displayFileName {
+  0 MLLV.edl
+}
+menuLabel {
+  0 more
+}
+symbols {
+  0 "P=$(P),Q=$(Q)"
+}
+closeAction {
+  0 1
+}
+replaceSymbols {
+  0 1
+}
+closeDisplay {
+  0 1
+}
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 20
+y 215
+w 110
+h 20
+fgColor rgb 0 0 0
+onColor rgb 29440 57088 65280
+offColor rgb 29440 57088 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Q)sync"
+pressValue "1"
+releaseValue 
+onLabel "Sync to motors"
+offLabel "Sync to motors"
+3d
+useEnumNumeric
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 270
+y 215
+w 100
+h 30
+fgColor rgb 64256 62208 18944
+onColor rgb 64768 0 0
+offColor rgb 64768 0 0
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Q)stop"
+pressValue "1"
+releaseValue 
+onLabel "Stop MLLV"
+offLabel "Stop MLLV"
+3d
+useEnumNumeric
+font "helvetica-medium-r-18.0"
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 480
+y 215
+w 70
+h 20
+fgColor rgb 65280 65280 65280
+bgColor rgb 13056 39168 0
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+font "helvetica-medium-r-12.0"
+buttonLabel "debug"
+numPvs 26
+numDsps 13
+displayFileName {
+  0 motorx.edl
+  1 motorx.edl
+  2 motorx.edl
+  3 motorx.edl
+  4 motorx.edl
+  5 yyTransform.edl
+  6 yyTransform.edl
+  7 yyTransform.edl
+  8 yyTransform.edl
+  9 yyCalcoutRecord.edl
+  10 yyCalcoutRecord.edl
+  11 MLLV_misc.edl
+  12 yySeq.edl
+}
+menuLabel {
+  0 th
+  1 z
+  2 y
+  3 chi
+  4 x
+  5 tFwd
+  6 tRev
+  7 tLimits
+  8 tLimits1
+  9 calcDone
+  10 closeGate
+  11 misc
+  12 softPut
+}
+symbols {
+  0 "P=$(P),M=$(Q)th"
+  1 "P=$(P),M=$(Q)z"
+  2 "P=$(P),M=$(Q)y"
+  3 "P=$(P),M=$(Q)chi"
+  4 "P=$(P),M=$(Q)x"
+  5 "P=$(P),T=$(Q)tFwd"
+  6 "P=$(P),T=$(Q)tRev"
+  7 "P=$(P),T=$(Q)tLimits"
+  8 "P=$(P),T=$(Q)tLimits1"
+  9 "P=$(P),C=$(Q)calcDone"
+  10 "P=$(P),C=$(Q)closeGate"
+  11 "P=$(P),Q=$(Q)"
+  12 "P=$(P),S=$(Q)softPut"
+}
+replaceSymbols {
+  0 1
+  1 1
+  2 1
+  3 1
+  4 1
+  5 1
+  6 1
+  7 1
+  8 1
+  9 1
+  10 1
+  11 1
+  12 1
+}
+endObjectProperties
+

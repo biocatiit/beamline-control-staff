@@ -1,0 +1,239 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 990
+y 150
+w 72
+h 88
+font "helvetica-medium-r-18.0"
+ctlFont "helvetica-bold-r-10.0"
+btnFont "helvetica-medium-r-18.0"
+fgColor rgb 0 0 0
+bgColor rgb 51200 51200 51200
+textColor rgb 0 0 0
+ctlFgColor1 rgb 64256 62208 18944
+ctlFgColor2 rgb 60928 46592 11008
+ctlBgColor1 rgb 52480 24832 0
+ctlBgColor2 rgb 65280 45056 65280
+topShadowColor rgb 44544 19968 48128
+botShadowColor rgb 13312 13056 34304
+showGrid
+snapToGrid
+gridSize 4
+endScreenProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Lock)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 1
+y 16
+w 25
+h 10
+font "helvetica-medium-r-8.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "$(N)"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 9
+y 39
+w 7
+h 15
+lineColor rgb 0 55296 0
+fill
+fillColor rgb 0 55296 0
+lineWidth 0
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Set)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Lock)"
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 9
+y 27
+w 7
+h 15
+lineColor rgb 64768 0 0
+fill
+fillColor rgb 64768 0 0
+lineWidth 0
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Set)"
+visMin 0
+visMax 1
+endObjectProperties
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+
+beginGroup
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+fgColor rgb 0 0 0
+onColor rgb 56832 4864 2304
+offColor rgb 56832 4864 2304
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(R)Fi$(N):Lock"
+pressValue "0"
+releaseValue 
+onLabel "L"
+offLabel "L"
+3d
+useEnumNumeric
+font "helvetica-bold-r-12.0"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Lock)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 60
+w 26
+h 28
+fgColor rgb 0 0 0
+bgColor rgb 29440 57088 65280
+selectColor rgb 29440 57088 65280
+inconsistentColor rgb 0 0 0
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(R)Fi$(N):Set"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+
+beginGroup
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 0
+w 14
+h 14
+fgColor rgb 0 0 0
+onColor rgb 0 55296 0
+offColor rgb 0 55296 0
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(R)Fi$(N):Lock"
+pressValue "1"
+releaseValue 
+onLabel "F"
+offLabel "F"
+3d
+useEnumNumeric
+font "helvetica-bold-r-12.0"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A)\}($(P)$(R)Fi$(N):Lock)"
+visMin 0
+visMax 1
+endObjectProperties
+
+

@@ -6,7 +6,7 @@ source source_medm.sh
 if [ -z "$1" ]
 then
       # No args provided, default
-      export RECPREFIX=DMC01:
+      export RECPREFIX=18ID_DMC_E03
 else
       # Record prefix provided as argument 1
       export RECPREFIX=$1
