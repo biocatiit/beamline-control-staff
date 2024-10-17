@@ -177,6 +177,15 @@ class MainStatusPanel(wx.Panel):
             'atten_8'           : epics.get_pv('18ID:LJT4:3:Bi3'),
             'atten_16'          : epics.get_pv('18ID:LJT4:3:Bi4'),
             'atten_32'          : epics.get_pv('18ID:LJT4:3:Bi5'),
+            'a_tempc'           : epics.get_pv('18ID:EnvMon:A:TempC'),
+            'a_tempf'           : epics.get_pv('18ID:EnvMon:A:TempF'),
+            'a_humid'           : epics.get_pv('18ID:EnvMon:A:Humid'),
+            'c_tempc'           : epics.get_pv('18ID:EnvMon:C:TempC'),
+            'c_tempf'           : epics.get_pv('18ID:EnvMon:C:TempF'),
+            'c_humid'           : epics.get_pv('18ID:EnvMon:C:Humid'),
+            'd_tempc'           : epics.get_pv('18ID:EnvMon:D:TempC'),
+            'd_tempf'           : epics.get_pv('18ID:EnvMon:D:TempF'),
+            'd_humid'           : epics.get_pv('18ID:EnvMon:D:Humid'),
 
             'bleps_fault'       : epics.get_pv('18ID:BLEPS:FAULT_EXISTS'),
             'bleps_trip'        : epics.get_pv('18ID:BLEPS:TRIP_EXISTS'),
@@ -1832,6 +1841,8 @@ class StationPanel(wx.ScrolledWindow):
 
         temp_sizer = self._make_temp_sizer(self)
 
+        hutch_sizer = self._make_hutch_sizer(self)
+
 
         pss_box = wx.StaticBox(self, label='PSS Status')
         fsize = self.GetFont().Larger().GetPointSize()
@@ -1851,9 +1862,14 @@ class StationPanel(wx.ScrolledWindow):
             flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
         row1_sizer.Add(temp_sizer, flag=wx.TOP|wx.BOTTOM|wx.RIGHT, border=5)
 
+        row2_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        row2_sizer.Add(pss_sizer, flag=wx.ALL|wx.EXPAND, border=5)
+        row2_sizer.Add(hutch_sizer,
+            flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
+
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(row1_sizer)
-        top_sizer.Add(pss_sizer)
+        top_sizer.Add(row2_sizer)
 
         self.SetSizer(top_sizer)
 
@@ -1913,7 +1929,7 @@ class StationPanel(wx.ScrolledWindow):
         return u_top_sizer
 
     def _make_temp_sizer(self, parent):
-        temp_box = wx.StaticBox(parent, label='Temperatures')
+        temp_box = wx.StaticBox(parent, label='Mono Temperatures')
         fsize = self.GetFont().Larger().GetPointSize()
         font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         temp_box.SetOwnFont(font)
@@ -1996,6 +2012,93 @@ class StationPanel(wx.ScrolledWindow):
             border=5)
 
         return temp_sizer
+
+    def _make_hutch_sizer(self, parent):
+        hutch_box = wx.StaticBox(parent, label='Hutch Environmental')
+        fsize = self.GetFont().Larger().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        hutch_box.SetOwnFont(font)
+
+        ahutch_box = wx.StaticBox(hutch_box, label='A Hutch')
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        ahutch_box.SetOwnFont(font)
+
+        a_tempc = epics.wx.PVText(ahutch_box, self.pvs['a_tempc'],
+            auto_units=True)
+        a_tempf = epics.wx.PVText(ahutch_box, self.pvs['a_tempf'],
+            auto_units=True)
+        a_humid = epics.wx.PVText(ahutch_box, self.pvs['a_humid'],
+            auto_units=True)
+
+        ahutch_layout = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
+        ahutch_layout.Add(wx.StaticText(ahutch_box, label='Temperature:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        ahutch_layout.Add(a_tempc, flag=wx.ALIGN_CENTER_VERTICAL)
+        ahutch_layout.Add(a_tempf, flag=wx.ALIGN_CENTER_VERTICAL)
+        ahutch_layout.Add(wx.StaticText(ahutch_box, label='Humidity:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        ahutch_layout.Add(a_humid, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        ahutch_sizer = wx.StaticBoxSizer(ahutch_box, wx.VERTICAL)
+        ahutch_sizer.Add(ahutch_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        chutch_box = wx.StaticBox(hutch_box, label='C Hutch')
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        chutch_box.SetOwnFont(font)
+
+        c_tempc = epics.wx.PVText(chutch_box, self.pvs['c_tempc'],
+            auto_units=True)
+        c_tempf = epics.wx.PVText(chutch_box, self.pvs['c_tempf'],
+            auto_units=True)
+        c_humid = epics.wx.PVText(chutch_box, self.pvs['c_humid'],
+            auto_units=True)
+
+        chutch_layout = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
+        chutch_layout.Add(wx.StaticText(chutch_box, label='Temperature:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        chutch_layout.Add(c_tempc, flag=wx.ALIGN_CENTER_VERTICAL)
+        chutch_layout.Add(c_tempf, flag=wx.ALIGN_CENTER_VERTICAL)
+        chutch_layout.Add(wx.StaticText(chutch_box, label='Humidity:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        chutch_layout.Add(c_humid, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        chutch_sizer = wx.StaticBoxSizer(chutch_box, wx.VERTICAL)
+        chutch_sizer.Add(chutch_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        dhutch_box = wx.StaticBox(hutch_box, label='D Hutch')
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        dhutch_box.SetOwnFont(font)
+
+        d_tempc = epics.wx.PVText(dhutch_box, self.pvs['d_tempc'],
+            auto_units=True)
+        d_tempf = epics.wx.PVText(dhutch_box, self.pvs['d_tempf'],
+            auto_units=True)
+        d_humid = epics.wx.PVText(dhutch_box, self.pvs['d_humid'],
+            auto_units=True)
+
+        dhutch_layout = wx.FlexGridSizer(cols=3, hgap=5, vgap=5)
+        dhutch_layout.Add(wx.StaticText(dhutch_box, label='Temperature:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        dhutch_layout.Add(d_tempc, flag=wx.ALIGN_CENTER_VERTICAL)
+        dhutch_layout.Add(d_tempf, flag=wx.ALIGN_CENTER_VERTICAL)
+        dhutch_layout.Add(wx.StaticText(dhutch_box, label='Humidity:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        dhutch_layout.Add(d_humid, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        dhutch_sizer = wx.StaticBoxSizer(dhutch_box, wx.VERTICAL)
+        dhutch_sizer.Add(dhutch_layout, flag=wx.EXPAND|wx.ALL, border=5)
+
+        hutch_sizer = wx.StaticBoxSizer(hutch_box, wx.VERTICAL)
+        hutch_sizer.Add(ahutch_sizer, flag=wx.ALL|wx.EXPAND, border=5)
+        hutch_sizer.Add(chutch_sizer, flag=wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.EXPAND,
+            border=5)
+        hutch_sizer.Add(dhutch_sizer, flag=wx.LEFT|wx.BOTTOM|wx.RIGHT|wx.EXPAND,
+            border=5)
+
+        return hutch_sizer
 
     def make_pss_sizer(self, parent, station):
         pss_box = wx.StaticBox(self, label='PSS {} Status'.format(station))
