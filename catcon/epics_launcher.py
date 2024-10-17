@@ -293,16 +293,50 @@ class MotorChannelPanel(wx.Panel):
 
         motor_panel = self
 
-        motor_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+        motor_grid_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
 
         for channel in self._channels:
             channel_sizer = self._create_channels_sizer(channel, motor_panel)
 
-            motor_sizer.Add(channel_sizer, flag=wx.EXPAND)
+            motor_grid_sizer.Add(channel_sizer, flag=wx.EXPAND)
 
-        motor_sizer.AddGrowableCol(0)
-        motor_sizer.AddGrowableCol(1)
+        motor_grid_sizer.AddGrowableCol(0)
+        motor_grid_sizer.AddGrowableCol(1)
+
+
+        slit_box = wx.StaticBox(motor_panel, label='Slit Center and Gap')
+
+        xenocs_us = wx.Button(slit_box, label='Xenocs US')
+        xenocs_us.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        xenocs_us_v = wx.Button(slit_box, label='Xenocs US V')
+        xenocs_us_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        xenocs_us_h = wx.Button(slit_box, label='Xenocs US H')
+        xenocs_us_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        xenocs_ds = wx.Button(slit_box, label='Xenocs DS')
+        xenocs_ds.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        xenocs_ds_v = wx.Button(slit_box, label='Xenocs DS V')
+        xenocs_ds_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        xenocs_ds_h = wx.Button(slit_box, label='Xenocs DS H')
+        xenocs_ds_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
+
+        slit_grid_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        slit_grid_sizer.Add(xenocs_us)
+        slit_grid_sizer.Add(xenocs_us_v)
+        slit_grid_sizer.Add(xenocs_us_h)
+        slit_grid_sizer.Add(xenocs_ds)
+        slit_grid_sizer.Add(xenocs_ds_v)
+        slit_grid_sizer.Add(xenocs_ds_h)
+
+        slit_sizer = wx.StaticBoxSizer(slit_box, wx.VERTICAL)
+        slit_sizer.Add(slit_grid_sizer, flag=wx.ALL, border=self._FromDIP(5))
+
+        motor_sizer = wx.BoxSizer(wx.VERTICAL)
+        motor_sizer.Add(motor_grid_sizer, proportion=1,flag=wx.EXPAND|wx.ALL,
+            border=self._FromDIP(5))
+        motor_sizer.Add(slit_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
 
         motor_panel.SetSizer(motor_sizer)
 
@@ -347,6 +381,18 @@ class MotorChannelPanel(wx.Panel):
 
         script = self._epics_path / 'start_motor_screen.sh'
         cmd = '{} {}: {}'.format(script, prefix, mnum)
+
+        process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
+        output, error = process.communicate()
+
+    def _on_show_slit(self, evt):
+        button = evt.GetEventObject()
+
+        label = button.GetLabel()
+        param = label.replace(' ', '_')
+
+        script = self._epics_path / 'start_slit_screen.sh'
+        cmd = '{} {}'.format(script, param)
 
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
