@@ -67,7 +67,7 @@ class MainStatusPanel(wx.Panel):
 
         self._create_layout()
 
-        self.SetMinSize((1600, 500))
+        self.SetMinSize((1400, 500))
 
     def on_close(self):
         for panel in self.panels:
@@ -98,7 +98,6 @@ class MainStatusPanel(wx.Panel):
         self.SetSizer(top_sizer)
 
         self.panels = [overview_page, bleps_page, aps_page, station_page, exp_page]
-        # self.panels = [overview_page, aps_page, station_page, exp_page]
 
     def _initialize(self):
         self.pvs = {

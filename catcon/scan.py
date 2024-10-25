@@ -1016,9 +1016,12 @@ class ScanPanel(wx.Panel):
         self.detectors.insert(0, 'None')
         self.detectors.append('Eiger2 XE 9M')
 
-        if 'i0' in self.scalers and 'i1' in self.scalers:
+        if (('i0' in self.scalers and 'i1' in self.scalers)
+            or (b'i0' in self.scalers and b'i1' in self.scalers)):
             self.scalers.append('i1/i0'.encode('utf-8'))
             self.scalers = sorted(self.scalers, key=lambda v: v.lower())
+
+        print(self.scalers)
 
     def _on_motorchoice(self, evt):
         if evt.GetEventObject() == self.motor:
@@ -1470,22 +1473,20 @@ class ScanPanel(wx.Panel):
 
         if self.fwhm_line is not None:
             try:
-                pts = self.fwhm_line.get_xy()
                 x0 = self.fwhm[1]
-                x1 = self.fwhm[2]
-                pts[:,0] = [x0, x0, x1, x1, x0]
-                self.fwhm_line.set_xy(pts)
+                fwhm = self.fwhm[0]
+                self.fwhm_line.set_x(x0)
+                self.fwhm_line.set_width(fwhm)
             except ValueError:
                 self.fwhm_line.remove()
                 self.fwhm_line = None
 
         if self.der_fwhm_line is not None:
             try:
-                pts = self.der_fwhm_line.get_xy()
                 x0 = self.der_fwhm[1]
-                x1 = self.der_fwhm[2]
-                pts[:,0] = [x0, x0, x1, x1, x0]
-                self.der_fwhm_line.set_xy(pts)
+                fwhm = self.der_fwhm[0]
+                self.der_fwhm_line.set_x(x0)
+                self.der_fwhm_line.set_width(fwhm)
             except ValueError:
                 self.der_fwhm_line.remove()
                 self.der_fwhm_line = None
