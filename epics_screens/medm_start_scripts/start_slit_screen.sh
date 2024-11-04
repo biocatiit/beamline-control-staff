@@ -24,4 +24,16 @@ elif [[ "$RECPREFIX" == "Xenocs_DS_V" ]]; then
     medm -x -macro "P=18ID_DMC_E04:,SLIT=XenocsDS_V:,mXp=29,mXn=30" 2slit_soft.adl &
 elif [[ "$RECPREFIX" == "Xenocs_DS_H" ]]; then
     medm -x -macro "P=18ID_DMC_E04:,SLIT=XenocsDS_H:,mXp=32,mXn=31" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_C" ]]; then
+    medm -x -macro "P=18ID_DMC_E02:,SLIT=JJ_C,V=JJ_C_V:,H=JJ_C_H:" 4slitGraphic_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_C_V" ]]; then
+    medm -x -macro "P=18ID_DMC_E02:,SLIT=JJ_C_V:,mXp=9,mXn=10" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_C_H" ]]; then
+    medm -x -macro "P=18ID_DMC_E02:,SLIT=JJ_C_H:,mXp=12,mXn=11" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_D" ]]; then
+    medm -x -macro "P=18ID_DMC_E01:,SLIT=JJ_D,V=JJ_D_V:,H=JJ_D_H:" 4slitGraphic_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_D_V" ]]; then
+    medm -x -macro "P=18ID_DMC_E01:,SLIT=JJ_D_V:,mXp=1,mXn=2" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "JJ_D_H" ]]; then
+    medm -x -macro "P=18ID_DMC_E01:,SLIT=JJ_D_H:,mXp=4,mXn=3" 2slit_soft.adl &
 fi

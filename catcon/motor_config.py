@@ -22,6 +22,8 @@ class MotorConfigPanel(wx.Panel):
 
         self.settings = {
             'motors'    : [
+                            ['18ID_DMC_E01:', 1, 8],
+                            ['18ID_DMC_E02:', 9, 16],
                             ['18ID_DMC_E03:', 17, 24],
                             ['18ID_DMC_E04:', 25, 32],
                             ['18ID_DMC_E05:', 33, 40],

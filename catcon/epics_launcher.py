@@ -74,17 +74,30 @@ class EPICSLauncherPanel(wx.Panel):
         labjack1_button = wx.Button(io_box, label='LabJack 1')
         labjack2_button = wx.Button(io_box, label='LabJack 2')
         labjack3_button = wx.Button(io_box, label='LabJack 3')
+        mc_1608G_1_button = wx.Button(io_box, label='MC 1608G 1')
+        mc_e1608_button = wx.Button(io_box, label='MC E-1608')
+        mc_etc_1_button = wx.Button(io_box, label='MC E-TC')
 
         labjack1_button.Bind(wx.EVT_BUTTON, self._on_labjack1_button)
         labjack2_button.Bind(wx.EVT_BUTTON, self._on_labjack2_button)
         labjack3_button.Bind(wx.EVT_BUTTON, self._on_labjack3_button)
+
+        mc_1608G_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_1_button)
+        mc_e1608_button.Bind(wx.EVT_BUTTON, self._on_mc_e1608_button)
+        mc_etc_1_button.Bind(wx.EVT_BUTTON, self._on_mc_etc_button)
 
         io_sizer = wx.StaticBoxSizer(io_box, wx.VERTICAL)
         io_sizer.Add(labjack1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         io_sizer.Add(labjack2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        io_sizer.Add(labjack3_button, flag=wx.ALL,
+        io_sizer.Add(labjack3_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_1608G_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_e1608_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_etc_1_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -122,17 +135,25 @@ class EPICSLauncherPanel(wx.Panel):
 
         motor_box = wx.StaticBox(parent, label='Motors')
         motor_channel_button = wx.Button(motor_box, label='Motor Channels')
+        dmc_e01_button = wx.Button(motor_box, label='DMC E01')
+        dmc_e02_button = wx.Button(motor_box, label='DMC E02')
         dmc_e03_button = wx.Button(motor_box, label='DMC E03')
         dmc_e04_button = wx.Button(motor_box, label='DMC E04')
         dmc_e05_button = wx.Button(motor_box, label='DMC E05')
 
         motor_channel_button.Bind(wx.EVT_BUTTON, self._on_motor_channel_button)
+        dmc_e01_button.Bind(wx.EVT_BUTTON, self._on_dmc_e01_button)
+        dmc_e02_button.Bind(wx.EVT_BUTTON, self._on_dmc_e02_button)
         dmc_e03_button.Bind(wx.EVT_BUTTON, self._on_dmc_e03_button)
         dmc_e04_button.Bind(wx.EVT_BUTTON, self._on_dmc_e04_button)
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
         motor_sizer.Add(motor_channel_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_e01_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_e02_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_e03_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
@@ -191,6 +212,20 @@ class EPICSLauncherPanel(wx.Panel):
         cmd = '{} {}'.format(script, num)
         self._start_epics(cmd)
 
+    def _on_mc_1608g_1_button(self, evt):
+        self._start_mc('USB1608G_1')
+
+    def _on_mc_e1608_button(self, evt):
+        self._start_mc('E1608')
+
+    def _on_mc_etc_button(self, evt):
+        self._start_mc('ETC')
+
+    def _start_mc(self, prefix):
+        script = self._epics_path / 'start_meascomp_screen.sh'
+        cmd = '{} {}'.format(script, prefix)
+        self._start_epics(cmd)
+
     def _on_struck_button(self, evt):
         script = self._epics_path / 'start_sis3820_screen.sh'
         cmd = '{}'.format(script)
@@ -236,6 +271,12 @@ class EPICSLauncherPanel(wx.Panel):
             title='Motor Channels')
         motor_channel_frame.Show()
 
+    def _on_dmc_e01_button(self, evt):
+        self._start_dmc('E01')
+
+    def _on_dmc_e02_button(self, evt):
+        self._start_dmc('E02')
+
     def _on_dmc_e03_button(self, evt):
         self._start_dmc('E03')
 
@@ -263,6 +304,8 @@ class MotorChannelPanel(wx.Panel):
         self._epics_path = self._epics_path.resolve()
 
         self._channels = [
+            ('18ID_DMC_E01', 1, 8),
+            ('18ID_DMC_E02', 9, 16),
             ('18ID_DMC_E03', 17, 24),
             ('18ID_DMC_E04', 25, 32),
             ('18ID_DMC_E05', 33, 40),
@@ -293,7 +336,7 @@ class MotorChannelPanel(wx.Panel):
 
         motor_panel = self
 
-        motor_grid_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+        motor_grid_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
 
         for channel in self._channels:
@@ -307,6 +350,18 @@ class MotorChannelPanel(wx.Panel):
 
         slit_box = wx.StaticBox(motor_panel, label='Slit Center and Gap')
 
+        jj_c = wx.Button(slit_box, label='JJ C')
+        jj_c.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        jj_c_v = wx.Button(slit_box, label='JJ C V')
+        jj_c_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        jj_c_h = wx.Button(slit_box, label='JJ C H')
+        jj_c_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        jj_d = wx.Button(slit_box, label='JJ D')
+        jj_d.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        jj_d_v = wx.Button(slit_box, label='JJ D V')
+        jj_d_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        jj_d_h = wx.Button(slit_box, label='JJ D H')
+        jj_d_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
         xenocs_us = wx.Button(slit_box, label='Xenocs US')
         xenocs_us.Bind(wx.EVT_BUTTON, self._on_show_slit)
         xenocs_us_v = wx.Button(slit_box, label='Xenocs US V')
@@ -320,8 +375,14 @@ class MotorChannelPanel(wx.Panel):
         xenocs_ds_h = wx.Button(slit_box, label='Xenocs DS H')
         xenocs_ds_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
 
-        slit_grid_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
+        slit_grid_sizer = wx.FlexGridSizer(cols=6, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
+        slit_grid_sizer.Add(jj_c)
+        slit_grid_sizer.Add(jj_c_v)
+        slit_grid_sizer.Add(jj_c_h)
+        slit_grid_sizer.Add(jj_d)
+        slit_grid_sizer.Add(jj_d_v)
+        slit_grid_sizer.Add(jj_d_h)
         slit_grid_sizer.Add(xenocs_us)
         slit_grid_sizer.Add(xenocs_us_v)
         slit_grid_sizer.Add(xenocs_us_h)
