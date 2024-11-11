@@ -39,6 +39,7 @@ from wx.lib.agw import ultimatelistctrl as ULC
 import wx.lib.mixins.listctrl  as  listmix
 import wx.lib.inspection
 import wx.lib.scrolledpanel as scrolled
+import wx.lib.ogl as ogl
 import numpy as np
 
 import utils
@@ -1491,4 +1492,5 @@ if __name__ == '__main__':
 
     app = MyApp(0)   #MyApp(redirect = True)
     # wx.lib.inspection.InspectionTool().Show()
+    ogl.OGLInitialize()
     app.MainLoop()

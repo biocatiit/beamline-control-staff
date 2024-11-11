@@ -28,6 +28,7 @@ import os
 
 import wx
 import wx.lib.buttons as buttons
+import wx.lib.ogl as ogl
 import epics, epics.wx
 from epics.wx.wxlib import EpicsFunction
 
@@ -113,12 +114,17 @@ class MotorPanel(wx.Panel):
             self.nlimit_pv = self.epics_motor.PV(nlimit)
             self.plimit_pv = self.epics_motor.PV(plimit)
 
+            self.hls_pv = self.epics_motor.PV('HLS')
+            self.lls_pv = self.epics_motor.PV('LLS')
+
             self.set_pv = self.epics_motor.PV('SET')
 
             self.pos_pv.get()
             self.nlimit_pv.get()
             self.plimit_pv.get()
             self.set_pv.get()
+            self.hls_pv.get()
+            self.lls_pv.get()
 
             self.epics_motor.add_callback('LVIO', self._on_epics_soft_limit)
             self.epics_motor.add_callback('HLS', self._on_epics_hard_limit)
@@ -155,6 +161,9 @@ class MotorPanel(wx.Panel):
                     break
 
         top_sizer = self._create_layout()
+
+        if self.is_epics:
+            self._on_epics_hard_limit(1)
 
         self.SetSizer(top_sizer)
 
@@ -211,8 +220,12 @@ class MotorPanel(wx.Panel):
                 dirty_timeout=None, scale=self.scale, offset=self.offset,
                 validator=utils.CharValidator('float_neg_te'))
 
-            mname = wx.StaticText(self, label='{} ({})'.format(self.motor.name,
-                self.epics_pv_name))
+            lim_indc = wx.Image(os.path.join('.', 'resources', 'red_circle.png'))
+            lim_indc.Rescale(20, 20)
+            self.ll_indc = wx.StaticBitmap(self, bitmap=lim_indc.ConvertToBitmap())
+            self.hl_indc = wx.StaticBitmap(self, bitmap=lim_indc.ConvertToBitmap())
+
+            mname = wx.StaticText(self, label='{}'.format(self.epics_pv_name))
 
 
         status_grid = wx.GridBagSizer(vgap=5, hgap=5)
@@ -252,20 +265,34 @@ class MotorPanel(wx.Panel):
             more_btn = buttons.ThemedGenButton(self, label='More', size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
             more_btn.Bind(wx.EVT_BUTTON, self._on_more)
 
-        pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=5, rows=2)
-        pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add((1,1))
-        pos_sizer.Add(wx.StaticText(self, label='Pos. ({})'.format(self.motor.get_field('units'))),
+        self.pos_sizer = wx.FlexGridSizer(vgap=2, hgap=2, cols=7, rows=2)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(wx.StaticText(self, label='Low lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(wx.StaticText(self, label='Pos. ({})'.format(self.motor.get_field('units'))),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add((1,1))
-        pos_sizer.Add(wx.StaticText(self, label='High lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add(self.low_limit, flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add((1,1))
-        pos_sizer.Add(pos, flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.Add((1,1))
-        pos_sizer.Add(self.high_limit, flag=wx.ALIGN_CENTER_VERTICAL)
-        pos_sizer.AddGrowableCol(1)
-        pos_sizer.AddGrowableCol(3)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(wx.StaticText(self, label='High lim.'), flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        if self.is_epics:
+            self.pos_sizer.Add(self.ll_indc, flag=wx.ALIGN_CENTER_VERTICAL|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        else:
+            self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(self.low_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(pos, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(self.high_limit, flag=wx.ALIGN_CENTER_VERTICAL)
+        if self.is_epics:
+            self.pos_sizer.Add(self.hl_indc, flag=wx.ALIGN_CENTER_VERTICAL|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        else:
+            self.pos_sizer.Add((1,1))
+        self.pos_sizer.AddGrowableCol(2)
+        self.pos_sizer.AddGrowableCol(4)
+
+        if self.is_epics:
+            self.pos_sizer.Hide(self.ll_indc)
+            self.pos_sizer.Hide(self.hl_indc)
 
         mabs_sizer = wx.BoxSizer(wx.HORIZONTAL)
         mabs_sizer.Add(wx.StaticText(self, label='Position:'),
@@ -291,7 +318,7 @@ class MotorPanel(wx.Panel):
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
             wx.VERTICAL)
-        control_sizer.Add(pos_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
+        control_sizer.Add(self.pos_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
         control_sizer.Add(mabs_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM)
         control_sizer.Add(mrel_sizer, border=2, flag=wx.EXPAND|wx.BOTTOM|wx.TOP)
         control_sizer.Add(wx.StaticLine(self), border=10, flag=wx.EXPAND|wx.LEFT|wx.RIGHT)
@@ -309,6 +336,8 @@ class MotorPanel(wx.Panel):
                 or isinstance(item, custom_epics_widgets.PVTextCtrl2))
                 ):
                 item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+
+
 
         return top_sizer
 
@@ -474,18 +503,17 @@ class MotorPanel(wx.Panel):
         self.epics_motor.stop()
 
     def _on_epics_soft_limit(self, value, **kwargs):
-        if value == 1:
-            msg = str("Software limit hit for motor '{}'".format(self.motor_name))
-            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+        pass
 
     def _on_epics_hard_limit(self, value, **kwargs):
-        if value != 0:
-            if 'HLS' in kwargs['pvname']:
-                msg = str("Hardware high limit hit for motor '{}'".format(self.motor_name))
-            else:
-                msg = str("Hardware low limit hit for motor '{}'".format(self.motor_name))
-
-            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+        if int(self.lls_pv.get()) == 0:
+            wx.CallAfter(self.pos_sizer.Hide, self.ll_indc)
+        else:
+            wx.CallAfter(self.pos_sizer.Show, self.ll_indc)
+        if int(self.hls_pv.get()) == 0:
+            wx.CallAfter(self.pos_sizer.Hide, self.hl_indc)
+        else:
+            wx.CallAfter(self.pos_sizer.Show, self.hl_indc)
 
     def _is_num(self, val):
         """
@@ -679,6 +707,7 @@ if __name__ == '__main__':
     mx_database.set_program_name("motorcon")
 
     app = wx.App()
+    ogl.OGLInitialize()
     frame = MotorFrame(mx_database, ['mtr1','mtr2','mtr3','mtr4'],
         (2,2), parent=None, title='Test Motor Control')
     frame.Show()
