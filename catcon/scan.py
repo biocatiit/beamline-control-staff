@@ -2194,15 +2194,15 @@ class ScanPanel(wx.Panel):
         """Updates the results section of the GUI."""
 
         if self.fwhm is not None:
-            self.disp_fwhm.SetLabel(str(round(self.fwhm[0], 4)))
-            self.disp_fwhm_pos.SetLabel(str(round(((self.fwhm[2]+self.fwhm[1])/2.), 4)))
+            self.disp_fwhm.SetLabel(str(round(self.fwhm[0], 5)))
+            self.disp_fwhm_pos.SetLabel(str(round(((self.fwhm[2]+self.fwhm[1])/2.), 5)))
 
         if self.com is not None:
-            self.disp_com.SetLabel(str(round(self.com, 4)))
+            self.disp_com.SetLabel(str(round(self.com, 5)))
 
         if self.der_fwhm is not None:
-            self.disp_der_fwhm.SetLabel(str(round(self.der_fwhm[0], 4)))
-            self.disp_der_fwhm_pos.SetLabel(str(round(((self.der_fwhm[2]+self.der_fwhm[1])/2.), 4)))
+            self.disp_der_fwhm.SetLabel(str(round(self.der_fwhm[0], 5)))
+            self.disp_der_fwhm_pos.SetLabel(str(round(((self.der_fwhm[2]+self.der_fwhm[1])/2.), 5)))
 
         if self.der_com is not None:
             self.disp_der_com.SetLabel(str(round(self.der_com, 4)))
