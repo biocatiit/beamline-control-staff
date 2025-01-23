@@ -168,6 +168,7 @@ class MotorConfigPanel(wx.Panel):
                 defaultDir = self._last_path)
 
         elif mode == wx.FD_SAVE:
+            desc = desc.replace('/', '_')
             filters = name + ' ('+ext+')|'+ext
             dialog = wx.FileDialog(None, style=mode|wx.FD_OVERWRITE_PROMPT,
                 wildcard=filters, defaultDir=self._last_path,
