@@ -139,7 +139,10 @@ class AttenuatorPanel(wx.Panel):
         self.setting_attenuation = False
         self.current_attenuation = 1
 
-        self.attenuator_thickness = [1, 2, 4, 8, 16, 32]
+        self.attenuator_position = [1, 2, 3, 4, 5, 6]
+        self.attenuator_thickness = {1: 21.867, 2: 43.305, 3: 85.385, 4: 171.128,
+            5: 346.461, 6: 676.116} #thickness in microns
+
         self.energy = 12    #Energy in keV
 
         root_dir = os.path.split(__file__)[0]
@@ -149,8 +152,8 @@ class AttenuatorPanel(wx.Panel):
 
         self.attenuator_combos = []
 
-        for i in range(1, len(self.attenuator_thickness)+1):
-            self.attenuator_combos.extend(list(itertools.combinations(self.attenuator_thickness, i)))
+        for i in range(1, len(self.attenuator_position)+1):
+            self.attenuator_combos.extend(list(itertools.combinations(self.attenuator_position, i)))
 
         self._calc_attens()
 
@@ -162,19 +165,19 @@ class AttenuatorPanel(wx.Panel):
             self.mx_attens = {
                 1   : self.mx_database.get_record('do_0'),
                 2   : self.mx_database.get_record('do_1'),
-                4   : self.mx_database.get_record('do_2'),
-                8   : self.mx_database.get_record('do_3'),
-                16  : self.mx_database.get_record('do_4'),
-                32  : self.mx_database.get_record('do_5'),
+                3   : self.mx_database.get_record('do_2'),
+                4   : self.mx_database.get_record('do_3'),
+                5   : self.mx_database.get_record('do_4'),
+                6   : self.mx_database.get_record('do_5'),
             }
 
             self.mx_attens_outs = {
                 1   : self.mx_database.get_record('di_0'),
                 2   : self.mx_database.get_record('di_1'),
-                4   : self.mx_database.get_record('di_2'),
-                8   : self.mx_database.get_record('di_3'),
-                16  : self.mx_database.get_record('di_4'),
-                32  : self.mx_database.get_record('di_5'),
+                3   : self.mx_database.get_record('di_2'),
+                4   : self.mx_database.get_record('di_3'),
+                5   : self.mx_database.get_record('di_4'),
+                6   : self.mx_database.get_record('di_5'),
             }
 
         self.get_atten_timer = wx.Timer()
@@ -258,7 +261,9 @@ class AttenuatorPanel(wx.Panel):
         self.attenuations = {1.0 : (None, 0, 0)}
 
         for combo in self.attenuator_combos:
-            length = sum(combo)*20 #length in microns
+            length = 0
+            for pos in combo:
+                length += self.attenuator_thickness[pos]
             atten = math.exp(-length/self.atten_length)
 
             self.attenuations[atten] = (combo, length, atten)
@@ -324,11 +329,10 @@ class AttenuatorPanel(wx.Panel):
 
     def _get_attenuators(self):
         length = 0
-        for foil, atten_out in self.mx_attens_outs.items():
+        for pos, atten_out in self.mx_attens_outs.items():
             if not atten_out.read():
-                length = length + foil
+                length += self.attenuator_thickness[pos]
 
-        length = length*20
         old_attenuation = self.current_attenuation
         self.current_attenuation = math.exp(-length/self.atten_length)
 
