@@ -140,6 +140,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e03_button = wx.Button(motor_box, label='DMC E03')
         dmc_e04_button = wx.Button(motor_box, label='DMC E04')
         dmc_e05_button = wx.Button(motor_box, label='DMC E05')
+        dmc_a01_button = wx.Button(motor_box, label='DMC A01')
 
         motor_channel_button.Bind(wx.EVT_BUTTON, self._on_motor_channel_button)
         dmc_e01_button.Bind(wx.EVT_BUTTON, self._on_dmc_e01_button)
@@ -147,6 +148,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e03_button.Bind(wx.EVT_BUTTON, self._on_dmc_e03_button)
         dmc_e04_button.Bind(wx.EVT_BUTTON, self._on_dmc_e04_button)
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
+        dmc_a01_button.Bind(wx.EVT_BUTTON, self._on_dmc_a01_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
         motor_sizer.Add(motor_channel_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -160,6 +162,8 @@ class EPICSLauncherPanel(wx.Panel):
         motor_sizer.Add(dmc_e04_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_e05_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_a01_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -286,6 +290,9 @@ class EPICSLauncherPanel(wx.Panel):
     def _on_dmc_e05_button(self, evt):
         self._start_dmc('E05')
 
+    def _on_dmc_a01_button(self, evt):
+        self._start_dmc('A01')
+
     def _start_dmc(self, num):
         script = self._epics_path / 'start_dmc_screen.sh'
         cmd = '{} 18ID_DMC_{}'.format(script, num)
@@ -304,11 +311,12 @@ class MotorChannelPanel(wx.Panel):
         self._epics_path = self._epics_path.resolve()
 
         self._channels = [
-            ('18ID_DMC_E01', 1, 8),
-            ('18ID_DMC_E02', 9, 16),
-            ('18ID_DMC_E03', 17, 24),
-            ('18ID_DMC_E04', 25, 32),
-            ('18ID_DMC_E05', 33, 40),
+            ('18ID_DMC_E01:', 1, 8, ''),
+            ('18ID_DMC_E02:', 9, 16, ''),
+            ('18ID_DMC_E03:', 17, 24, ''),
+            ('18ID_DMC_E04:', 25, 32, ''),
+            ('18ID_DMC_E05:', 33, 40, ''),
+            ('18ID_DMC_A01:', 1, 8, 'A'),
             ]
 
         self._channel_show = {}
@@ -406,14 +414,14 @@ class MotorChannelPanel(wx.Panel):
         # self.SetSizer(top_sizer)
 
     def _create_channels_sizer(self, channel, parent):
-        prefix, start, end = channel
+        prefix, start, end, extra = channel
         channel_box = wx.StaticBox(parent, label=prefix)
 
         channel_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
 
         for mnum in range(start, end+1):
-            pv = '{}:{}'.format(prefix, mnum)
+            pv = '{}{}{}'.format(prefix, extra, mnum)
             descrip = epics.wx.PVText(channel_box, '{}.DESC'.format(pv),
                 minor_alarm=None, major_alarm=None, invalid_alarm=None,
                 size=self._FromDIP((150,-1)), bg='white')
@@ -421,9 +429,9 @@ class MotorChannelPanel(wx.Panel):
             show = wx.Button(channel_box, label='Show')
             show.Bind(wx.EVT_BUTTON, self._on_show_button)
 
-            self._channel_show[show] = (prefix, mnum)
+            self._channel_show[show] = (prefix, mnum, extra)
 
-            channel_sizer.Add(wx.StaticText(channel_box, label='{}:'.format(mnum)),
+            channel_sizer.Add(wx.StaticText(channel_box, label='{}{}:'.format(extra, mnum)),
                 flag=wx.ALIGN_CENTER_VERTICAL)
             channel_sizer.Add(descrip, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
             channel_sizer.Add(show, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -438,10 +446,10 @@ class MotorChannelPanel(wx.Panel):
     def _on_show_button(self, evt):
         button = evt.GetEventObject()
 
-        prefix, mnum = self._channel_show[button]
+        prefix, mnum, extra = self._channel_show[button]
 
         script = self._epics_path / 'start_motor_screen.sh'
-        cmd = '{} {}: {}'.format(script, prefix, mnum)
+        cmd = '{} {} {}{}'.format(script, prefix, extra, mnum)
 
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()
