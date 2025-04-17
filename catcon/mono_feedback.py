@@ -337,9 +337,9 @@ def calc_position_step(target, value, step_calibration, min_step, max_step):
 # This is based on using bpm x and y values to know which way to move the intensity
 
 def intensity_feedback(value, target, motor, pv, bpm_x_target, bpm_x_pv,
-    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size, 
+    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size,
     max_step_size, close, timeout=0.25, average_time=0.2):
-    
+
     current = current_pv.get()
     scale = current/current_start
     if value*scale < target-close:
@@ -365,7 +365,7 @@ def intensity_feedback(value, target, motor, pv, bpm_x_target, bpm_x_pv,
 
 def intensity_optimize(value, start_val, motor, pv, bpm_x_target, bpm_x_pv,
     bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size,
-    max_step_size, close, timeout=0.25, average_time=0.2, osc_step=0, 
+    max_step_size, close, timeout=0.25, average_time=0.2, osc_step=0,
     stop_step=0, recursive_step=0):
 
     bpm_x_val, bpm_y_val = monitor_and_average([bpm_x_pv, bpm_y_pv],
@@ -414,7 +414,7 @@ def intensity_optimize(value, start_val, motor, pv, bpm_x_target, bpm_x_pv,
         else:
             recursive_step = recursive_step + 1
 
-            final_value, final_current, bpm_int_x_target, bpm_int_y_target = intensity_optimize(value, 
+            final_value, final_current, bpm_int_x_target, bpm_int_y_target = intensity_optimize(value,
                 start_val, motor, pv, bpm_x_target, bpm_x_pv, bpm_y_target, bpm_y_pv, current_start,
                 current_pv, min_step_size, max_step_size, close, timeout, average_time,
                 osc_step, stop_step, recursive_step)
@@ -458,11 +458,11 @@ def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_nam
     logger.info('Ring current PV: %s', current_name)
 
     logger.debug("Connecting to PVs")
-    bpm_x_pv = epics.PV(bpm_x_name, auto_monitor=False)
-    bpm_y_pv = epics.PV(bpm_y_name, auto_monitor=False)
-    bpm_int_pv = epics.PV(bpm_int_name, auto_monitor=False)
-    shutter_pv = epics.PV(shutter_name, auto_monitor=False)
-    current_pv = epics.PV(current_name, auto_monitor=False)
+    bpm_x_pv = epics.get_pv(bpm_x_name, auto_monitor=False)
+    bpm_y_pv = epics.get_pv(bpm_y_name, auto_monitor=False)
+    bpm_int_pv = epics.get_pv(bpm_int_name, auto_monitor=False)
+    shutter_pv = epics.get_pv(shutter_name, auto_monitor=False)
+    current_pv = epics.get_pv(current_name, auto_monitor=False)
     logger.debug("Connected to PVs")
 
     logger.debug("Connecting to motors")
