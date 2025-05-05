@@ -82,7 +82,7 @@ class AIOPanel(wx.Panel):
         if self.aio_type.startswith('epics'):
             self.is_epics = True
             pv_name = self.aio.get_field('epics_variable_name')
-            self.pv = epics.PV(pv_name)
+            self.pv = epics.get_pv(pv_name)
             self.pv.get()
 
         else:
@@ -141,7 +141,7 @@ class AIOPanel(wx.Panel):
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
         for item in self.GetChildren():
             if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, wx.StaticBox)) 
+                or isinstance(item, wx.StaticBox))
                 and not (isinstance(item, epics.wx.PVText) or isinstance(item, epics.wx.PVFloatCtrl))
                 ):
 

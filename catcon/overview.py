@@ -620,6 +620,12 @@ class MainStatusPanel(wx.Panel):
             'plc_sec'           : epics.get_pv('18ID:BLEPS:SECOND'),
         }
 
+        for key, pv in self.pvs.items():
+            connected = pv.wait_for_connection(5)
+
+            if not connected:
+                logger.error('Failed to connect to EPICS PV with key %s on startup', key)
+
         [self.pvs[key].get() for key in self.pvs.keys()]
 
 class OverviewPanel(wx.Panel):

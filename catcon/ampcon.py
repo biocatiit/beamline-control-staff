@@ -214,9 +214,9 @@ class DBPMAmpPanel(wx.Panel):
         self.mx_database = mx_database
         self.amp_name = amp_name
 
-        self.amp_gain_pv = epics.PV('{}Gain:Level-SP'.format(self.amp_name))
-        self.amp_current_pv = epics.PV('{}Ampl:CurrTotal-I'.format(self.amp_name))
-        self.amp_scale_pv = epics.PV('{}CtrlDAC:CLevel-SP'.format(self.amp_name))
+        self.amp_gain_pv = epics.get_pv('{}Gain:Level-SP'.format(self.amp_name))
+        self.amp_current_pv = epics.get_pv('{}Ampl:CurrTotal-I'.format(self.amp_name))
+        self.amp_scale_pv = epics.get_pv('{}CtrlDAC:CLevel-SP'.format(self.amp_name))
 
         self.amp_gain_pv.get()
         self.amp_current_pv.get()
