@@ -75,6 +75,8 @@ class EPICSLauncherPanel(wx.Panel):
         labjack2_button = wx.Button(io_box, label='LabJack 2')
         labjack3_button = wx.Button(io_box, label='LabJack 3')
         mc_1608G_1_button = wx.Button(io_box, label='MC 1608G 1')
+        mc_1608G_2_button = wx.Button(io_box, label='MC 1608G 2')
+        mc_1608G_2ao_1_button = wx.Button(io_box, label='MC 1608G 2AO 1')
         mc_e1608_button = wx.Button(io_box, label='MC E-1608')
         mc_etc_1_button = wx.Button(io_box, label='MC E-TC')
 
@@ -83,6 +85,8 @@ class EPICSLauncherPanel(wx.Panel):
         labjack3_button.Bind(wx.EVT_BUTTON, self._on_labjack3_button)
 
         mc_1608G_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_1_button)
+        mc_1608G_2_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_2_button)
+        mc_1608G_2ao_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_2ao_1_button)
         mc_e1608_button.Bind(wx.EVT_BUTTON, self._on_mc_e1608_button)
         mc_etc_1_button.Bind(wx.EVT_BUTTON, self._on_mc_etc_button)
 
@@ -94,6 +98,10 @@ class EPICSLauncherPanel(wx.Panel):
         io_sizer.Add(labjack3_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         io_sizer.Add(mc_1608G_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_1608G_2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_1608G_2ao_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         io_sizer.Add(mc_e1608_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
@@ -185,15 +193,16 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
 
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
+            vgap=self._FromDIP(5))
         top_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5))
         top_sizer.Add(io_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=self._FromDIP(5))
-        top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
 
@@ -218,6 +227,12 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_mc_1608g_1_button(self, evt):
         self._start_mc('USB1608G_1')
+
+    def _on_mc_1608g_2_button(self, evt):
+        self._start_mc('USB1608G_2')
+
+    def _on_mc_1608g_2ao_1_button(self, evt):
+        self._start_mc('USB1608G_2AO_1')
 
     def _on_mc_e1608_button(self, evt):
         self._start_mc('E1608')
