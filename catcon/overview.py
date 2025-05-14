@@ -168,8 +168,10 @@ class MainStatusPanel(wx.Panel):
             'sample_vac'        : epics.get_pv('18ID:VAC:D:Sample'),
             'vs1_vac'           : epics.get_pv('18ID:VAC:D:Vac1'),
             'vs2_vac'           : epics.get_pv('18ID:VAC:D:Vac2'),
-            'i0'                : epics.get_pv('18ID:IP330_11'),
-            'i1'                : epics.get_pv('18ID:IP330_12'),
+            'i0'                : epics.get_pv('18ID:USB1608G_2:Ai7'),
+            'i1'                : epics.get_pv('18ID:USB1608G_2:Ai8'),
+            'i2'                : epics.get_pv('18ID:USB1608G_2AO_1:Ai1'),
+            'i3'                : epics.get_pv('18ID:USB1608G_2AO_1:Ai2'),
             'atten_1'           : epics.get_pv('18ID:LJT4:3:Bi0'),
             'atten_2'           : epics.get_pv('18ID:LJT4:3:Bi1'),
             'atten_4'           : epics.get_pv('18ID:LJT4:3:Bi2'),
@@ -2413,6 +2415,10 @@ class ExpPanel(wx.Panel):
             self.pvs['i0'], do_round=True, sig_fig=2)
         i1 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['i1'], do_round=True, sig_fig=2)
+        i2 = custom_epics_widgets.PVTextLabeled(shutter_panel,
+            self.pvs['i2'], do_round=True, sig_fig=2)
+        i3 = custom_epics_widgets.PVTextLabeled(shutter_panel,
+            self.pvs['i3'], do_round=True, sig_fig=2)
 
         shutter_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         shutter_layout.Add(wx.StaticText(shutter_panel, label='Slow shutter 1:'),
@@ -2430,6 +2436,12 @@ class ExpPanel(wx.Panel):
         shutter_layout.Add(wx.StaticText(shutter_panel, label='I1 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(i1, flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I2 [V]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(i2, flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I3 [V]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(i3, flag=wx.ALIGN_CENTER_VERTICAL)
 
         shutter_panel.SetSizer(shutter_layout)
 
