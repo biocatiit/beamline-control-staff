@@ -36,4 +36,10 @@ elif [[ "$RECPREFIX" == "JJ_D_V" ]]; then
     medm -x -macro "P=18ID_DMC_E01:,SLIT=JJ_D_V:,mXp=1,mXn=2" 2slit_soft.adl &
 elif [[ "$RECPREFIX" == "JJ_D_H" ]]; then
     medm -x -macro "P=18ID_DMC_E01:,SLIT=JJ_D_H:,mXp=4,mXn=3" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "WB" ]]; then
+    medm -x -macro "P=18ID_DMC_A01:,SLIT=WB,V=WB_V:,H=WB_H:" 4slitGraphic_soft.adl &
+elif [[ "$RECPREFIX" == "WB_V" ]]; then
+    medm -x -macro "P=18ID_DMC_A01:,SLIT=WB_V:,mXp=A1,mXn=A2" 2slit_soft.adl &
+elif [[ "$RECPREFIX" == "WB_H" ]]; then
+    medm -x -macro "P=18ID_DMC_A01:,SLIT=WB_H:,mXp=A4,mXn=A3" 2slit_soft.adl &
 fi

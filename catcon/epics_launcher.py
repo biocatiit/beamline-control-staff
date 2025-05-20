@@ -373,6 +373,12 @@ class MotorChannelPanel(wx.Panel):
 
         slit_box = wx.StaticBox(motor_panel, label='Slit Center and Gap')
 
+        wb = wx.Button(slit_box, label='WB')
+        wb.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        wb_v = wx.Button(slit_box, label='WB V')
+        wb_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        wb_h = wx.Button(slit_box, label='WB H')
+        wb_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
         jj_c = wx.Button(slit_box, label='JJ C')
         jj_c.Bind(wx.EVT_BUTTON, self._on_show_slit)
         jj_c_v = wx.Button(slit_box, label='JJ C V')
@@ -400,6 +406,9 @@ class MotorChannelPanel(wx.Panel):
 
         slit_grid_sizer = wx.FlexGridSizer(cols=6, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
+        slit_grid_sizer.Add(wb)
+        slit_grid_sizer.Add(wb_v)
+        slit_grid_sizer.Add(wb_h)
         slit_grid_sizer.Add(jj_c)
         slit_grid_sizer.Add(jj_c_v)
         slit_grid_sizer.Add(jj_c_h)
