@@ -168,8 +168,10 @@ class MainStatusPanel(wx.Panel):
             'sample_vac'        : epics.get_pv('18ID:VAC:D:Sample'),
             'vs1_vac'           : epics.get_pv('18ID:VAC:D:Vac1'),
             'vs2_vac'           : epics.get_pv('18ID:VAC:D:Vac2'),
-            'i0'                : epics.get_pv('18ID:IP330_11'),
-            'i1'                : epics.get_pv('18ID:IP330_12'),
+            'i0'                : epics.get_pv('18ID:USB1608G_2:Ai7'),
+            'i1'                : epics.get_pv('18ID:USB1608G_2:Ai8'),
+            'i2'                : epics.get_pv('18ID:USB1608G_2AO_1:Ai1'),
+            'i3'                : epics.get_pv('18ID:USB1608G_2AO_1:Ai2'),
             'atten_1'           : epics.get_pv('18ID:LJT4:3:Bi0'),
             'atten_2'           : epics.get_pv('18ID:LJT4:3:Bi1'),
             'atten_4'           : epics.get_pv('18ID:LJT4:3:Bi2'),
@@ -185,6 +187,14 @@ class MainStatusPanel(wx.Panel):
             'd_tempc'           : epics.get_pv('18ID:EnvMon:D:TempC'),
             'd_tempf'           : epics.get_pv('18ID:EnvMon:D:TempF'),
             'd_humid'           : epics.get_pv('18ID:EnvMon:D:Humid'),
+            'vac_ps2'           : epics.get_pv('18ID:VAC:A:PS2'),
+            'vac_ps3'           : epics.get_pv('18ID:VAC:A:PS3'),
+            'vac_f230'          : epics.get_pv('18ID:VAC:C:F230'),
+            'vac_mono1'         : epics.get_pv('18ID:VAC:C:Mono1'),
+            'vac_mono2'         : epics.get_pv('18ID:VAC:C:Mono2'),
+            'vac_mirror'        : epics.get_pv('18ID:VAC:C:Mirror'),
+            'vac_ds_support_c'  : epics.get_pv('18ID:VAC:C:DS_Support'),
+            'vac_ds_support_d'  : epics.get_pv('18ID:VAC:D:DS_Support'),
 
             'bleps_fault'       : epics.get_pv('18ID:BLEPS:FAULT_EXISTS'),
             'bleps_trip'        : epics.get_pv('18ID:BLEPS:TRIP_EXISTS'),
@@ -619,6 +629,12 @@ class MainStatusPanel(wx.Panel):
             'plc_mi'            : epics.get_pv('18ID:BLEPS:MINUTE'),
             'plc_sec'           : epics.get_pv('18ID:BLEPS:SECOND'),
         }
+
+        for key, pv in self.pvs.items():
+            connected = pv.wait_for_connection(1)
+
+            if not connected:
+                print('Failed to connect to EPICS PV with key {} on startup'.format(key))
 
         [self.pvs[key].get() for key in self.pvs.keys()]
 
@@ -1842,6 +1858,8 @@ class StationPanel(wx.ScrolledWindow):
 
         hutch_sizer = self._make_hutch_sizer(self)
 
+        vacuum_sizer = self._make_vacuum_sizer(self)
+
 
         pss_box = wx.StaticBox(self, label='PSS Status')
         fsize = self.GetFont().Larger().GetPointSize()
@@ -1864,6 +1882,8 @@ class StationPanel(wx.ScrolledWindow):
         row2_sizer = wx.BoxSizer(wx.HORIZONTAL)
         row2_sizer.Add(pss_sizer, flag=wx.ALL|wx.EXPAND, border=5)
         row2_sizer.Add(hutch_sizer,
+            flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
+        row2_sizer.Add(vacuum_sizer,
             flag=wx.TOP|wx.BOTTOM|wx.RIGHT|wx.EXPAND, border=5)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2196,6 +2216,67 @@ class StationPanel(wx.ScrolledWindow):
 
         return pss_sizer
 
+    def _make_vacuum_sizer(self, parent):
+        vac_box = wx.StaticBox(parent, label='Vacuum')
+        fsize = self.GetFont().Larger().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        vac_box.SetOwnFont(font)
+
+        fsize = self.GetFont().GetPointSize()
+        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
+        vac_panel = wx.Panel(vac_box)
+        vac_panel.SetFont(font)
+
+        vac_ps2 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_ps2'], scale=1e9, sig_fig=2, do_round=True)
+        vac_ps3 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_ps3'], scale=1e9, sig_fig=2, do_round=True)
+        vac_f230 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_f230'], scale=1e9, sig_fig=2, do_round=True)
+        vac_mono1 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_mono1'], scale=1e9, sig_fig=2, do_round=True)
+        vac_mono2 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_mono2'], scale=1e9, sig_fig=2, do_round=True)
+        vac_mirror = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_mirror'], scale=1e9, sig_fig=2, do_round=True)
+        vac_ds_support_c = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_ds_support_c'], scale=1e9, sig_fig=2, do_round=True)
+        vac_ds_support_d = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_ds_support_d'], scale=1e9, sig_fig=2, do_round=True)
+
+        vac_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Pumping Station 2 [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_ps2, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Pumping Station 3 [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_ps3, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='F230 (C hutch) [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_f230, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Mono 1 [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_mono1, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Mono 2 [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_mono2, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Mirror [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_mirror, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='DS Support C [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_ds_support_c, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='DS Support D [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_ds_support_d, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        vac_panel.SetSizer(vac_layout)
+
+        vac_sizer = wx.StaticBoxSizer(vac_box, wx.VERTICAL)
+        vac_sizer.Add(vac_panel, flag=wx.ALL|wx.EXPAND, border=5)
+
+        return vac_sizer
+
 class ExpPanel(wx.Panel):
     """
     .. todo::
@@ -2265,17 +2346,17 @@ class ExpPanel(wx.Panel):
         vac_panel.SetFont(font)
 
         col_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['col_vac'], scale=1000, do_round=True)
+            self.pvs['col_vac'], scale=1000, sig_fig=1, do_round=True)
         guard_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['guard_vac'], scale=1000, do_round=True)
+            self.pvs['guard_vac'], scale=1000, sig_fig=1, do_round=True)
         scatter_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['scatter_vac'], scale=1000, do_round=True)
+            self.pvs['scatter_vac'], scale=1000, sig_fig=1 ,do_round=True)
         sample_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['sample_vac'], scale=1000, do_round=True)
+            self.pvs['sample_vac'], scale=1000, sig_fig=1, do_round=True)
         vs1_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['vs1_vac'], scale=1000, do_round=True)
+            self.pvs['vs1_vac'], scale=1000, sig_fig=1, do_round=True)
         vs2_vac = custom_epics_widgets.PVTextLabeled(vac_panel,
-            self.pvs['vs2_vac'], scale=1000, do_round=True)
+            self.pvs['vs2_vac'], scale=1000, sig_fig=1, do_round=True)
 
         vac_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         vac_layout.Add(wx.StaticText(vac_panel, label='Col. Vac. [mTorr]:'),
@@ -2334,6 +2415,10 @@ class ExpPanel(wx.Panel):
             self.pvs['i0'], do_round=True, sig_fig=2)
         i1 = custom_epics_widgets.PVTextLabeled(shutter_panel,
             self.pvs['i1'], do_round=True, sig_fig=2)
+        i2 = custom_epics_widgets.PVTextLabeled(shutter_panel,
+            self.pvs['i2'], do_round=True, sig_fig=2)
+        i3 = custom_epics_widgets.PVTextLabeled(shutter_panel,
+            self.pvs['i3'], do_round=True, sig_fig=2)
 
         shutter_layout = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         shutter_layout.Add(wx.StaticText(shutter_panel, label='Slow shutter 1:'),
@@ -2351,6 +2436,12 @@ class ExpPanel(wx.Panel):
         shutter_layout.Add(wx.StaticText(shutter_panel, label='I1 [V]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         shutter_layout.Add(i1, flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I2 [V]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(i2, flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(wx.StaticText(shutter_panel, label='I3 [V]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        shutter_layout.Add(i3, flag=wx.ALIGN_CENTER_VERTICAL)
 
         shutter_panel.SetSizer(shutter_layout)
 

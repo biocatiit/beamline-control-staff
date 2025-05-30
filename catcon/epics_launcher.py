@@ -75,6 +75,8 @@ class EPICSLauncherPanel(wx.Panel):
         labjack2_button = wx.Button(io_box, label='LabJack 2')
         labjack3_button = wx.Button(io_box, label='LabJack 3')
         mc_1608G_1_button = wx.Button(io_box, label='MC 1608G 1')
+        mc_1608G_2_button = wx.Button(io_box, label='MC 1608G 2')
+        mc_1608G_2ao_1_button = wx.Button(io_box, label='MC 1608G 2AO 1')
         mc_e1608_button = wx.Button(io_box, label='MC E-1608')
         mc_etc_1_button = wx.Button(io_box, label='MC E-TC')
 
@@ -83,6 +85,8 @@ class EPICSLauncherPanel(wx.Panel):
         labjack3_button.Bind(wx.EVT_BUTTON, self._on_labjack3_button)
 
         mc_1608G_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_1_button)
+        mc_1608G_2_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_2_button)
+        mc_1608G_2ao_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_2ao_1_button)
         mc_e1608_button.Bind(wx.EVT_BUTTON, self._on_mc_e1608_button)
         mc_etc_1_button.Bind(wx.EVT_BUTTON, self._on_mc_etc_button)
 
@@ -94,6 +98,10 @@ class EPICSLauncherPanel(wx.Panel):
         io_sizer.Add(labjack3_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         io_sizer.Add(mc_1608G_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_1608G_2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(mc_1608G_2ao_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         io_sizer.Add(mc_e1608_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
@@ -140,6 +148,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e03_button = wx.Button(motor_box, label='DMC E03')
         dmc_e04_button = wx.Button(motor_box, label='DMC E04')
         dmc_e05_button = wx.Button(motor_box, label='DMC E05')
+        dmc_a01_button = wx.Button(motor_box, label='DMC A01')
 
         motor_channel_button.Bind(wx.EVT_BUTTON, self._on_motor_channel_button)
         dmc_e01_button.Bind(wx.EVT_BUTTON, self._on_dmc_e01_button)
@@ -147,6 +156,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e03_button.Bind(wx.EVT_BUTTON, self._on_dmc_e03_button)
         dmc_e04_button.Bind(wx.EVT_BUTTON, self._on_dmc_e04_button)
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
+        dmc_a01_button.Bind(wx.EVT_BUTTON, self._on_dmc_a01_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
         motor_sizer.Add(motor_channel_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -160,6 +170,8 @@ class EPICSLauncherPanel(wx.Panel):
         motor_sizer.Add(dmc_e04_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_e05_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+        motor_sizer.Add(dmc_a01_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -181,15 +193,16 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
 
 
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
+            vgap=self._FromDIP(5))
         top_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5))
         top_sizer.Add(io_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=self._FromDIP(5))
-        top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
 
@@ -214,6 +227,12 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_mc_1608g_1_button(self, evt):
         self._start_mc('USB1608G_1')
+
+    def _on_mc_1608g_2_button(self, evt):
+        self._start_mc('USB1608G_2')
+
+    def _on_mc_1608g_2ao_1_button(self, evt):
+        self._start_mc('USB1608G_2AO_1')
 
     def _on_mc_e1608_button(self, evt):
         self._start_mc('E1608')
@@ -286,6 +305,9 @@ class EPICSLauncherPanel(wx.Panel):
     def _on_dmc_e05_button(self, evt):
         self._start_dmc('E05')
 
+    def _on_dmc_a01_button(self, evt):
+        self._start_dmc('A01')
+
     def _start_dmc(self, num):
         script = self._epics_path / 'start_dmc_screen.sh'
         cmd = '{} 18ID_DMC_{}'.format(script, num)
@@ -304,11 +326,12 @@ class MotorChannelPanel(wx.Panel):
         self._epics_path = self._epics_path.resolve()
 
         self._channels = [
-            ('18ID_DMC_E01', 1, 8),
-            ('18ID_DMC_E02', 9, 16),
-            ('18ID_DMC_E03', 17, 24),
-            ('18ID_DMC_E04', 25, 32),
-            ('18ID_DMC_E05', 33, 40),
+            ('18ID_DMC_E01:', 1, 8, ''),
+            ('18ID_DMC_E02:', 9, 16, ''),
+            ('18ID_DMC_E03:', 17, 24, ''),
+            ('18ID_DMC_E04:', 25, 32, ''),
+            ('18ID_DMC_E05:', 33, 40, ''),
+            ('18ID_DMC_A01:', 1, 8, 'A'),
             ]
 
         self._channel_show = {}
@@ -350,6 +373,12 @@ class MotorChannelPanel(wx.Panel):
 
         slit_box = wx.StaticBox(motor_panel, label='Slit Center and Gap')
 
+        wb = wx.Button(slit_box, label='WB')
+        wb.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        wb_v = wx.Button(slit_box, label='WB V')
+        wb_v.Bind(wx.EVT_BUTTON, self._on_show_slit)
+        wb_h = wx.Button(slit_box, label='WB H')
+        wb_h.Bind(wx.EVT_BUTTON, self._on_show_slit)
         jj_c = wx.Button(slit_box, label='JJ C')
         jj_c.Bind(wx.EVT_BUTTON, self._on_show_slit)
         jj_c_v = wx.Button(slit_box, label='JJ C V')
@@ -377,6 +406,9 @@ class MotorChannelPanel(wx.Panel):
 
         slit_grid_sizer = wx.FlexGridSizer(cols=6, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
+        slit_grid_sizer.Add(wb)
+        slit_grid_sizer.Add(wb_v)
+        slit_grid_sizer.Add(wb_h)
         slit_grid_sizer.Add(jj_c)
         slit_grid_sizer.Add(jj_c_v)
         slit_grid_sizer.Add(jj_c_h)
@@ -406,14 +438,14 @@ class MotorChannelPanel(wx.Panel):
         # self.SetSizer(top_sizer)
 
     def _create_channels_sizer(self, channel, parent):
-        prefix, start, end = channel
+        prefix, start, end, extra = channel
         channel_box = wx.StaticBox(parent, label=prefix)
 
         channel_sizer = wx.FlexGridSizer(cols=3, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
 
         for mnum in range(start, end+1):
-            pv = '{}:{}'.format(prefix, mnum)
+            pv = '{}{}{}'.format(prefix, extra, mnum)
             descrip = epics.wx.PVText(channel_box, '{}.DESC'.format(pv),
                 minor_alarm=None, major_alarm=None, invalid_alarm=None,
                 size=self._FromDIP((150,-1)), bg='white')
@@ -421,9 +453,9 @@ class MotorChannelPanel(wx.Panel):
             show = wx.Button(channel_box, label='Show')
             show.Bind(wx.EVT_BUTTON, self._on_show_button)
 
-            self._channel_show[show] = (prefix, mnum)
+            self._channel_show[show] = (prefix, mnum, extra)
 
-            channel_sizer.Add(wx.StaticText(channel_box, label='{}:'.format(mnum)),
+            channel_sizer.Add(wx.StaticText(channel_box, label='{}{}:'.format(extra, mnum)),
                 flag=wx.ALIGN_CENTER_VERTICAL)
             channel_sizer.Add(descrip, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
             channel_sizer.Add(show, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -438,10 +470,10 @@ class MotorChannelPanel(wx.Panel):
     def _on_show_button(self, evt):
         button = evt.GetEventObject()
 
-        prefix, mnum = self._channel_show[button]
+        prefix, mnum, extra = self._channel_show[button]
 
         script = self._epics_path / 'start_motor_screen.sh'
-        cmd = '{} {}: {}'.format(script, prefix, mnum)
+        cmd = '{} {} {}{}'.format(script, prefix, extra, mnum)
 
         process = subprocess.Popen(cmd, shell=True, cwd=self._epics_path)
         output, error = process.communicate()

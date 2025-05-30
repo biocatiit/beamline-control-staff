@@ -25,4 +25,6 @@ elif [[ "$RECPREFIX" == "18ID_DMC_E04" ]]; then
 medm -x -macro "R=Galil,DMC=$RECPREFIX:,IOC=IOC_18ID_DMC_E04:,M1=25,M2=26,M3=27,M4=28,M5=29,M6=30,M7=31,M8=32,M9=I,M10=J,M11=K,M12=L,M13=M,M14=N,M15=O,M16=P" galil_dmc_ctrl.adl &
 elif [[ "$RECPREFIX" == "18ID_DMC_E05" ]]; then
 medm -x -macro "R=Galil,DMC=$RECPREFIX:,IOC=IOC_18ID_DMC_E05:,M1=33,M2=34,M3=35,M4=36,M5=37,M6=38,M7=39,M8=40,M9=I,M10=J,M11=K,M12=L,M13=M,M14=N,M15=O,M16=P" galil_dmc_ctrl.adl &
+elif [[ "$RECPREFIX" == "18ID_DMC_A01" ]]; then
+medm -x -macro "R=Galil,DMC=$RECPREFIX:,IOC=IOC_18ID_DMC_A01:,M1=A1,M2=A2,M3=A3,M4=A4,M5=A5,M6=A6,M7=A7,M8=A8,M9=I,M10=J,M11=K,M12=L,M13=M,M14=N,M15=O,M16=P" galil_dmc_ctrl.adl &
 fi

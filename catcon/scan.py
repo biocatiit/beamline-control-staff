@@ -1052,8 +1052,6 @@ class ScanPanel(wx.Panel):
             self.scalers.append('i1/i0'.encode('utf-8'))
             self.scalers = sorted(self.scalers, key=lambda v: v.lower())
 
-        print(self.scalers)
-
     def _on_motorchoice(self, evt):
         if evt.GetEventObject() == self.motor:
             self.motor_name = self.motor.GetStringSelection()

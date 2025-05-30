@@ -27,6 +27,7 @@ class MotorConfigPanel(wx.Panel):
                             ['18ID_DMC_E03:', 17, 24],
                             ['18ID_DMC_E04:', 25, 32],
                             ['18ID_DMC_E05:', 33, 40],
+                            ['18ID_DMC_A01:A', 1, 8],
                             ],
             'load_pref' : '18ID' #string key all PVs in the config files are expected to start with
             }
@@ -168,6 +169,7 @@ class MotorConfigPanel(wx.Panel):
                 defaultDir = self._last_path)
 
         elif mode == wx.FD_SAVE:
+            desc = desc.replace('/', '_')
             filters = name + ' ('+ext+')|'+ext
             dialog = wx.FileDialog(None, style=mode|wx.FD_OVERWRITE_PROMPT,
                 wildcard=filters, defaultDir=self._last_path,
