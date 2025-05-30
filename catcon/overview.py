@@ -189,6 +189,7 @@ class MainStatusPanel(wx.Panel):
             'd_humid'           : epics.get_pv('18ID:EnvMon:D:Humid'),
             'vac_ps2'           : epics.get_pv('18ID:VAC:A:PS2'),
             'vac_ps3'           : epics.get_pv('18ID:VAC:A:PS3'),
+            'vac_ps4'           : epics.get_pv('18ID:VAC:C:PS4'),
             'vac_f230'          : epics.get_pv('18ID:VAC:C:F230'),
             'vac_mono1'         : epics.get_pv('18ID:VAC:C:Mono1'),
             'vac_mono2'         : epics.get_pv('18ID:VAC:C:Mono2'),
@@ -2231,6 +2232,8 @@ class StationPanel(wx.ScrolledWindow):
             self.pvs['vac_ps2'], scale=1e9, sig_fig=2, do_round=True)
         vac_ps3 = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['vac_ps3'], scale=1e9, sig_fig=2, do_round=True)
+        vac_ps4 = custom_epics_widgets.PVTextLabeled(vac_panel,
+            self.pvs['vac_ps4'], scale=1e9, sig_fig=2, do_round=True)
         vac_f230 = custom_epics_widgets.PVTextLabeled(vac_panel,
             self.pvs['vac_f230'], scale=1e9, sig_fig=2, do_round=True)
         vac_mono1 = custom_epics_widgets.PVTextLabeled(vac_panel,
@@ -2251,6 +2254,9 @@ class StationPanel(wx.ScrolledWindow):
         vac_layout.Add(wx.StaticText(vac_panel, label='Pumping Station 3 [nTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(vac_ps3, flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(wx.StaticText(vac_panel, label='Pumping Station 4 [nTorr]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        vac_layout.Add(vac_ps4, flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(wx.StaticText(vac_panel, label='F230 (C hutch) [nTorr]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         vac_layout.Add(vac_f230, flag=wx.ALIGN_CENTER_VERTICAL)
