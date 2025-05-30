@@ -100,6 +100,8 @@ class ScanProcess(multiprocessing.Process):
         self.shutter1 = None
         self.shutter2 = None
 
+        self.det = None
+
         self._commands = {'start_mxdb'      : self._start_mxdb,
                         'set_scan_params'   : self._set_scan_params,
                         'scan'              : self._scan,
@@ -111,6 +113,7 @@ class ScanProcess(multiprocessing.Process):
                         'get_det_params'    : self._get_det_params,
                         'open_shutters'     : self._open_shutters,
                         'close_shutters'    : self._close_shutters,
+                        'abort_det'         : self._abort_det,
                         }
 
     def run(self):
@@ -235,6 +238,32 @@ class ScanProcess(multiprocessing.Process):
         self.shutter1.write(0)
         self.shutter2.write(1)
 
+    def _abort_det(self, detector):
+
+        if self.det is None:
+            self.detector = detector
+
+            if self.detector is not None:
+
+                if self.detector == 'Eiger2 XE 9M':
+                    self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
+                        use_tiff_writer=False, use_file_writer=True,
+                        photon_energy=12.0, images_per_file=1)
+                    self.det.abort()
+
+                else:
+                    self.det = self.mx_database.get_record(self.detector)
+                    self.det.set_trigger_mode(1)
+
+                    server_record_name = self.det.get_field('server_record')
+                    remote_det_name = self.det.get_field('remote_record_name')
+                    server_record = self.mx_database.get_record(server_record_name)
+                    det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
+                    det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+
+                    self.det_datadir = mp.Net(server_record, det_datadir_name)
+                    self.det_filename = mp.Net(server_record, det_datafile_name)
+
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
         file_name=None, dir_path=None, scalers_raw='', **kwargs):
@@ -277,30 +306,32 @@ class ScanProcess(multiprocessing.Process):
         self.scalers = scalers
         self.dwell_time = dwell_time
         self.timer = timer
-        self.detector = detector
+
 
         self.scalers_raw = scalers_raw
 
-        if self.detector is not None:
+        if self.det is None:
+            self.detector = detector
 
-            if self.detector == 'Eiger2 XE 9M':
-                self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
-                    use_tiff_writer=False, use_file_writer=True,
-                    photon_energy=12.0)
+            if self.detector is not None:
 
+                if self.detector == 'Eiger2 XE 9M':
+                    self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
+                        use_tiff_writer=False, use_file_writer=True,
+                        photon_energy=12.0, images_per_file=1)
 
-            else:
-                self.det = self.mx_database.get_record(self.detector)
-                self.det.set_trigger_mode(1)
+                else:
+                    self.det = self.mx_database.get_record(self.detector)
+                    self.det.set_trigger_mode(1)
 
-                server_record_name = self.det.get_field('server_record')
-                remote_det_name = self.det.get_field('remote_record_name')
-                server_record = self.mx_database.get_record(server_record_name)
-                det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
-                det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
+                    server_record_name = self.det.get_field('server_record')
+                    remote_det_name = self.det.get_field('remote_record_name')
+                    server_record = self.mx_database.get_record(server_record_name)
+                    det_datadir_name = '{}.datafile_directory'.format(remote_det_name)
+                    det_datafile_name = '{}.datafile_pattern'.format(remote_det_name)
 
-                self.det_datadir = mp.Net(server_record, det_datadir_name)
-                self.det_filename = mp.Net(server_record, det_datafile_name)
+                    self.det_datadir = mp.Net(server_record, det_datadir_name)
+                    self.det_filename = mp.Net(server_record, det_datafile_name)
 
     def _get_det_params(self):
         if self.detector == 'Eiger2 XE 9M':
@@ -476,7 +507,7 @@ class ScanProcess(multiprocessing.Process):
                 if self.detector == 'Eiger2 XE 9M':
                     self.det.abort()
                 timer.stop()
-                self.return_queue.put_nowait(['stop_live_plotting'])
+                # self.return_queue.put_nowait(['stop_live_plotting'])
                 return
 
         result = [str(scaler.read()) for scaler in scalers]
@@ -1132,10 +1163,13 @@ class ScanPanel(wx.Panel):
 
             if scan_params['detector'] is not None:
                 self.det_scan = True
+                self.det_name = scan_params['detector']
             else:
                 self.det_scan = False
+                self.det_name = None
 
             self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
+            # time.sleep(2)
 
             if self.det_scan:
                 self.cmd_q.put_nowait(['get_det_params', [], {}])
@@ -1261,7 +1295,8 @@ class ScanPanel(wx.Panel):
         print(det_datadir)
 
         if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
-            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+            # det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2x')
+            pass
         else:
             det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
@@ -1279,6 +1314,9 @@ class ScanPanel(wx.Panel):
 
             if result == wx.ID_YES:
                 cont = True
+                if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
+                    for f in files:
+                        os.remove(f)
             elif result == wx.ID_NO:
                 cont = True
                 for f in files:
@@ -1340,6 +1378,9 @@ class ScanPanel(wx.Panel):
                 pos = self.return_q.get()[0]
 
                 self.cmd_q.put_nowait(['move_abs2', [self.initial_position2], {}])
+
+            if self.det_scan:
+                self.cmd_q.put_nowait(['abort_det', [self.det_name], {}])
 
             self.start_btn.Enable()
             self.stop_btn.Disable()
