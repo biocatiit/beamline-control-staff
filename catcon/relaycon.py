@@ -209,143 +209,19 @@ class RelayPanel(wx.Panel):
                 and not isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
-class DOButtonPanel(wx.Panel):
+class RelayFrame(wx.Frame):
     """
-    For digital outputs where you just want to set the variable to go, like
-    for opening a gate valve or triggering one of the hutch shutters.
-    """
-    def __init__(self, dio_name, mx_database, parent, panel_id=wx.ID_ANY,
-        panel_name=''):
-        """
-        Initializes the custom panel. Important parameters here are the
-        ``dio_name``, and the ``mx_database``.
-
-        :param str dio_name: The amplifier name in the Mx database.
-
-        :param Mp.RecordList mx_database: The database instance from Mp.
-
-        :param wx.Window parent: Parent class for the panel.
-
-        :param int panel_id: wx ID for the panel.
-
-        :param str panel_name: Name for the panel.
-        """
-        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
-
-        self.mx_database = mx_database
-        self.dio_name = dio_name
-        self.dio = self.mx_database.get_record(self.dio_name)
-        self.dio_class = self.dio.get_field('mx_class')
-        self.dio_type = self.dio.get_field('mx_type')
-
-        self.is_input = False
-
-        if self.dio_type.startswith('epics'):
-            self.is_epics = True
-            pv_name = self.dio.get_field('epics_variable_name')
-            self.pv = epics.get_pv(pv_name)
-
-        else:
-            self.is_epics = False
-            server_record_name = self.amp.get_field("server_record")
-            self.server_record = self.mx_database.get_record(server_record_name)
-            self.remote_record_name = self.amp.get_field("remote_record_name")
-
-        self._enabled = True
-
-        self._create_layout()
-
-        self._initialize()
-
-    def on_close(self):
-        pass
-
-    def _create_layout(self):
-        """
-        Creates the layout for the panel.
-
-        """
-
-        if self.is_epics:
-            custom_epics_widgets.PVButton2(self, self.pv,
-                label='Actuate')
-        else:
-            self.on = wx.Button(self, label='Actuate')
-
-            self.on.Bind(wx.EVT_BUTTON, self._on_output)
-
-        control_sizer = wx.BoxSizer(wx.VERTICAL)
-        control_sizer.Add(self.on, border=5, flag=wx.ALL)
-
-        top_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(control_sizer)
-
-        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
-        for item in self.GetChildren():
-            if ((isinstance(item, wx.StaticText) or isinstance(item, mpwx.Value)
-                or isinstance(item, wx.StaticBox))
-                and not (isinstance(item, custom_epics_widgets.PVTextLabeled)
-                or isinstance(item, custom_epics_widgets.PVTextCtrl2))
-                ):
-                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
-
-        self.SetSizer(top_sizer)
-
-        # return top_sizer
-
-    def _initialize(self):
-        pass
-
-    def _on_output(self, event):
-        self.pv.caput(1, wait=False)
-
-    def _on_rightclick(self, evt):
-        """
-        Shows a context menu. Current options allow enabling/disabling
-        the control panel.
-        """
-        menu = wx.Menu()
-        menu.Bind(wx.EVT_MENU, self._on_enablechange)
-
-        if self._enabled:
-            menu.Append(1, 'Disable Control')
-        else:
-            menu.Append(1, 'Enable Control')
-
-        menu.Append(2, 'Show control info')
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-
-    def _on_enablechange(self, evt):
-        """
-        Called from the panel context menu. Enables/disables the control
-        panel.
-        """
-        if self._enabled:
-            self._enabled = False
-        else:
-            self._enabled = True
-
-        for item in self.GetChildren():
-            if (not isinstance(item, wx.StaticText) and not isinstance(item, custom_widgets.CustomValue)
-                and not isinstance(item, wx.StaticBox)):
-                item.Enable(self._enabled)
-
-
-class DIOFrame(wx.Frame):
-    """
-    A lightweight amplifier frame designed to hold an arbitrary number of dios
+    A lightweight amplifier frame designed to hold an arbitrary number of relays
     in an arbitrary grid pattern.
     """
-    def __init__(self, mx_database, dios, shape, timer=True, *args, **kwargs):
+    def __init__(self, mx_database, relays, shape, timer=True, *args, **kwargs):
         """
         Initializes the amp frame. This frame is designed to function either as
         a stand alone application, or as part of a larger application.
 
         :param Mp.RecordList mx_database: The Mp database containing the amp records.
 
-        :param list dios: The amp names in the Mp database.
+        :param list relays: The amp names in the Mp database.
 
         :param tuple shape: A tuple containing the shape of the motor grid.
             It is given as: (rows, cols). Note that rows*cols should be equal
@@ -364,7 +240,7 @@ class DIOFrame(wx.Frame):
         self.mx_timer = wx.Timer()
         self.mx_timer.Bind(wx.EVT_TIMER, self._on_mxtimer)
 
-        top_sizer = self._create_layout(dios, shape)
+        top_sizer = self._create_layout(relays, shape)
 
         self.SetSizer(top_sizer)
         self.Layout()
@@ -374,34 +250,34 @@ class DIOFrame(wx.Frame):
         if timer:
             self.mx_timer.Start(1000)
 
-    def _create_layout(self, dios, shape):
+    def _create_layout(self, relays, shape):
         """
         Creates the layout.
 
-        :param list dios: The amplifier names in the Mp database.
+        :param list relays: The amplifier names in the Mp database.
 
         :param tuple shape: A tuple containing the shape of the amp grid.
             It is given as: (rows, cols). Note that rows*cols should be equal
-            to or greater than the number of dios, but the AmpFrame doesn't
+            to or greater than the number of relays, but the AmpFrame doesn't
             check this. If it isn't, it will just fail to propely display the last
-            few dios.
+            few relays.
         """
-        dio_grid = wx.FlexGridSizer(rows=shape[0], cols=shape[1], vgap=2,
+        relay_grid = wx.FlexGridSizer(rows=shape[0], cols=shape[1], vgap=2,
             hgap=2)
 
         for i in range(shape[1]):
-            dio_grid.AddGrowableCol(i)
+            relay_grid.AddGrowableCol(i)
 
-        for dio in dios:
-            dio_panel = DIOPanel(dio, self.mx_database, self)
-            dio_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(dio)))
-            dio_box_sizer.Add(dio_panel)
-            dio_grid.Add(dio_box_sizer)
+        for relay in relays:
+            relay_panel = relayPanel(relay, self.mx_database, self)
+            relay_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(relay)))
+            relay_box_sizer.Add(relay_panel)
+            relay_grid.Add(relay_box_sizer)
 
-        dio_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        dio_panel_sizer.Add(dio_grid)
+        relay_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        relay_panel_sizer.Add(relay_grid)
 
-        return dio_panel_sizer
+        return relay_panel_sizer
 
     def _on_mxtimer(self, evt):
         """
@@ -423,10 +299,10 @@ if __name__ == '__main__':
 
     mx_database = mp.setup_database(database_filename)
     mx_database.set_plot_enable(2)
-    mx_database.set_program_name("digital_ios")
+    mx_database.set_program_name("relays")
 
     app = wx.App()
-    frame = DIOFrame(mx_database, ['avme944x_in14', 'avme944x_out14'],
-        (2,1), parent=None, title='Test Amplifier Control')
+    frame = RelayFrame(mx_database, ['a1', 'a2'],
+        (2,1), parent=None, title='Test Relay Control')
     frame.Show()
     app.MainLoop()
