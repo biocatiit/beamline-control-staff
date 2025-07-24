@@ -137,8 +137,7 @@ class ICCalcPanel(wx.Panel):
 
 
         self.flux = wx.StaticText(self, label='')
-        fsize = self.GetFont().GetPointSize()
-        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        font = self.GetFont().Bold()
         self.flux.SetFont(font)
 
         flux_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Flux'),

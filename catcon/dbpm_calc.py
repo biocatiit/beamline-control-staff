@@ -72,22 +72,31 @@ class DBPMCalcPanel(wx.Panel):
     def on_close(self):
         pass
 
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
     def _create_layout(self):
         """
         Creates the layout for the panel.
 
         """
 
-        self.energy_ctrl = wx.TextCtrl(self, size=(60, -1), style=wx.TE_PROCESS_ENTER,
-            validator=utils.CharValidator('float_te'), value='12.0')
+        self.energy_ctrl = wx.TextCtrl(self, size=self._FromDIP((60, -1)),
+            style=wx.TE_PROCESS_ENTER, validator=utils.CharValidator('float_te'),
+            value='12.0')
         self.dbpm_type = wx.Choice(self, choices=['BioCAT D hutch', 'BioCAT C hutch', 'Custom'])
         self.dbpm_type.SetStringSelection('BioCAT D hutch')
-        self.diamond_thickness = wx.TextCtrl(self, size=(60, -1), style=wx.TE_PROCESS_ENTER,
-            validator=utils.CharValidator('float_te'))
+        self.diamond_thickness = wx.TextCtrl(self, size=self._FromDIP((60, -1)),
+            style=wx.TE_PROCESS_ENTER, validator=utils.CharValidator('float_te'))
         self.diamond_thickness.Disable()
         self.gain = wx.Choice(self, choices=['1e2', '1e3', '1e4', '1e5', '1e6', '1e7', '1e8', '1e9', '1e10'])
         self.gain.SetStringSelection('1e5')
-        self.voltage = wx.TextCtrl(self, size=(60, -1), validator=utils.CharValidator('float_te'))
+        self.voltage = wx.TextCtrl(self, size=self._FromDIP((60, -1)),
+            validator=utils.CharValidator('float_te'))
 
         self.calculate = wx.Button(self, label='Calculate')
 
@@ -99,7 +108,8 @@ class DBPMCalcPanel(wx.Panel):
         self.calculate.Bind(wx.EVT_BUTTON, self._on_calc)
 
 
-        calc_controls = wx.FlexGridSizer(cols=2, rows=6, vgap=5, hgap=3)
+        calc_controls = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(3))
 
         calc_controls.Add(wx.StaticText(self, label='Energy [keV]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -119,26 +129,25 @@ class DBPMCalcPanel(wx.Panel):
 
 
         self.flux = wx.StaticText(self, label='')
-        fsize = self.GetFont().GetPointSize()
-        font = wx.Font(fsize, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        font = self.GetFont().Bold()
         self.flux.SetFont(font)
 
         flux_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Flux'),
             wx.HORIZONTAL)
         flux_sizer.Add(wx.StaticText(self, label='Flux [ph/s]:'),
-            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=5)
-        flux_sizer.Add(self.flux, border=3, flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL)
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL, border=self._FromDIP(3))
+        flux_sizer.Add(self.flux, border=self._FromDIP(3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALL)
         flux_sizer.AddStretchSpacer(1)
 
         control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
             wx.VERTICAL)
         control_sizer.Add(calc_controls)
-        control_sizer.Add(self.calculate, border=10,
+        control_sizer.Add(self.calculate, border=self._FromDIP(10),
             flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP|wx.BOTTOM)
 
         top_sizer = wx.BoxSizer(wx.VERTICAL)
         top_sizer.Add(control_sizer)
-        top_sizer.Add(flux_sizer, border=5, flag=wx.TOP|wx.EXPAND)
+        top_sizer.Add(flux_sizer, border=self._FromDIP(5), flag=wx.TOP|wx.EXPAND)
 
 
         self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
@@ -160,7 +169,7 @@ class DBPMCalcPanel(wx.Panel):
         #Ionization energies in eV from Sydor, consistent with Bohon et al. 2010, JSR
         self.ionization_energy = 13.3
 
-        self.dbpms = {'BioCAT D hutch'  : '45',
+        self.dbpms = {'BioCAT D hutch'  : '62.80',
             'BioCAT C hutch'  : '12'}
 
         if self.dbpm_type.GetStringSelection() == 'Custom':
@@ -185,12 +194,12 @@ class DBPMCalcPanel(wx.Panel):
         voltage = float(self.voltage.GetValue())
 
         atten_length = self.get_atten_len(energy)
-        atten = math.exp(-length/atten_length)
+        transmission = math.exp(-length/atten_length)
 
         n_electrons = voltage/gain/constants.e
         n_photons = n_electrons/(energy/self.ionization_energy)
 
-        tot_photons = n_photons/(1-atten)
+        tot_photons = n_photons/(1-transmission)
 
         self.flux.SetLabel('{:.3e}'.format(tot_photons))
 

@@ -50,6 +50,7 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 import scipy.optimize
 import scipy.interpolate
+import epics
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
@@ -100,6 +101,9 @@ class ScanProcess(multiprocessing.Process):
         self.shutter1 = None
         self.shutter2 = None
 
+        self.det = None
+        self.detector=None
+
         self._commands = {'start_mxdb'      : self._start_mxdb,
                         'set_scan_params'   : self._set_scan_params,
                         'scan'              : self._scan,
@@ -111,6 +115,7 @@ class ScanProcess(multiprocessing.Process):
                         'get_det_params'    : self._get_det_params,
                         'open_shutters'     : self._open_shutters,
                         'close_shutters'    : self._close_shutters,
+                        'abort_det'         : self._abort_det,
                         }
 
     def run(self):
@@ -218,26 +223,77 @@ class ScanProcess(multiprocessing.Process):
         self.motor2.move_absolute(position)
 
     def _open_shutters(self):
+        """
+        WARNING: Can't open/close mx device shutters (or send any mx commands) after
+        doing a scan in MX, becauseof mx related bugs. We can work around this
+        by using EPICS if the shutters are in EPICS, which is the case for now.
+        Need to revisit, this is probably why shutters were closed in the main
+        thread after the scan
+        """
         if self.shutter1 is None:
             self.shutter1 = self.mx_database.get_record(self.shutter1_name)
+            shutter1_type = self.shutter1.get_field('mx_type')
+            if shutter1_type.startswith('epics'):
+                self.shutter1_is_epics = True
+                pv_name = self.shutter1.get_field('epics_variable_name')
+                self.shutter1_pv = epics.get_pv(pv_name)
         if self.shutter2 is None:
             self.shutter2 = self.mx_database.get_record(self.shutter2_name)
+            shutter2_type = self.shutter2.get_field('mx_type')
+            if shutter2_type.startswith('epics'):
+                self.shutter2_is_epics = True
+                pv_name = self.shutter2.get_field('epics_variable_name')
+                self.shutter2_pv = epics.get_pv(pv_name)
 
-        self.shutter1.write(1)
-        self.shutter2.write(0)
+        if self.shutter1_is_epics:
+            self.shutter1_pv.put(1, wait=True)
+        else:
+            self.shutter1.write(1)
+
+        if self.shutter2_is_epics:
+            self.shutter2_pv.put(0, wait=True)
+        else:
+            self.shutter2.write(0)
 
     def _close_shutters(self):
         if self.shutter1 is None:
             self.shutter1 = self.mx_database.get_record(self.shutter1_name)
+            shutter1_type = self.shutter1.get_field('mx_type')
+            if shutter1_type.startswith('epics'):
+                self.shutter1_is_epics = True
+                pv_name = self.shutter1.get_field('epics_variable_name')
+                self.shutter1_pv = epics.get_pv(pv_name)
         if self.shutter2 is None:
             self.shutter2 = self.mx_database.get_record(self.shutter2_name)
+            shutter2_type = self.shutter2.get_field('mx_type')
+            if shutter2_type.startswith('epics'):
+                self.shutter2_is_epics = True
+                pv_name = self.shutter2.get_field('epics_variable_name')
+                self.shutter2_pv = epics.get_pv(pv_name)
 
-        self.shutter1.write(0)
-        self.shutter2.write(1)
+        if self.shutter1_is_epics:
+            self.shutter1_pv.put(0, wait=True)
+        else:
+            self.shutter1.write(0)
+
+        if self.shutter2_is_epics:
+            self.shutter2_pv.put(1, wait=True)
+        else:
+            self.shutter2.write(1)
+
+    def _abort_det(self, detector):
+        old_detector = copy.copy(self.detector)
+        self.detector = detector
+
+        if old_detector != self.detector:
+            self._get_detector()
+
+        if self.det is not None:
+            self.det.abort()
 
     def _set_scan_params(self, device, start, stop, step, device2, start2,
         stop2, step2, scalers, dwell_time, timer, scan_dim='1D', detector=None,
-        file_name=None, dir_path=None, scalers_raw='', **kwargs):
+        file_name=None, dir_path=None, scalers_raw='', open_shutter=True, **kwargs):
         """
         Sets the parameters for the scan.
 
@@ -277,17 +333,30 @@ class ScanProcess(multiprocessing.Process):
         self.scalers = scalers
         self.dwell_time = dwell_time
         self.timer = timer
-        self.detector = detector
+
+        self.open_shutter = open_shutter
+
 
         self.scalers_raw = scalers_raw
 
-        if self.detector is not None:
+        old_detector = copy.copy(self.detector)
+        self.detector = detector
 
+        if old_detector != self.detector:
+            self._get_detector()
+
+    def _get_detector(self):
+        if self.detector is not None:
             if self.detector == 'Eiger2 XE 9M':
                 self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
                     use_tiff_writer=False, use_file_writer=True,
-                    photon_energy=12.0)
+                    photon_energy=12.0, images_per_file=1)
 
+                self.ab_burst = self.mx_database.get_record('ab_burst')
+                self.cd_burst = self.mx_database.get_record('cd_burst')
+                self.ef_burst = self.mx_database.get_record('ef_burst')
+                self.gh_burst = self.mx_database.get_record('gh_burst')
+                self.srs_trig = self.mx_database.get_record('do_10')
 
             else:
                 self.det = self.mx_database.get_record(self.detector)
@@ -301,6 +370,8 @@ class ScanProcess(multiprocessing.Process):
 
                 self.det_datadir = mp.Net(server_record, det_datadir_name)
                 self.det_filename = mp.Net(server_record, det_datafile_name)
+        else:
+            self.det = None
 
     def _get_det_params(self):
         if self.detector == 'Eiger2 XE 9M':
@@ -368,13 +439,58 @@ class ScanProcess(multiprocessing.Process):
         if self.detector == 'Eiger2 XE 9M' and self.scan_dim == '1D':
             image_name = 'scan'
 
+            #Internally triggered, multiple images per file
+            # # self.det.set_filename(image_name)
+            # # self.det.set_trigger_mode('int_enable')
+            # # self.det.set_manual_trigger(1)
+            # # self.det.set_num_frames(len(mtr1_positions))
+
+            # Internally tiggered, single image per file
+            # self.det.set_trigger_mode('int_trig')
+            # self.det.set_num_frames(1)
+            # self.det.set_exp_time(self.dwell_time)
+            # self.det.set_exp_period(self.dwell_time+0.0001)
+            # # self.det.arm()
+
+            #Externally triggered
+            image_name = 'scan'
+
             self.det.set_filename(image_name)
-            self.det.set_trigger_mode('int_enable')
-            self.det.set_manual_trigger(1)
+            self.det.set_trigger_mode('ext_enable')
             self.det.set_num_frames(len(mtr1_positions))
             self.det.set_exp_time(self.dwell_time)
             self.det.set_exp_period(self.dwell_time+0.0001)
+
+            self.ab_burst.setup(0.000001, 0.000000, 1, 0, 1, 2)
+            self.cd_burst.setup(0.000001, 0.000000, 1, 0, 1, 2)
+            self.ef_burst.setup(0.000001, 0.000000, 1, 0, 1, 2)
+            self.gh_burst.setup(0.000001, 0.000000, 1, 0, 1, 2)
+
+            self.ab_burst.arm()
+
+            self.srs_trig.write( 1 )
+            time.sleep(0.01)
+            self.srs_trig.write( 0 )
+
+            while (self.ab_burst.get_status() & 0x1) != 0:
+                time.sleep(0.01)
+
+            self.ab_burst.setup(self.dwell_time+0.0001, (self.dwell_time+0.0001)*(1.-1./1000.), 1, 0, 1, 2)
+            self.cd_burst.setup(self.dwell_time+0.0001, (self.dwell_time+0.0001-self.dwell_time)/10.,
+                1, self.dwell_time+(self.dwell_time+0.0001-self.dwell_time)/10., 1, 2)
+            self.ef_burst.setup(self.dwell_time+0.0001, self.dwell_time, 1, 0, 1, 2)
+            self.gh_burst.setup(self.dwell_time+0.0001, (self.dwell_time+0.0001)/1.1, 1, 0, 1, 2)
+
+            self.ab_burst.stop()
+            self.srs_trig.write( 0 )
+
+            self.ab_burst.get_status() #Maybe need to clear this status?
+            time.sleep(0.1)
             self.det.arm()
+            self.ab_burst.arm()
+
+        if self.open_shutter:
+            self._open_shutters()
 
         for num, mtr1_pos in enumerate(mtr1_positions):
 
@@ -382,7 +498,7 @@ class ScanProcess(multiprocessing.Process):
                 image_name = 'scan_{:03}'.format(num+1)
 
                 self.det.set_filename(image_name)
-                self.det.set_trigger_mode('int_enable')
+                self.det.set_trigger_mode('int_trig')
                 self.det.set_manual_trigger(1)
                 self.det.set_num_frames(len(mtr2_positions))
                 self.det.set_exp_time(self.dwell_time)
@@ -441,6 +557,18 @@ class ScanProcess(multiprocessing.Process):
                 self.return_queue.put_nowait(['stop_live_plotting'])
                 return
 
+        if self.open_shutter:
+            self._close_shutters()
+
+        if self.detector == 'Eiger2 XE 9M':
+            while self.det.get_status() != 0:
+                time.sleep(.01)
+                if self._abort_event.is_set():
+                    if self.detector == 'Eiger2 XE 9M':
+                        self.det.abort()
+                    # self.return_queue.put_nowait(['stop_live_plotting'])
+                    return
+
         self.return_queue.put_nowait(['stop_live_plotting'])
         return
 
@@ -466,7 +594,18 @@ class ScanProcess(multiprocessing.Process):
             timer.stop()
 
         if self.detector == 'Eiger2 XE 9M':
-            self.det.trigger(wait=False)
+            # Internally triggered
+            # Sending manual triggers, multiple images per series
+            # # self.det.trigger(wait=False)
+
+            # Internally triggered, one image per series
+            # self.det.set_filename(image_name)
+            # self.det.arm()
+
+            #Externally triggered
+            self.srs_trig.write(1)
+            time.sleep(0.01)
+            self.srs_trig.write(0)
 
         timer.start(self.dwell_time)
 
@@ -476,8 +615,32 @@ class ScanProcess(multiprocessing.Process):
                 if self.detector == 'Eiger2 XE 9M':
                     self.det.abort()
                 timer.stop()
-                self.return_queue.put_nowait(['stop_live_plotting'])
+                # self.return_queue.put_nowait(['stop_live_plotting'])
                 return
+
+        # # Internally triggered, when taking 1 image per series
+        # if self.detector == 'Eiger2 XE 9M':
+        #     while self.det.get_status() != 0:
+        #         time.sleep(.01)
+        #         if self._abort_event.is_set():
+        #             if self.detector == 'Eiger2 XE 9M':
+        #                 self.det.abort()
+        #             # self.return_queue.put_nowait(['stop_live_plotting'])
+        #             return
+
+        # Externally triggered
+        while True:
+            status = self.ab_burst.get_status()
+            if (status & 0x1) == 0:
+                break
+            else:
+                time.sleep(0.1)
+
+            if self._abort_event.is_set():
+                if self.detector == 'Eiger2 XE 9M':
+                    self.det.abort()
+                return
+
 
         result = [str(scaler.read()) for scaler in scalers]
 
@@ -503,6 +666,9 @@ class ScanProcess(multiprocessing.Process):
         print('Image name: {}\n'.format(image_name))
 
     def _mx_scan(self):
+        if self.open_shutter:
+            self._open_shutters()
+
         all_names = [r.name for r in self.mx_database.get_all_records()]
 
         if self.out_name is not None:
@@ -600,6 +766,9 @@ class ScanProcess(multiprocessing.Process):
         except Exception:
             pass
 
+        # Can't do close shutters in ehre because can't send mx commands
+        # after doing a scan. Hence why it's done possibly twice in the main
+        # thread
         self.return_queue.put_nowait(['stop_live_plotting'])
 
     def _abort(self):
@@ -674,6 +843,17 @@ class ScanPanel(wx.Panel):
         self._initialize_variables()
         self._create_layout()
 
+        self.Layout()
+
+        self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
     def _create_layout(self):
         """Creates the layout of both the controls and the plots."""
 
@@ -689,13 +869,16 @@ class ScanPanel(wx.Panel):
         self.pos2 = wx.StaticText(self, label='')
         self.pos_label2 = wx.StaticText(self, label='Current position:')
 
-        info_grid = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        info_grid.Add(wx.StaticText(self, label='Device 1:'))
-        info_grid.Add(self.motor)
-        info_grid.Add(self.pos_label)
-        info_grid.Add(self.pos)
+        info_grid = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        info_grid.Add(wx.StaticText(self, label='Device 1:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(self.motor, flag=wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(self.pos_label, flag=wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(self.pos, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        self.info_grid2 = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        self.info_grid2 = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
         self.info_grid2.Add(wx.StaticText(self, label='Device 2:'))
         self.info_grid2.Add(self.motor2)
         self.info_grid2.Add(self.pos_label2)
@@ -703,8 +886,10 @@ class ScanPanel(wx.Panel):
 
         self.info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
             wx.VERTICAL)
-        self.info_sizer.Add(info_grid, flag=wx.EXPAND|wx.ALL, border=5)
-        self.info_sizer.Add(self.info_grid2, flag=wx.EXPAND|wx.ALL, border=5)
+        self.info_sizer.Add(info_grid, flag=wx.EXPAND|wx.ALL,
+            border=self._FromDIP(5))
+        self.info_sizer.Add(self.info_grid2, flag=wx.EXPAND|wx.ALL,
+            border=self._FromDIP(5))
         self.info_sizer.Hide(self.info_grid2, recursive=True)
 
         self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
@@ -712,12 +897,12 @@ class ScanPanel(wx.Panel):
         self.scan_dim = wx.Choice(self, choices=['1D', '2D'])
         self.scan_dim.SetSelection(0)
         self.scan_dim.Bind(wx.EVT_CHOICE, self._on_dimension)
-        self.start = wx.TextCtrl(self, value='', size=(80, -1))
-        self.stop = wx.TextCtrl(self, value='', size=(80, -1))
-        self.step = wx.TextCtrl(self, value='', size=(80, -1))
-        self.start2 = wx.TextCtrl(self, value='', size=(80, -1))
-        self.stop2 = wx.TextCtrl(self, value='', size=(80, -1))
-        self.step2 = wx.TextCtrl(self, value='', size=(80, -1))
+        self.start = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
+        self.stop = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
+        self.step = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
+        self.start2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
+        self.stop2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
+        self.step2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
         self.count_time = wx.TextCtrl(self, value='0.1')
         self.scaler = wx.Choice(self, choices=self.scalers)
         self.timer = wx.Choice(self, choices=self.timers)
@@ -737,36 +922,51 @@ class ScanPanel(wx.Panel):
         self.detector.SetStringSelection('None')
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
-        type_sizer.Add(wx.StaticText(self, label='Scan type:'))
-        type_sizer.Add(self.scan_type, border=5, flag=wx.LEFT)
-        type_sizer.Add(self.scan_dim, border=5, flag=wx.LEFT)
+        type_sizer.Add(wx.StaticText(self, label='Scan type:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        type_sizer.Add(self.scan_type, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        type_sizer.Add(self.scan_dim, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
-        mv_grid = wx.FlexGridSizer(rows=2, cols=4, vgap=5, hgap=5)
+        mv_grid = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
         mv_grid.AddSpacer(1)
-        mv_grid.Add(wx.StaticText(self, label='Start'))
-        mv_grid.Add(wx.StaticText(self, label='Stop'))
-        mv_grid.Add(wx.StaticText(self, label='Step'))
-        mv_grid.Add(wx.StaticText(self, label='1:'))
-        mv_grid.Add(self.start)
-        mv_grid.Add(self.stop)
-        mv_grid.Add(self.step)
+        mv_grid.Add(wx.StaticText(self, label='Start'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(wx.StaticText(self, label='Stop'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(wx.StaticText(self, label='Step'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(wx.StaticText(self, label='1:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(self.start, flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(self.stop, flag=wx.ALIGN_CENTER_VERTICAL)
+        mv_grid.Add(self.step, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        self.mv_grid2 = wx.FlexGridSizer(rows=1, cols=4, vgap=5, hgap=5)
-        self.mv_grid2.Add(wx.StaticText(self, label='2:'))
-        self.mv_grid2.Add(self.start2)
-        self.mv_grid2.Add(self.stop2)
-        self.mv_grid2.Add(self.step2)
+        self.mv_grid2 = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        self.mv_grid2.Add(wx.StaticText(self, label='2:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        self.mv_grid2.Add(self.start2, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.mv_grid2.Add(self.stop2, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.mv_grid2.Add(self.step2, flag=wx.ALIGN_CENTER_VERTICAL)
 
 
-        count_grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
-        count_grid.Add(wx.StaticText(self, label='Count time (s):'))
-        count_grid.Add(self.count_time)
-        count_grid.Add(wx.StaticText(self, label='Timer:'))
-        count_grid.Add(self.timer)
-        count_grid.Add(wx.StaticText(self, label='Scaler:'))
-        count_grid.Add(self.scaler)
-        count_grid.Add(wx.StaticText(self, label='Detector:'))
-        count_grid.Add(self.detector)
+        count_grid = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        count_grid.Add(wx.StaticText(self, label='Count time (s):'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(self.count_time, flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(wx.StaticText(self, label='Timer:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(self.timer, flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(wx.StaticText(self, label='Scaler:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(self.scaler, flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(wx.StaticText(self, label='Detector:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        count_grid.Add(self.detector, flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.AddGrowableCol(1)
 
 
@@ -781,17 +981,23 @@ class ScanPanel(wx.Panel):
         self.stop_btn.Disable()
 
         ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        ctrl_btn_sizer.Add(self.start_btn)
-        ctrl_btn_sizer.Add(self.stop_btn, border=5, flag=wx.LEFT)
+        ctrl_btn_sizer.Add(self.start_btn, flag=wx.ALIGN_CENTER_VERTICAL)
+        ctrl_btn_sizer.Add(self.stop_btn, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
         self.ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
             wx.VERTICAL)
         self.ctrl_sizer.Add(type_sizer)
-        self.ctrl_sizer.Add(mv_grid, border=5, flag=wx.EXPAND|wx.TOP)
-        self.ctrl_sizer.Add(self.mv_grid2, border=5, flag=wx.EXPAND|wx.TOP)
-        self.ctrl_sizer.Add(count_grid, border=5, flag=wx.EXPAND|wx.TOP)
-        self.ctrl_sizer.Add(self.shutter, border=5, flag=wx.EXPAND|wx.TOP)
-        self.ctrl_sizer.Add(ctrl_btn_sizer, border=5, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
+        self.ctrl_sizer.Add(mv_grid, border=self._FromDIP(5),
+            flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(self.mv_grid2, border=self._FromDIP(5),
+            flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(count_grid, border=self._FromDIP(5),
+            flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(self.shutter, border=self._FromDIP(5),
+            flag=wx.EXPAND|wx.TOP)
+        self.ctrl_sizer.Add(ctrl_btn_sizer, border=self._FromDIP(5),
+            flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
 
         self.ctrl_sizer.Hide(self.mv_grid2, recursive=True)
 
@@ -805,8 +1011,9 @@ class ScanPanel(wx.Panel):
         self.flip_der.Bind(wx.EVT_CHECKBOX, self._on_flipder)
 
         der_ctrl_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        der_ctrl_sizer.Add(self.show_der)
-        der_ctrl_sizer.Add(self.flip_der, border=5, flag=wx.LEFT)
+        der_ctrl_sizer.Add(self.show_der, flag=wx.ALIGN_CENTER_VERTICAL)
+        der_ctrl_sizer.Add(self.flip_der, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
         self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
         self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
@@ -815,11 +1022,14 @@ class ScanPanel(wx.Panel):
         self.plt_fit.Bind(wx.EVT_CHOICE, self._on_fitchoice)
         self.der_fit.Bind(wx.EVT_CHOICE, self._on_fitchoice)
 
-        self.fit_sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        self.fit_sizer.Add(wx.StaticText(self, label='Counts Fit:'))
-        self.fit_sizer.Add(self.plt_fit)
-        self.fit_sizer.Add(wx.StaticText(self, label='Derivative Fit:'))
-        self.fit_sizer.Add(self.der_fit)
+        self.fit_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        self.fit_sizer.Add(wx.StaticText(self, label='Counts Fit:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        self.fit_sizer.Add(self.plt_fit, flag=wx.ALIGN_CENTER_VERTICAL)
+        self.fit_sizer.Add(wx.StaticText(self, label='Derivative Fit:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        self.fit_sizer.Add(self.der_fit, flag=wx.ALIGN_CENTER_VERTICAL)
 
         self.show_fwhm = wx.CheckBox(self, label='Show FWHM')
         self.show_fwhm.SetValue(False)
@@ -837,67 +1047,91 @@ class ScanPanel(wx.Panel):
         self.show_der_com.SetValue(False)
         self.show_der_com.Bind(wx.EVT_CHECKBOX, self._on_showcom)
 
-        calc_sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
-        calc_sizer.Add(self.show_fwhm)
-        calc_sizer.Add(self.show_der_fwhm)
-        calc_sizer.Add(self.show_com)
-        calc_sizer.Add(self.show_der_com)
+        calc_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        calc_sizer.Add(self.show_fwhm, flag=wx.ALIGN_CENTER_VERTICAL)
+        calc_sizer.Add(self.show_der_fwhm, flag=wx.ALIGN_CENTER_VERTICAL)
+        calc_sizer.Add(self.show_com, flag=wx.ALIGN_CENTER_VERTICAL)
+        calc_sizer.Add(self.show_der_com, flag=wx.ALIGN_CENTER_VERTICAL)
 
         plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
             wx.VERTICAL)
         plt_ctrl_sizer.Add(der_ctrl_sizer)
-        plt_ctrl_sizer.Add(self.fit_sizer, border=5, flag=wx.TOP)
-        plt_ctrl_sizer.Add(calc_sizer, border=5, flag=wx.TOP)
+        plt_ctrl_sizer.Add(self.fit_sizer, border=self._FromDIP(5), flag=wx.TOP)
+        plt_ctrl_sizer.Add(calc_sizer, border=self._FromDIP(5), flag=wx.TOP)
 
 
-        self.disp_fwhm = wx.StaticText(self, label='', size=(60, -1))
-        self.disp_fwhm_pos = wx.StaticText(self, label='', size=(60, -1))
-        self.disp_com = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_fwhm = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
+        self.disp_fwhm_pos = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
+        self.disp_com = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
 
         self.disp_fit_label1 = wx.StaticText(self, label='Fit param. 1:')
         self.disp_fit_label2 = wx.StaticText(self, label='Fit param. 2:')
         self.disp_fit_p1 = wx.StaticText(self, label='')
         self.disp_fit_p2 = wx.StaticText(self, label='')
 
-        scan_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
-        scan_results.Add(wx.StaticText(self, label='FWHM:'))
-        scan_results.Add(self.disp_fwhm)
-        scan_results.Add(wx.StaticText(self, label='FWHM cen.:'))
-        scan_results.Add(self.disp_fwhm_pos)
-        scan_results.Add(wx.StaticText(self, label='COM pos.:'))
-        scan_results.Add(self.disp_com)
+        scan_results = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5), hgap=2)
+        scan_results.Add(wx.StaticText(self, label='FWHM:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_fwhm, flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(wx.StaticText(self, label='FWHM cen.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_fwhm_pos, flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(wx.StaticText(self, label='COM pos.:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_com, flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add((1,1))
         scan_results.Add((1,1))
-        scan_results.Add(self.disp_fit_label1)
-        scan_results.Add(self.disp_fit_p1)
-        scan_results.Add(self.disp_fit_label2)
-        scan_results.Add(self.disp_fit_p2)
+        scan_results.Add(self.disp_fit_label1, flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_fit_p1, flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_fit_label2, flag=wx.ALIGN_CENTER_VERTICAL)
+        scan_results.Add(self.disp_fit_p2, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        self.disp_der_fwhm = wx.StaticText(self, label='', size=(60, -1))
-        self.disp_der_fwhm_pos = wx.StaticText(self, label='', size=(60, -1))
-        self.disp_der_com = wx.StaticText(self, label='', size=(60, -1))
+        self.disp_der_fwhm = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
+        self.disp_der_fwhm_pos = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
+        self.disp_der_com = wx.StaticText(self, label='',
+            size=self._FromDIP((60, -1)))
         self.disp_der_fit_label1 = wx.StaticText(self, label='Fit param.:')
         self.disp_der_fit_label2 = wx.StaticText(self, label='Fit param.:')
         self.disp_der_fit_p1 = wx.StaticText(self, label='')
         self.disp_der_fit_p2 = wx.StaticText(self, label='')
 
-        der_results = wx.FlexGridSizer(rows=3, cols=4, vgap=5, hgap=2)
-        der_results.Add(wx.StaticText(self, label='FWHM:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fwhm, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(wx.StaticText(self, label='FWHM cen.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fwhm_pos, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(wx.StaticText(self, label='COM pos.:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_com, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add((1,1), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fit_label1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fit_p1, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fit_label2, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        der_results.Add(self.disp_der_fit_p2, flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        der_results = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5), hgap=2)
+        der_results.Add(wx.StaticText(self, label='FWHM:'),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fwhm,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(wx.StaticText(self, label='FWHM cen.:'),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fwhm_pos,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(wx.StaticText(self, label='COM pos.:'),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_com,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add((1,1),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add((1,1),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fit_label1,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fit_p1,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fit_label2,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
+        der_results.Add(self.disp_der_fit_p2,
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
 
         self.der_results_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.der_results_sizer.Add(wx.StaticText(self, label='Derivative:'), flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        self.der_results_sizer.Add(der_results, border=5, flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.der_results_sizer.Add(wx.StaticText(self, label='Derivative:'),
+            flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.der_results_sizer.Add(der_results, border=self._FromDIP(5),
+            flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
 
         self.move_to = wx.Choice(self, choices=['FWHM center', 'COM position'])
         self.move_to.SetSelection(0)
@@ -905,9 +1139,12 @@ class ScanPanel(wx.Panel):
         self.move.Bind(wx.EVT_BUTTON, self._on_moveto)
 
         move_to_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        move_to_sizer.Add(wx.StaticText(self, label='Move to:'))
-        move_to_sizer.Add(self.move_to, border=5, flag=wx.LEFT)
-        move_to_sizer.Add(self.move, border=5, flag=wx.LEFT)
+        move_to_sizer.Add(wx.StaticText(self, label='Move to:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        move_to_sizer.Add(self.move_to, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        move_to_sizer.Add(self.move, border=self._FromDIP(5),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
         save_btn = wx.Button(self, label='Save Scan Results')
         save_btn.Bind(wx.EVT_BUTTON, self._on_saveresults)
@@ -916,15 +1153,17 @@ class ScanPanel(wx.Panel):
         self.scan_results_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Results'),
             wx.VERTICAL)
         self.scan_results_sizer.Add(wx.StaticText(self, label='Scan:'))
-        self.scan_results_sizer.Add(scan_results, border=5, flag=wx.TOP|wx.BOTTOM)
+        self.scan_results_sizer.Add(scan_results, border=self._FromDIP(5),
+            flag=wx.TOP|wx.BOTTOM)
         self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
             border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        self.scan_results_sizer.Add(self.der_results_sizer, border=5,
+        self.scan_results_sizer.Add(self.der_results_sizer, border=self._FromDIP(5),
             flag=wx.TOP|wx.BOTTOM|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
             border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        self.scan_results_sizer.Add(move_to_sizer, border=5, flag=wx.TOP)
-        self.scan_results_sizer.Add(save_btn, border=5, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL)
+        self.scan_results_sizer.Add(move_to_sizer, border=self._FromDIP(5), flag=wx.TOP)
+        self.scan_results_sizer.Add(save_btn, border=self._FromDIP(5),
+            flag=wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL)
 
         self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
@@ -953,13 +1192,15 @@ class ScanPanel(wx.Panel):
         self.der_plot.set_ylabel('Derivative')
         self.der_plot.set_xlabel('Position')
 
+        self.fig.subplots_adjust(left = 0.16, bottom = 0.07, right = 0.93,
+            top = 0.95, hspace = 0.26)
+
         self.der_plot.set_visible(False)
         self.plot.set_position(self.plt_gs[0].get_position(self.fig))
 
         self.plot.set_zorder(2)
         self.der_plot.set_zorder(1)
 
-        self.cid = self.canvas.mpl_connect('draw_event', self._ax_redraw)
         self.canvas.mpl_connect('motion_notify_event', self._on_mousemotion)
         self.canvas.mpl_connect('pick_event', self._on_pickevent)
 
@@ -1130,10 +1371,13 @@ class ScanPanel(wx.Panel):
 
             if scan_params['detector'] is not None:
                 self.det_scan = True
+                self.det_name = scan_params['detector']
             else:
                 self.det_scan = False
+                self.det_name = None
 
             self.cmd_q.put_nowait(['set_scan_params', [], scan_params])
+            # time.sleep(2)
 
             if self.det_scan:
                 self.cmd_q.put_nowait(['get_det_params', [], {}])
@@ -1148,8 +1392,8 @@ class ScanPanel(wx.Panel):
                     self.initial_position2 = float(self.pos2.GetLabel())
                 self.scan_timer.Start(10)
 
-                if self.shutter.IsChecked():
-                    self.cmd_q.put_nowait(['open_shutters', [], {}])
+                # if self.shutter.IsChecked():
+                #     self.cmd_q.put_nowait(['open_shutters', [], {}])
 
                 self.cmd_q.put_nowait(['scan', [], {}])
 
@@ -1223,6 +1467,7 @@ class ScanPanel(wx.Panel):
                         'timer'         : self.timer.GetStringSelection(),
                         'detector'      : self.detector.GetStringSelection(),
                         'scan_dim'      : scan_dim,
+                        'open_shutter'  : self.shutter.IsChecked(),
                         }
 
         except ValueError:
@@ -1259,7 +1504,8 @@ class ScanPanel(wx.Panel):
         print(det_datadir)
 
         if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
-            det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2xe9M')
+            # det_datadir = det_datadir.replace('/nas_data', '/nas_data/Eiger2x')
+            pass
         else:
             det_datadir = det_datadir.replace('/nas_data', '/nas_data/Pilatus1M')
 
@@ -1277,6 +1523,9 @@ class ScanPanel(wx.Panel):
 
             if result == wx.ID_YES:
                 cont = True
+                if self.detector.GetStringSelection() == 'Eiger2 XE 9M':
+                    for f in files:
+                        os.remove(f)
             elif result == wx.ID_NO:
                 cont = True
                 for f in files:
@@ -1338,6 +1587,9 @@ class ScanPanel(wx.Panel):
                 pos = self.return_q.get()[0]
 
                 self.cmd_q.put_nowait(['move_abs2', [self.initial_position2], {}])
+
+            if self.det_scan:
+                self.cmd_q.put_nowait(['abort_det', [self.det_name], {}])
 
             self.start_btn.Enable()
             self.stop_btn.Disable()
@@ -1531,11 +1783,13 @@ class ScanPanel(wx.Panel):
         if self.der_com_line is not None and self.show_der.GetValue():
             self.der_plot.draw_artist(self.der_com_line)
 
+        try:
+            self.canvas.blit(self.plot.bbox)
 
-        self.canvas.blit(self.plot.bbox)
-
-        if self.show_der.GetValue():
-            self.canvas.blit(self.der_plot.bbox)
+            if self.show_der.GetValue():
+                self.canvas.blit(self.der_plot.bbox)
+        except Exception:
+            pass # Prevents a weird error on startup
 
     def _update_plot_2d(self, rescale=True):
 
@@ -1743,8 +1997,11 @@ class ScanPanel(wx.Panel):
         :param str filename: The filename of the scan file to live plot.
         """
 
-        if not os.path.exists(filename):
+        start_time = time.time()
+        while not os.path.exists(filename):
             time.sleep(0.1)
+            if time.time() - start_time > 5:
+                break
         time.sleep(2)
 
         if self.current_scan_params['scalers_raw'] == 'i1/i0':
@@ -1913,9 +2170,9 @@ class ScanPanel(wx.Panel):
             self.der_plot.set_visible(True)
             self.plot.set_position(self.plt_gs2[0].get_position(self.fig))
             self.der_plot.set_position(self.plt_gs2[1].get_position(self.fig))
-            self.plot.xaxis.label.set_visible(False)
-            for label in self.plot.get_xticklabels():
-                label.set_visible(False)
+            # self.plot.xaxis.label.set_visible(False)
+            # for label in self.plot.get_xticklabels():
+            #     label.set_visible(False)
 
             self.scan_results_sizer.Show(self.der_results_sizer, recursive=True)
 
@@ -1924,10 +2181,10 @@ class ScanPanel(wx.Panel):
         else:
             self.der_plot.set_visible(False)
             self.plot.set_position(self.plt_gs[0].get_position(self.fig))
-            self.plot.xaxis.label.set_visible(True)
-            self.plot.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
-            for label in self.plot.get_xticklabels():
-                label.set_visible(True)
+            # self.plot.xaxis.label.set_visible(True)
+            # self.plot.xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
+            # for label in self.plot.get_xticklabels():
+            #     label.set_visible(True)
 
             self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
@@ -1947,9 +2204,7 @@ class ScanPanel(wx.Panel):
 
         self._calc_fit('der', self.der_fit.GetStringSelection(), False)
         self._calc_fwhm('der', False)
-        self._calc_com('der', False)
-
-        self.update_plot()
+        self._calc_com('der', True)
 
     def _on_fitchoice(self, event):
         """
@@ -2463,12 +2718,22 @@ class ScanFrame(wx.Frame):
 
         self._create_layout(mx_database)
 
-        self.Layout()
-        self.Fit()
-        self.Layout()
-        self.SetSizeHints(-1, 750)
+        self.SetSizeHints(self._FromDIP(-1), self._FromDIP(750))
+
+        utils.set_best_size(self)
+
+        current_size = self.GetSize()
+        current_size.SetHeight(current_size.GetHeight()+self._FromDIP(40))
+        self.SetSize(current_size)
 
         self.Bind(wx.EVT_CLOSE, self._on_close)
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
 
     def _create_layout(self, mx_database):
         """
@@ -2485,10 +2750,6 @@ class ScanFrame(wx.Frame):
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(self.scan_panel, 1, wx.EXPAND)
-
-        self.scan_panel.Layout()
-        self.scan_panel.Fit()
-        self.scan_panel.Layout()
 
         self.SetSizer(top_sizer)
 
