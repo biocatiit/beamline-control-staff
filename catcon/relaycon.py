@@ -269,7 +269,7 @@ class RelayFrame(wx.Frame):
             relay_grid.AddGrowableCol(i)
 
         for relay in relays:
-            relay_panel = relayPanel(relay, self.mx_database, self)
+            relay_panel = RelayPanel(relay, self.mx_database, self)
             relay_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(relay)))
             relay_box_sizer.Add(relay_panel)
             relay_grid.Add(relay_box_sizer)

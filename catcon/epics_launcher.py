@@ -192,6 +192,15 @@ class EPICSLauncherPanel(wx.Panel):
         aps_sizer.Add(pss_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
+        bpm_box = wx.StaticBox(parent, label='BPMs')
+        cbpm_button = wx.Button(bpm_box, label='C hutch Sydor B#')
+
+        cbpm_button.Bind(wx.EVT_BUTTON, self._on_cbpm_button)
+
+        bpm_sizer = wx.StaticBoxSizer(bpm_box, wx.VERTICAL)
+        bpm_sizer.Add(cbpm_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+
 
         top_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
             vgap=self._FromDIP(5))
@@ -203,6 +212,8 @@ class EPICSLauncherPanel(wx.Panel):
         top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        top_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
 
@@ -311,6 +322,16 @@ class EPICSLauncherPanel(wx.Panel):
     def _start_dmc(self, num):
         script = self._epics_path / 'start_dmc_screen.sh'
         cmd = '{} 18ID_DMC_{}'.format(script, num)
+        self._start_epics(cmd)
+
+    def _on_cbpm_button(self, evt):
+        self._start_bpm('C')
+
+    def _start_bpm(self, hutch):
+        if hutch == 'C':
+            script = self._epics_path / 'start_quadem_screen.sh'
+            cmd = '{} 18ID_ C_Mono_BPM_'.format(script)
+
         self._start_epics(cmd)
 
     def _start_epics(self, cmd):
