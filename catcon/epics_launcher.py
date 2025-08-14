@@ -330,7 +330,7 @@ class EPICSLauncherPanel(wx.Panel):
     def _start_bpm(self, hutch):
         if hutch == 'C':
             script = self._epics_path / 'start_quadem_screen.sh'
-            cmd = '{} 18ID_ C_Mono_BPM_'.format(script)
+            cmd = '{} 18ID: C_Mono_BPM:'.format(script)
 
         self._start_epics(cmd)
 
