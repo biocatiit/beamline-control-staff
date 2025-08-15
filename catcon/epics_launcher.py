@@ -201,6 +201,31 @@ class EPICSLauncherPanel(wx.Panel):
         bpm_sizer.Add(cbpm_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
+        camera_box = wx.StaticBox(parent, label='Cameras')
+        cam_viewer_button = wx.Button(camera_box, label='Inline Viewer')
+        cam_tripod_button = wx.Button(camera_box, label='Tripod')
+        cam_screen_button = wx.Button(camera_box, label='Fl. Screen')
+        cam_mono2_button = wx.Button(camera_box, label='Mono 2')
+        cam_mono1_button = wx.Button(camera_box, label='Mono 1')
+
+        cam_viewer_button.Bind(wx.EVT_BUTTON, self._on_cam_viewer_button)
+        cam_tripod_button.Bind(wx.EVT_BUTTON, self._on_cam_tripod_button)
+        cam_screen_button.Bind(wx.EVT_BUTTON, self._on_cam_screen_button)
+        cam_mono2_button.Bind(wx.EVT_BUTTON, self._on_cam_mono2_button)
+        cam_mono1_button.Bind(wx.EVT_BUTTON, self._on_cam_mono1_button)
+
+        camera_sizer = wx.StaticBoxSizer(camera_box, wx.VERTICAL)
+        camera_sizer.Add(cam_viewer_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_tripod_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_screen_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_mono2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_mono1_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+
 
         top_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
             vgap=self._FromDIP(5))
@@ -214,6 +239,8 @@ class EPICSLauncherPanel(wx.Panel):
         top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         top_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        top_sizer.Add(camera_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
 
@@ -332,6 +359,30 @@ class EPICSLauncherPanel(wx.Panel):
             script = self._epics_path / 'start_quadem_screen.sh'
             cmd = '{} 18ID: C_Mono_BPM:'.format(script)
 
+        self._start_epics(cmd)
+
+    def _on_cam_viewer_button(self, evt):
+        self._start_camera('inline')
+
+    def _on_cam_tripod_button(self, evt):
+        self._start_camera('tripod')
+
+    def _on_cam_screen_button(self, evt):
+        self._start_camera('screen')
+
+    def _on_cam_mono2_button(self, evt):
+        self._start_camera('mono2')
+
+    def _on_cam_mono1_button(self, evt):
+        self._start_camera('mono1')
+
+    def _start_camera(self, cam):
+        script = self._epics_path / 'start_flir_screen.sh'
+        cmd = '{} {}'.format(script, cam)
+        self._start_epics(cmd)
+
+        script = self._epics_path / 'start_ffmpeg_screen.sh'
+        cmd = '{} {}'.format(script, cam)
         self._start_epics(cmd)
 
     def _start_epics(self, cmd):
