@@ -116,6 +116,8 @@ class CharValidator(wx.Validator):
             #print key
             if self.flag == 'int' and key not in string.digits:
                 return
+            elif self.flag == 'int_te' and key not in string.digits+'\n\r':
+                return
             elif self.flag == 'float' and key not in string.digits+'.':
                 return
             elif self.flag == 'fname' and key not in self.fname_chars:

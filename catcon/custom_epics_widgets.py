@@ -25,6 +25,7 @@ from builtins import object, range, map
 from io import open
 
 import wx
+import wx.lib.agw.floatspin as floatspin
 import six
 
 import epics, epics.wx, epics.wx.wxlib, epics.wx.wxlib
@@ -326,7 +327,7 @@ class PVTextCtrl2(epics.wx.PVTextCtrl):
         """
 
     def __init__(self, parent, pv=None, font=None, fg=None, bg=None,
-            dirty_timeout=2500, scale=1., offset=0., **kw):
+            dirty_timeout=2500, scale=1., offset=0., val_type='float', **kw):
 
         """
         Create a new pvText
@@ -343,19 +344,56 @@ class PVTextCtrl2(epics.wx.PVTextCtrl):
 
         self.scale = scale
         self.offset = offset
+        self.val_type = val_type
+
+    @epics.wx.DelayedEpicsCallback
+    def OnEpicsConnect(self, pvname=None, conn=None, pv=None):
+        """Connect Callback:
+             Enable/Disable widget on change in connection status
+        """
+        PVMixin.OnEpicsConnect(self, pvname, conn, pv)
+
+        if self.IsEnabled():
+            action = getattr(self, 'Enable', None)
+        else:
+            action = getattr(self, 'Disable', None)
+        bgcol = self._connect_bgcol
+        fgcol = self._connect_fgcol
+        if not conn:
+            action = getattr(self, 'Disable', None)
+            self._connect_bgcol = self.GetBackgroundColour()
+            self._connect_fgcol = self.GetForegroundColour()
+            bgcol = wx.Colour(240, 240, 210)
+            fgcol = wx.Colour(200, 100, 100)
+        if action is not None:
+            self.SetBackgroundColour(bgcol)
+            self.SetForegroundColour(fgcol)
+            action()
 
     def SetValue(self, value):
-        value = str((float(value)- self.offset)/self.scale)
+        value = (float(value)- self.offset)/self.scale
+        if self.val_type == 'int':
+            value = str(int(value))
+        else:
+            value = str(value)
         self._caput(value)
 
     def _SetValue(self, value):
         "set widget label"
-        value = str(float(value)*self.scale + self.offset)
+        value = float(value)*self.scale + self.offset
+        if self.val_type == 'int':
+            value = str(int(value))
+        else:
+            value = str(value)
         wx.TextCtrl.SetValue(self, value)
 
     def OnChar(self, event):
         "char event handler"
-        if event.KeyCode == wx.WXK_RETURN:
+        try:
+            key_code = event.KeyCode
+        except Exception:
+            key_code = None
+        if key_code == wx.WXK_RETURN:
             self.OnWriteback()
         else:
             self.SetBackgroundColour("yellow")
@@ -369,3 +407,79 @@ class PVTextCtrl2(epics.wx.PVTextCtrl):
         entry = str(self.GetValue().strip())
         self.SetValue(entry)
         self.SetBackgroundColour(wx.NullColour)
+
+class PVEnumChoice2(epics.wx.PVEnumChoice):
+    """ a dropdown choice for Epics ENUM controls """
+
+    def __init__(self, parent, pv=None, on_change=None, **kw):
+        epics.wx.PVEnumChoice.__init__(self, parent, pv, **kw)
+
+        self.on_change = on_change
+
+    @epics.wx.EpicsFunction
+    def SetPV(self, pv=None):
+        "set pv, either an epics.PV object or a pvname"
+        if pv is None:
+            return
+        if isinstance(pv, epics.PV):
+            self.pv = pv
+        elif isinstance(pv, str):
+            self.pv = epics.get_pv(pv)
+            self.pv.connect()
+
+        epics.poll()
+        self.pv.connection_callbacks.append(self.OnEpicsConnect)
+
+        self.pv.get_ctrlvars()
+
+        self.OnPVChange(self.pv.get(as_string=True))
+        ncback = len(self.pv.callbacks) + 1
+        self.pv.add_callback(self._pvEvent, wid=self.GetId(), cb_info=ncback)
+
+        self.Bind(wx.EVT_CHOICE, self._onChoice)
+
+        pv_value = self.pv.get(as_string=True)
+        enum_strings = self.pv.enum_strs
+
+        self.Clear()
+        self.AppendItems(enum_strings)
+        self.SetStringSelection(pv_value)
+
+        self.on_change(pv_value)
+
+
+    @epics.wx.DelayedEpicsCallback
+    def _pvEvent(self, pvname=None, value=None, **kw):
+        "pv event handler"
+        if value is not None:
+            self.SetSelection(value)
+            self.on_change(self.pv.enum_strs[value])
+
+
+class PVFloatSpin2(epics.wx.PVFloatSpin):
+    """
+    A FloatSpin (floating-point-aware SpinCtrl) linked to a PV,
+    both reads and writes the PV on changes.
+
+    """
+    def __init__(self, parent, pv=None, deadTime=2500,
+                 min_val=None, max_val=None, increment=1.0, digits=-1, **kw):
+        """
+        Most arguments are common with FloatSpin.
+
+        Additional Arguments:
+        pv = pv to set
+        deadTime = delay (ms) between user typing a value into the field,
+        and it being set to the PV
+
+        """
+        floatspin.FloatSpin.__init__(self, parent, increment=increment,
+                                     min_val=min_val, max_val=max_val,
+                                     digits=digits, **kw)
+        epics.wx.wxlib.PVCtrlMixin.__init__(self, pv=pv, font="", fg=None, bg=None)
+        # floatspin.EVT_FLOATSPIN(parent, self.GetId(), self.OnSpin)
+        self.Bind(floatspin.EVT_FLOATSPIN, self.OnSpin)
+
+        self.deadTimer = wx.Timer(self)
+        self.deadTime = deadTime
+        self.deadTimer.Bind(wx.EVT_TIMER, self.OnTimeout)
