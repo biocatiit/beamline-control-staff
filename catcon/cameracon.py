@@ -252,32 +252,32 @@ class CameraControlPanel(wx.Panel):
             border=self._FromDIP(5))
 
         centerx = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('CenterX'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         centerx_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('CenterX'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
         centery = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('CenterY'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         centery_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('CenterY'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
         sizex = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('SizeX'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         sizex_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('SizeX'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
         sizey = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('SizeY'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         sizey_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('SizeY'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
         widthx = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthX'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         widthx_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('WidthX'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
         widthy = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthY'),
-            digits=0, size=self._FromDIP((80, -1)))
+            digits=0, size=self._FromDIP((120, -1)))
         widthy_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('WidthY'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
