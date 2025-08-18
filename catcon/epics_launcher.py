@@ -34,6 +34,7 @@ import pathlib
 import wx
 import epics, epics.wx
 
+import cameracon
 import utils
 
 class EPICSLauncherPanel(wx.Panel):
@@ -202,12 +203,14 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
 
         camera_box = wx.StaticBox(parent, label='Cameras')
+        cam_ctrl_button = wx.Button(camera_box, label='Camera Control')
         cam_viewer_button = wx.Button(camera_box, label='Inline Viewer')
         cam_tripod_button = wx.Button(camera_box, label='Tripod')
         cam_screen_button = wx.Button(camera_box, label='Fl. Screen')
         cam_mono2_button = wx.Button(camera_box, label='Mono 2')
         cam_mono1_button = wx.Button(camera_box, label='Mono 1')
 
+        cam_ctrl_button.Bind(wx.EVT_BUTTON, self._on_cam_ctrl_button)
         cam_viewer_button.Bind(wx.EVT_BUTTON, self._on_cam_viewer_button)
         cam_tripod_button.Bind(wx.EVT_BUTTON, self._on_cam_tripod_button)
         cam_screen_button.Bind(wx.EVT_BUTTON, self._on_cam_screen_button)
@@ -215,6 +218,8 @@ class EPICSLauncherPanel(wx.Panel):
         cam_mono1_button.Bind(wx.EVT_BUTTON, self._on_cam_mono1_button)
 
         camera_sizer = wx.StaticBoxSizer(camera_box, wx.VERTICAL)
+        camera_sizer.Add(cam_ctrl_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
         camera_sizer.Add(cam_viewer_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         camera_sizer.Add(cam_tripod_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -360,6 +365,11 @@ class EPICSLauncherPanel(wx.Panel):
             cmd = '{} 18ID: C_Mono_BPM:'.format(script)
 
         self._start_epics(cmd)
+
+    def _on_cam_ctrl_button(self, evt):
+        camera_ctrl_frame = cameracon.CameraFrame(self,
+            title='Camera Control')
+        camera_ctrl_frame.Show()
 
     def _on_cam_viewer_button(self, evt):
         self._start_camera('inline')
@@ -652,6 +662,6 @@ class EPICSLauncherFrame(wx.Frame):
 if __name__ == '__main__':
 
     app = wx.App()
-    frame = EPICSLauncherFrame(parent=None, title='Test EPICS Launcher')
+    frame = EPICSLauncherFrame(parent=None, title='EPICS Launcher')
     frame.Show()
     app.MainLoop()

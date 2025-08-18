@@ -285,7 +285,7 @@ class CameraControlPanel(wx.Panel):
         over_sub_sizer2 = wx.GridBagSizer(hgap=self._FromDIP(5), vgap=self._FromDIP(5))
         over_sub_sizer2.Add(wx.StaticText(over_box, label='X'), (0,1), (1,2),
             flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL)
-        over_sub_sizer2.Add(wx.StaticText(over_box, label='X'), (0,3), (1,2),
+        over_sub_sizer2.Add(wx.StaticText(over_box, label='Y'), (0,3), (1,2),
             flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALIGN_CENTER_VERTICAL)
         over_sub_sizer2.Add(wx.StaticText(over_box, label='Center:'), (1,0),
             flag=wx.ALIGN_CENTER_VERTICAL)
@@ -447,6 +447,6 @@ class CameraFrame(wx.Frame):
 if __name__ == '__main__':
 
     app = wx.App()
-    frame = CameraFrame(parent=None, title='Test Camera Control')
+    frame = CameraFrame(parent=None, title='Camera Control')
     frame.Show()
     app.MainLoop()

@@ -57,6 +57,7 @@ import switch_monos
 import overview
 import epics_launcher
 import motor_config
+import cameracon
 
 
 class MainFrame(wx.Frame):
@@ -96,6 +97,7 @@ class MainFrame(wx.Frame):
             'EPICS Launcher'    : epics_launcher.EPICSLauncherPanel,
             'Motor Config'  : motor_config.MotorConfigPanel,
             'Motor Channels'    : epics_launcher.MotorChannelPanel,
+            'Camera Control'    : epics_launcher.CameraControlPanel,
             }
 
         self.ctrl_panels = {}
