@@ -97,7 +97,7 @@ class MainFrame(wx.Frame):
             'EPICS Launcher'    : epics_launcher.EPICSLauncherPanel,
             'Motor Config'  : motor_config.MotorConfigPanel,
             'Motor Channels'    : epics_launcher.MotorChannelPanel,
-            'Camera Control'    : cameracon.CameraControlPanel,
+            'Cameras'    : cameracon.CameraControlPanel,
             }
 
         self.ctrl_panels = {}
