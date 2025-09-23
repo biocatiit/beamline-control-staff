@@ -275,12 +275,12 @@ class CameraControlPanel(wx.Panel):
         sizey_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('SizeY'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
-        widthx = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthX'),
+        widthx = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthY'),
             digits=0, size=self._FromDIP((120, -1)))
         widthx_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('WidthX'), size=self._FromDIP((50, -1)),
             style=wx.ST_NO_AUTORESIZE)
-        widthy = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthY'),
+        widthy = custom_epics_widgets.PVFloatSpin2(over_box, self._current_overlay.PV('WidthX'),
             digits=0, size=self._FromDIP((120, -1)))
         widthy_rbv = epics.wx.PVText(over_box,
             self._current_overlay.PV('WidthY'), size=self._FromDIP((50, -1)),
