@@ -209,6 +209,8 @@ class EPICSLauncherPanel(wx.Panel):
         cam_screen_button = wx.Button(camera_box, label='Fl. Screen')
         cam_mono2_button = wx.Button(camera_box, label='Mono 2')
         cam_mono1_button = wx.Button(camera_box, label='Mono 1')
+        cam_coflow_perp_button = wx.Button(camera_box, label='Coflow Perp')
+        cam_coflow_needle_button = wx.Button(camera_box, label='Coflow Needle')
 
         cam_ctrl_button.Bind(wx.EVT_BUTTON, self._on_cam_ctrl_button)
         cam_viewer_button.Bind(wx.EVT_BUTTON, self._on_cam_viewer_button)
@@ -216,6 +218,8 @@ class EPICSLauncherPanel(wx.Panel):
         cam_screen_button.Bind(wx.EVT_BUTTON, self._on_cam_screen_button)
         cam_mono2_button.Bind(wx.EVT_BUTTON, self._on_cam_mono2_button)
         cam_mono1_button.Bind(wx.EVT_BUTTON, self._on_cam_mono1_button)
+        cam_coflow_perp_button.Bind(wx.EVT_BUTTON, self._on_cam_coflow_perp_button)
+        cam_coflow_needle_button.Bind(wx.EVT_BUTTON, self._on_cam_coflow_needle_button)
 
         camera_sizer = wx.StaticBoxSizer(camera_box, wx.VERTICAL)
         camera_sizer.Add(cam_ctrl_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -228,7 +232,11 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
         camera_sizer.Add(cam_mono2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        camera_sizer.Add(cam_mono1_button, flag=wx.ALL,
+        camera_sizer.Add(cam_mono1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_coflow_perp_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        camera_sizer.Add(cam_coflow_needle_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -385,6 +393,12 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_cam_mono1_button(self, evt):
         self._start_camera('mono1')
+
+    def _on_cam_coflow_perp_button(self, evt):
+        self._start_camera('coflow_perp')
+
+    def _on_cam_coflow_needle_button(self, evt):
+        self._start_camera('coflow_needle')
 
     def _start_camera(self, cam):
         script = self._epics_path / 'start_flir_screen.sh'

@@ -22,4 +22,8 @@ elif [[ "$CAMERACHOICE" == "mono1" ]]; then
 medm -x -macro "P=18ID:FLIR:C:Mono1:, R=cam1:, C=FLIR-BFS-PGE-23S6M" ADSpinnaker.adl &
 elif [[ "$CAMERACHOICE" == "mono2" ]]; then
 medm -x -macro "P=18ID:FLIR:C:Mono2:, R=cam1:, C=FLIR-BFS-PGE-23S6M" ADSpinnaker.adl &
+elif [[ "$CAMERACHOICE" == "coflow_perp" ]]; then
+medm -x -macro "P=18ID:FLIR:D:CoflowPerp:, R=cam1:, C=FLIR-BFS-PGE-23S6C" ADSpinnaker.adl &
+elif [[ "$CAMERACHOICE" == "coflow_needle" ]]; then
+medm -x -macro "P=18ID:FLIR:D:CoflowNeedle:, R=cam1:, C=PGR_Blackfly_23S6C" ADSpinnaker.adl &
 fi

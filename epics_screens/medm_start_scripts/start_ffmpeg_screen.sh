@@ -21,4 +21,8 @@ elif [[ "$CAMERACHOICE" == "mono1" ]]; then
 medm -x -macro "P=18ID:FLIR:C:Mono1:, R=ffmstream1:" ffmpegStream.adl &
 elif [[ "$CAMERACHOICE" == "mono2" ]]; then
 medm -x -macro "P=18ID:FLIR:C:Mono2:, R=ffmstream1:" ffmpegStream.adl &
+elif [[ "$CAMERACHOICE" == "coflow_perp" ]]; then
+medm -x -macro "P=18ID:FLIR:D:CoflowPerp:, R=ffmstream1:" ffmpegStream.adl &
+elif [[ "$CAMERACHOICE" == "coflow_needle" ]]; then
+medm -x -macro "P=18ID:FLIR:D:CoflowNeedle:, R=ffmstream1:" ffmpegStream.adl &
 fi

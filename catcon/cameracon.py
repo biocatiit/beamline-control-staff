@@ -87,6 +87,8 @@ class CameraControlPanel(wx.Panel):
             'screen'        : '18ID:FLIR:C:Screen:',
             'mono1'         : '18ID:FLIR:C:Mono1:',
             'mono2'         : '18ID:FLIR:C:Mono2:',
+            'coflow_perp'   : '18ID:FLIR:D:CoflowPerp:',
+            'coflow_needle' : '18ID:FLIR:D:CoflowNeedle:',
         }
 
         self._camera_names = {
@@ -95,6 +97,8 @@ class CameraControlPanel(wx.Panel):
             'Fluorescent Screen'    : 'screen',
             'Mono 1'                : 'mono1',
             'Mono 2'                : 'mono2',
+            'Coflow Perp'           : 'coflow_perp',
+            'Coflow Needle'         : 'coflow_needle',
         }
 
         self._ctrl_sizers = {}
