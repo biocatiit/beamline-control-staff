@@ -1,0 +1,20 @@
+#!/bin/bash
+
+source source_caqtdm.sh
+
+Check provided arguments for record prefix
+if [ -z "$1" ]
+then
+      # No args provided, default
+      export PREFIX="2"
+else
+      # Record prefix provided as argument 1
+      export PREFIX=$1
+fi
+
+# R = Record name for digital IO not including byte/word, and bit number
+# Digital IO naming
+# $(DMC)$(R)<Byte or word num><Type Bo or Bi><Bit>
+
+caQtDM -attach -noMsg -macro "P=18ID:LJT4:${PREFIX}:" LabJack_T7.ui &
+

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+#From: /APSshare/adlsys/sr/pss/adl/
+
+source source_caqtdm.sh
+
+caQtDM -attach -noMsg -macro "xx=18,yy=ID" Main_18ID.ui &
