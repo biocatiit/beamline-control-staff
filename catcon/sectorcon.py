@@ -97,7 +97,8 @@ class MainFrame(wx.Frame):
             'EPICS Launcher MEDM'       : epics_launcher.EPICSLauncherPanel,
             'EPICS Launcher caQtDM'     : epics_launcher.EPICSLauncherPanel,
             'Motor Config'              : motor_config.MotorConfigPanel,
-            'Motor Channels'            : epics_launcher.MotorChannelPanel,
+            'Motor Channels MEDM'       : epics_launcher.MotorChannelPanel,
+            'Motor Channels caQtDM'     : epics_launcher.MotorChannelPanel,
             'Cameras'                   : cameracon.CameraControlPanel,
             }
 
