@@ -425,7 +425,7 @@ class EPICSLauncherPanel(wx.Panel):
         output, error = process.communicate()
 
 class MotorChannelPanel(wx.Panel):
-    def __init__(self, name, mx_database, is_medm=True, *args, **kwargs):
+    def __init__(self, name, mx_database, *args, **kwargs):
 
         panel_name = ' '.join(name.split(' ')[:-1])
 
@@ -651,7 +651,7 @@ class MotorChannelFrame(wx.Frame):
         else:
             name = 'MotorChannel caQtDM'
 
-        epics_panel = MotorChannelPanel(name, None, self.is_medm, self)
+        epics_panel = MotorChannelPanel(name, None, self)
 
         top_sizer.Add(epics_panel, flag=wx.EXPAND, proportion=1)
 
