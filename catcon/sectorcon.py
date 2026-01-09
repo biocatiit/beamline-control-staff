@@ -88,16 +88,17 @@ class MainFrame(wx.Frame):
                         }
 
         self.custom_ctrl_type = {
-            'Attenuators'  : atten.AttenuatorPanel,
+            'Attenuators'               : atten.AttenuatorPanel,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             'Diamond BPM Calculator'    : dbpm_calc.DBPMCalcPanel,
-            'Switch Monos'  : switch_monos.SWMonosPanel,
-            'Beamline Overview' : overview.MainStatusPanel,
-            'D BPM Amplifier'   : ac.DBPMAmpPanel,
-            'EPICS Launcher'    : epics_launcher.EPICSLauncherPanel,
-            'Motor Config'  : motor_config.MotorConfigPanel,
-            'Motor Channels'    : epics_launcher.MotorChannelPanel,
-            'Cameras'    : cameracon.CameraControlPanel,
+            'Switch Monos'              : switch_monos.SWMonosPanel,
+            'Beamline Overview'         : overview.MainStatusPanel,
+            'D BPM Amplifier'           : ac.DBPMAmpPanel,
+            'EPICS Launcher MEDM'       : epics_launcher.EPICSLauncherPanel,
+            'EPICS Launcher caQtDM'     : epics_launcher.EPICSLauncherPanel,
+            'Motor Config'              : motor_config.MotorConfigPanel,
+            'Motor Channels'            : epics_launcher.MotorChannelPanel,
+            'Cameras'                   : cameracon.CameraControlPanel,
             }
 
         self.ctrl_panels = {}

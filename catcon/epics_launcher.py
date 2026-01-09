@@ -43,10 +43,21 @@ class EPICSLauncherPanel(wx.Panel):
     def __init__(self, name, mx_database, *args, **kwargs):
         """
         """
-        wx.Panel.__init__(self, *args, name=name, **kwargs)
+
+        panel_name = ' '.join(name.split(' ')[:-1])
+
+        wx.Panel.__init__(self, *args, name=panel_name, **kwargs)
+
+        if name.split(' ')[-1].lower() == 'medm':
+            self.is_medm = True
+        else:
+            self.is_medm = False
 
         self._base_path = pathlib.Path(__file__).parent.resolve()
-        self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
+        if self.is_medm:
+            self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
+        else:
+            self._epics_path = self._base_path  / '..' / 'epics_screens' / 'caqtdm_start_scripts'
         self._epics_path = self._epics_path.resolve()
 
         self._create_layout()
@@ -337,7 +348,7 @@ class EPICSLauncherPanel(wx.Panel):
         self._start_epics(cmd)
 
     def _on_motor_channel_button(self, evt):
-        motor_channel_frame = MotorChannelFrame(self,
+        motor_channel_frame = MotorChannelFrame(self.is_medm, self,
             title='Motor Channels')
         motor_channel_frame.Show()
 
@@ -414,11 +425,22 @@ class EPICSLauncherPanel(wx.Panel):
         output, error = process.communicate()
 
 class MotorChannelPanel(wx.Panel):
-    def __init__(self, name, mx_database, *args, **kwargs):
-        wx.Panel.__init__(self, *args, **kwargs)
+    def __init__(self, name, mx_database, is_medm=True, *args, **kwargs):
+
+        panel_name = ' '.join(name.split(' ')[:-1])
+
+        wx.Panel.__init__(self, *args, name=panel_name, **kwargs)
+
+        if name.split(' ')[-1].lower() == 'medm':
+            self.is_medm = True
+        else:
+            self.is_medm = False
 
         self._base_path = pathlib.Path(__file__).parent.resolve()
-        self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
+        if self.is_medm:
+            self._epics_path = self._base_path  / '..' / 'epics_screens' / 'medm_start_scripts'
+        else:
+            self._epics_path = self._base_path  / '..' / 'epics_screens' / 'caqtdm_start_scripts'
         self._epics_path = self._epics_path.resolve()
 
         self._channels = [
@@ -590,11 +612,12 @@ class MotorChannelFrame(wx.Frame):
     """
     A lightweight amplifier frame designed to hold the EPICS launcher panel.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, is_medm, *args, **kwargs):
         """
         """
         wx.Frame.__init__(self, *args, **kwargs)
 
+        self.is_medm = is_medm
 
         self._create_layout()
 
@@ -623,7 +646,12 @@ class MotorChannelFrame(wx.Frame):
         """
         top_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        epics_panel = MotorChannelPanel('EpicsLauncher', None, self)
+        if self.is_medm:
+            name = 'MotorChannel MEDM'
+        else:
+            name = 'MotorChannel caQtDM'
+
+        epics_panel = MotorChannelPanel(name, None, self.is_medm, self)
 
         top_sizer.Add(epics_panel, flag=wx.EXPAND, proportion=1)
 
@@ -634,13 +662,13 @@ class EPICSLauncherFrame(wx.Frame):
     """
     A lightweight amplifier frame designed to hold the EPICS launcher panel.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, is_medm=True, **kwargs):
         """
         """
         wx.Frame.__init__(self, *args, **kwargs)
 
 
-        self._create_layout()
+        self._create_layout(is_medm)
 
         self.Layout()
         self.Fit()
@@ -653,7 +681,7 @@ class EPICSLauncherFrame(wx.Frame):
         except Exception:
             return size
 
-    def _create_layout(self):
+    def _create_layout(self, is_medm):
         """
         Creates the layout.
 
@@ -667,7 +695,12 @@ class EPICSLauncherFrame(wx.Frame):
         """
         top_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        epics_panel = EPICSLauncherPanel('EpicsLauncher', None, self)
+        if is_medm:
+            name = 'EpicsLauncher MEDM'
+        else:
+            name = 'EpicsLauncher caQtDM'
+
+        epics_panel = EPICSLauncherPanel(name, None, self)
 
         top_sizer.Add(epics_panel, flag=wx.EXPAND, proportion=1)
 
@@ -676,6 +709,6 @@ class EPICSLauncherFrame(wx.Frame):
 if __name__ == '__main__':
 
     app = wx.App()
-    frame = EPICSLauncherFrame(parent=None, title='EPICS Launcher')
+    frame = EPICSLauncherFrame(is_medm=False, parent=None, title='EPICS Launcher')
     frame.Show()
     app.MainLoop()
