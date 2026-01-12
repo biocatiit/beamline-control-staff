@@ -4,6 +4,7 @@ eval "$(conda shell.bash hook)"
 conda activate medm
 
 base_display_path="/usr/local/beamline-control-staff/epics_screens/displays"
+export ADLDIR=/APSshare/adlsys
 
 #From module top, add offset path to medm screens
 motorpath=$base_display_path/motorApp/op/adl
@@ -16,7 +17,13 @@ eigerpath=$base_display_path/eigerApp/op/adl
 marpath=$base_display_path/marCCDApp/op/adl
 pilatuspath=$base_display_path/pilatusApp/op/adl
 labjackpath=$base_display_path/LabJackApp/op/adl
-apspath=$base_display_path/aps
+# apspath=$base_display_path/aps
+apspath=$ADLDIR/screens:$ADLDIR/adlsys:$ADLDIR/screens/adl
+apspath=$apspath:$ADLDIR/sr/fe:$ADLDIR/sr/facilitiesApp
+#apspath=$apspath:$ADLDIR/sr/psApp:$ADLDIR/screens/adl/systems/sr
+#apspath=$apspath:$ADLDIR/screens/adl/iocs/idctl/adl_Global
+#apspath=$apspath:$ADLDIR/screens/adl/iocs/xsrcpt/:$ADLDIR/sr/pss/adl/
+#apspath=$apspath:$ADLDIR/screens/adl/iocs/sioc2id:$ADLDIR/xfd-display
 meascomppath=$base_display_path/measCompApp/op/adl
 opticspath=$base_display_path/opticsApp/op/adl
 newportpath=$base_display_path/newportApp/op/adl
@@ -33,3 +40,4 @@ EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$spinnakerpath
 
 export EPICS_DISPLAY_PATH
+

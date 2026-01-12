@@ -4,4 +4,4 @@
 
 source source_medm.sh
 
-medm -x -macro "P=S18ID:DSID" IDControl_Planar.adl &
+medm -x -macro "P=S18ID:DSID" /iocs/sioc2id/IDControl_Planar.adl &

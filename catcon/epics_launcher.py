@@ -189,19 +189,27 @@ class EPICSLauncherPanel(wx.Panel):
 
         aps_box = wx.StaticBox(parent, label='APS')
         id_button = wx.Button(aps_box, label='Undulator')
-        aps_bpm_button = wx.Button(aps_box, label='APS BPMs')
+        aps_bpm_button = wx.Button(aps_box, label='APS XBPMs')
         pss_button = wx.Button(aps_box, label='PSS')
+        status_button = wx.Button(aps_box, label='SR Status')
+        aps_overall_button = wx.Button(aps_box, label='APS Top Level')
 
         id_button.Bind(wx.EVT_BUTTON, self._on_id_button)
         aps_bpm_button.Bind(wx.EVT_BUTTON, self._on_aps_bpm_button)
         pss_button.Bind(wx.EVT_BUTTON, self._on_pss_button)
+        status_button.Bind(wx.EVT_BUTTON, self._on_status_button)
+        aps_overall_button.Bind(wx.EVT_BUTTON, self._on_aps_overall_button)
 
         aps_sizer = wx.StaticBoxSizer(aps_box, wx.VERTICAL)
         aps_sizer.Add(id_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         aps_sizer.Add(aps_bpm_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        aps_sizer.Add(pss_button, flag=wx.ALL,
+        aps_sizer.Add(pss_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        aps_sizer.Add(status_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        aps_sizer.Add(aps_overall_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
         bpm_box = wx.StaticBox(parent, label='BPMs')
@@ -250,22 +258,27 @@ class EPICSLauncherPanel(wx.Panel):
         camera_sizer.Add(cam_coflow_needle_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
+        col1_sizer = wx.BoxSizer(wx.VERTICAL)
+        col1_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.TOP|wx.BOTTOM,
+            border=self._FromDIP(5))
+        col1_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
+        col1_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
+        col1_sizer.Add(camera_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
 
-        top_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
-            vgap=self._FromDIP(5))
-        top_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5))
-        top_sizer.Add(io_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+        col2_sizer = wx.BoxSizer(wx.VERTICAL)
+        col2_sizer.Add(io_sizer, flag=wx.EXPAND|wx.TOP|wx.BOTTOM,
             border=self._FromDIP(5))
-        top_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+        col2_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
-        top_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
+        col2_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
-        top_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=self._FromDIP(5))
-        top_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=self._FromDIP(5))
-        top_sizer.Add(camera_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
-            border=self._FromDIP(5))
+
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_sizer.Add(col1_sizer, flag=wx.LEFT|wx.RIGHT, border=self._FromDIP(5))
+        top_sizer.Add(col2_sizer, flag=wx.RIGHT, border=self._FromDIP(5))
 
 
         self.SetSizer(top_sizer)
@@ -344,6 +357,16 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_pss_button(self, evt):
         script = self._epics_path / 'start_pss_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_status_button(self, evt):
+        script = self._epics_path / 'start_aps_status_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_aps_overall_button(self, evt):
+        script = self._epics_path / 'start_aps_top_level_screen.sh'
         cmd = '{}'.format(script)
         self._start_epics(cmd)
 
