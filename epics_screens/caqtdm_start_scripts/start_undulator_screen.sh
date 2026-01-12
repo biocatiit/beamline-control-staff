@@ -4,4 +4,4 @@
 
 source source_caqtdm.sh
 
-caQtDM -attach -noMsg -macro "P=S18ID:DSID" IDControl_Planar.ui &
+caQtDM -attach -noMsg -macro "P=S18ID:DSID" iocs/sioc2id/IDControl_Planar.adl &
