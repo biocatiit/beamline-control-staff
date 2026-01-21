@@ -35,13 +35,14 @@ quadempath=$base_display_path/quadEMApp/op/ui:$base_display_path/quadEMApp/op/ui
 genicampath=$base_display_path/GenICamApp/op/ui:$base_display_path/GenICamApp/op/ui/autoconvert
 ffmpegpath=$base_display_path/ffmpegServerApp/op/ui:$base_display_path/ffmpegServerApp/op/ui/autoconvert
 spinnakerpath=$base_display_path/spinnakerApp/op/ui:$base_display_path/spinnakerApp/op/ui/autoconvert
+ippath=$base_display_path/ipApp/op/ui:$base_display_path/ipApp/op/ui/autoconvert:$base_display_path/ipApp/op/ui/Synaccess_netbooster
 
 CAQTDM_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$adcorepath:$eigerpath:$marpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$pilatuspath:$labjackpath:$apspath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$meascomppath:$opticspath:$newportpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
-CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$spinnakerpath
+CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$spinnakerpath:$ippath
 
 export CAQTDM_DISPLAY_PATH
 # echo $CAQTDM_DISPLAY_PATH

@@ -1,0 +1,1284 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 120
+y 281
+w 420
+h 170
+font "helvetica-medium-r-18.0"
+ctlFont "helvetica-bold-r-10.0"
+btnFont "helvetica-medium-r-18.0"
+fgColor rgb 0 0 0
+bgColor rgb 55808 55808 55808
+textColor rgb 0 0 0
+ctlFgColor1 rgb 64256 62208 18944
+ctlFgColor2 rgb 60928 46592 11008
+ctlBgColor1 rgb 52480 24832 0
+ctlBgColor2 rgb 65280 45056 65280
+topShadowColor rgb 44544 19968 48128
+botShadowColor rgb 13312 13056 34304
+showGrid
+snapToGrid
+gridSize 4
+endScreenProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 0
+w 399
+h 64
+lineColor rgb 0 0 0
+fill
+fillColor rgb 0 0 0
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 9
+y 85
+w 65
+h 12
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "FUNCTION"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 96
+y 85
+w 72
+h 12
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "SCAN RATE"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 368
+y 95
+w 35
+h 13
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "More"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 250
+y 86
+w 66
+h 38
+lineColor rgb 64256 62208 18944
+fill
+fillColor rgb 64256 62208 18944
+lineWidth 2
+visPv "CALC\\\{(A)\}($(P)$(Dmm)single_multi.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 78
+y 17
+w 225
+h 37
+controlPv "$(P)$(Dmm)Dmm_raw.VAL"
+format "decimal"
+font "utopia-medium-r-24.0"
+fontAlign "right"
+fgColor rgb 39168 65280 65280
+bgColor rgb 0 0 0
+precision 2
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 312
+y 24
+w 73
+h 25
+controlPv "$(P)$(Dmm)units.VAL"
+format "decimal"
+font "helvetica-medium-r-18.0"
+fontAlign "left"
+fgColor rgb 39168 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 63
+y 23
+w 20
+h 26
+font "helvetica-medium-r-18.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  ":"
+}
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 0
+w 404
+h 1
+lineColor rgb 65280 65280 65280
+fillColor rgb 65280 65280 65280
+numPoints 2 {
+xPoints  {
+0 0
+1 403
+}
+yPoints  {
+0 0
+1 0
+}
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x -1
+y 62
+w 404
+h 3
+lineColor rgb 65280 65280 65280
+fillColor rgb 65280 65280 65280
+lineWidth 3
+numPoints 2 {
+xPoints  {
+0 0
+1 401
+}
+yPoints  {
+0 63
+1 63
+}
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 397
+y 0
+w 3
+h 64
+lineColor rgb 65280 65280 65280
+fillColor rgb 65280 65280 65280
+lineWidth 3
+numPoints 2 {
+xPoints  {
+0 398
+1 398
+}
+yPoints  {
+0 1
+1 62
+}
+endObjectProperties
+
+# (Lines)
+object activeLineClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 0
+w 3
+h 64
+lineColor rgb 51200 51200 51200
+fillColor rgb 51200 51200 51200
+lineWidth 3
+numPoints 2 {
+xPoints  {
+0 1
+1 1
+}
+yPoints  {
+0 1
+1 62
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 6
+y 3
+w 54
+h 11
+lineColor rgb 64768 0 0
+fill
+fillColor rgb 64768 0 0
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 8
+y 5
+w 49
+h 11
+font "helvetica-medium-r-8.0"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "KEITHLEY"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 207
+y 51
+w 187
+h 12
+font "helvetica-medium-r-10.0"
+fgColor rgb 64256 62208 18944
+bgColor index 3
+useDisplayBg
+value {
+  "Multi Ch. Mode, Reading INVALID"
+}
+visPv "CALC\\\{(A)\}($(P)$(Dmm)single_multi.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 338
+y 3
+w 57
+h 13
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "($(Dmm))"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 64
+y 5
+w 31
+h 11
+font "helvetica-medium-r-8.0"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Model"
+}
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 251
+y 66
+w 118
+h 19
+controlPv "$(P)$(Dmm)Dmm_raw.DESC"
+format "decimal"
+font "helvetica-medium-r-10.0"
+fontAlign "left"
+fgColor rgb 0 0 0
+bgColor rgb 60416 60416 60416
+editable
+motifWidget
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 185
+y 68
+w 66
+h 13
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Dmm Desc:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 369
+y 65
+w 31
+h 13
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Calc"
+}
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 98
+y 5
+w 30
+h 11
+controlPv "$(P)$(Dmm)model.VAL"
+format "decimal"
+font "helvetica-medium-r-8.0"
+fontAlign "left"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 161
+y 5
+w 41
+h 11
+font "helvetica-medium-r-8.0"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "channels"
+}
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 136
+y 5
+w 20
+h 11
+controlPv "$(P)$(Dmm)channels.VAL"
+format "decimal"
+font "helvetica-medium-r-8.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x -9
+y 129
+w 103
+h 12
+font "helvetica-medium-r-10.0"
+fontAlign "center"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "CHANNEL RANGE"
+}
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=1)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=2)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=0)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=3)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 7
+y 24
+w 58
+h 25
+controlPv "$(P)$(Dmm)dmm_chan4.VAL"
+format "decimal"
+font "helvetica-medium-r-18.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=3)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 7
+y 24
+w 58
+h 25
+controlPv "$(P)$(Dmm)dmm_chan.VAL"
+format "decimal"
+font "helvetica-medium-r-18.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=0)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 7
+y 24
+w 58
+h 25
+controlPv "$(P)$(Dmm)dmm_chan2.VAL"
+format "decimal"
+font "helvetica-medium-r-18.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=1)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 7
+y 24
+w 58
+h 25
+controlPv "$(P)$(Dmm)dmm_chan3.VAL"
+format "decimal"
+font "helvetica-medium-r-18.0"
+fontAlign "right"
+fgColor rgb 65280 65280 65280
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=2)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 319
+y 88
+w 50
+h 35
+fgColor rgb 64256 62208 18944
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 64256 62208 18944
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)done_read.VAL"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 83
+y 96
+w 99
+h 21
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)$(Dmm)scanner.SCAN"
+indicatorPv "$(P)$(Dmm)scanner.SCAN"
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 96
+w 75
+h 21
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)$(Dmm)ch_mode_sel.VAL"
+indicatorPv "$(P)$(Dmm)ch_mode_sel.VAL"
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 377
+y 108
+w 15
+h 15
+fgColor rgb 0 0 0
+bgColor rgb 29440 57088 65280
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+font "helvetica-bold-r-12.0"
+icon
+numPvs 10
+numDsps 5
+displayFileName {
+  0 Keithley2kDMM_10chan_mf.edl
+  1 Keithley2kDMM_10chan_mf.edl
+  2 Keithley2kDMM_10chan_mf.edl
+  3 Keithley2kDMM_10chan_mf.edl
+  4 scpi_commands.edl
+}
+menuLabel {
+  0 Multi-channel 1-10
+  1 Multi-channel 11-20
+  2 Multi-channel 21-30
+  3 Multi-channel 31-40
+  4 General SCPI Input
+}
+symbols {
+  0 "P=$(P),Dmm=$(Dmm),N1=1,N2=2,N3=3,N4=4,N5=5,N6=6,N7=7,N8=8,N9=9,N10=10"
+  1 "P=$(P),Dmm=$(Dmm),N1=11,N2=12,N3=13,N4=14,N5=15,N6=16,N7=17,N8=18,N9=19,N10=20"
+  2 "P=$(P),Dmm=$(Dmm),N1=21,N2=22,N3=23,N4=24,N5=25,N6=26,N7=27,N8=28,N9=29,N10=30"
+  3 "P=$(P),Dmm=$(Dmm),N1=31,N2=32,N3=33,N4=34,N5=35,N6=36,N7=37,N8=38,N9=39,N10=40"
+  4 "P=$(P),Dmm=$(Dmm)"
+}
+replaceSymbols {
+  0 1
+  1 1
+  2 1
+  3 1
+  4 1
+}
+endObjectProperties
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 187
+y 88
+w 60
+h 35
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)onesh_cont.VAL"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 251
+y 88
+w 65
+h 35
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)single_multi.VAL"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Related Display)
+object relatedDisplayClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 377
+y 78
+w 15
+h 15
+fgColor rgb 0 0 0
+bgColor rgb 29440 57088 65280
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+font "helvetica-bold-r-12.0"
+icon
+numPvs 2
+numDsps 1
+displayFileName {
+  0 Keithley2kDMM_calc.edl
+}
+menuLabel {
+  0 Single-mode Units Conversion
+}
+symbols {
+  0 "P=$(P),Dmm=$(Dmm),CH=Dmm"
+}
+replaceSymbols {
+  0 1
+}
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 65
+w 45
+h 16
+fgColor rgb 65280 65280 65280
+onColor rgb 30720 30720 30720
+offColor rgb 30720 30720 30720
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)init_dmm.VAL"
+pressValue "1"
+releaseValue 
+onLabel "INIT"
+offLabel "INIT"
+3d
+useEnumNumeric
+font "helvetica-medium-r-8.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 92
+y 123
+w 82
+h 21
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)$(Dmm)dmm_ch_range.VAL"
+indicatorPv "$(P)$(Dmm)dmm_ch_range.VAL"
+font "helvetica-medium-r-12.0"
+endObjectProperties
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)dmm_chan2.VAL"
+font "helvetica-medium-r-10.0"
+orientation "horizontal"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=1)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)dmm_chan3.VAL"
+font "helvetica-medium-r-10.0"
+orientation "horizontal"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=2)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)dmm_chan.VAL"
+font "helvetica-medium-r-10.0"
+orientation "horizontal"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=0)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+
+beginGroup
+
+# (Choice Button)
+object activeChoiceButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 0
+y 148
+w 420
+h 17
+fgColor rgb 65280 65280 65280
+bgColor rgb 30720 30720 30720
+selectColor rgb 30720 30720 30720
+inconsistentColor rgb 65280 65280 65280
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)$(Dmm)dmm_chan4.VAL"
+font "helvetica-medium-r-10.0"
+orientation "horizontal"
+endObjectProperties
+
+endGroup
+
+visPv "CALC\\\{(A=3)\}($(P)$(Dmm)dmm_ch_range.VAL)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=3)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=0)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=1)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+# (Group)
+object activeGroupClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 7
+y 24
+w 58
+h 25
+
+beginGroup
+
+endGroup
+
+visPv "CALC\\\{(A=2)\}($(P)$(Dmm)dmm_ch_range)"
+visInvert
+visMin 0
+visMax 1
+endObjectProperties
+
+

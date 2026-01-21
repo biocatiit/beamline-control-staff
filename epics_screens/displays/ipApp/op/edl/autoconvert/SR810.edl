@@ -1,0 +1,1119 @@
+4 0 1
+beginScreenProperties
+major 4
+minor 0
+release 1
+x 660
+y 266
+w 580
+h 206
+font "helvetica-medium-r-18.0"
+ctlFont "helvetica-bold-r-10.0"
+btnFont "helvetica-medium-r-18.0"
+fgColor rgb 0 0 0
+bgColor rgb 55808 55808 55808
+textColor rgb 0 0 0
+ctlFgColor1 rgb 64256 62208 18944
+ctlFgColor2 rgb 60928 46592 11008
+ctlBgColor1 rgb 52480 24832 0
+ctlBgColor2 rgb 65280 45056 65280
+topShadowColor rgb 44544 19968 48128
+botShadowColor rgb 13312 13056 34304
+showGrid
+snapToGrid
+gridSize 4
+endScreenProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 165
+y 1
+w 417
+h 22
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 2
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 174
+y 4
+w 313
+h 20
+font "helvetica-medium-r-14.0"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "SRS810 DSP Lock-in Amp"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 367
+y 27
+w 80
+h 12
+font "helvetica-medium-r-10.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Reference"
+}
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 167
+y 41
+w 190
+h 40
+controlPv "$(P)SRS810:$(N):Disp1.SVAL"
+format "exponential"
+font "utopia-medium-r-34.0"
+fontAlign "right"
+fgColor rgb 64768 0 0
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 366
+y 40
+w 130
+h 40
+controlPv "$(P)SRS810:$(N):Disp2.SVAL"
+format "decimal"
+font "utopia-medium-r-34.0"
+fontAlign "right"
+fgColor rgb 64768 0 0
+bgColor rgb 0 0 0
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 79
+y 105
+w 75
+h 16
+controlPv "$(P)SRS810:$(N):Sens.SVAL"
+format "decimal"
+font "helvetica-medium-r-14.0"
+fontAlign "right"
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 80
+y 22
+w 75
+h 16
+controlPv "$(P)SRS810:$(N):TC.SVAL"
+format "decimal"
+font "helvetica-medium-r-14.0"
+fontAlign "right"
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 185
+y 146
+w 100
+h 13
+controlPv "$(P)SRS810:$(N):X.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 325
+y 145
+w 100
+h 13
+controlPv "$(P)SRS810:$(N):Y.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 185
+y 166
+w 100
+h 13
+controlPv "$(P)SRS810:$(N):R.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 345
+y 165
+w 80
+h 13
+controlPv "$(P)SRS810:$(N):Th.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 235
+y 185
+w 50
+h 13
+controlPv "$(P)SRS810:$(N):Freq.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Text Monitor)
+object activeXTextDspClass:noedit
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 375
+y 185
+w 50
+h 13
+controlPv "$(P)SRS810:$(N):Phas.SVAL"
+format "string"
+font "helvetica-medium-r-10.0"
+fontAlign "right"
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 1
+y 1
+w 161
+h 83
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 1
+y 84
+w 161
+h 83
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 4
+y 4
+w 154
+h 13
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 14
+y 4
+w 135
+h 14
+font "helvetica-medium-r-12.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Time Constant"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 4
+y 87
+w 154
+h 13
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 14
+y 87
+w 135
+h 14
+font "helvetica-medium-r-12.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Sensitivity"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 4
+y 169
+w 154
+h 13
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 14
+y 169
+w 135
+h 14
+font "helvetica-medium-r-12.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Reserve"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 1
+y 167
+w 161
+h 38
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 165
+y 144
+w 27
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "X:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 310
+y 144
+w 26
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Y:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 165
+y 164
+w 26
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "R:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 310
+y 164
+w 25
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "q:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 165
+y 184
+w 71
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Frequen:"
+}
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 310
+y 184
+w 58
+h 16
+font "helvetica-medium-r-14.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Phase:"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 162
+y 117
+w 278
+h 88
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 168
+y 28
+w 80
+h 12
+font "helvetica-medium-r-10.0"
+fgColor rgb 0 0 0
+bgColor index 3
+useDisplayBg
+value {
+  "Channel One"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 500
+y 31
+w 77
+h 13
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 508
+y 31
+w 60
+h 14
+font "helvetica-medium-r-12.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Auto"
+}
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 162
+y 26
+w 338
+h 91
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 501
+y 26
+w 78
+h 91
+lineColor rgb 0 0 0
+fillColor rgb 0 0 0
+lineWidth 2
+endObjectProperties
+
+# (Text Control)
+object activeXTextDspClass
+beginObjectProperties
+major 4
+minor 7
+release 0
+x 463
+y 141
+w 100
+h 26
+controlPv "$(P)SRS810:$(N):SetPhas.A"
+format "decimal"
+font "helvetica-medium-r-14.0"
+fontAlign "left"
+fgColor rgb 0 0 0
+bgColor rgb 60160 61696 46336
+editable
+motifWidget
+limitsFromDb
+nullColor rgb 60928 46592 11008
+smartRefresh
+fastUpdate
+newPos
+objType "controls"
+endObjectProperties
+
+# (Rectangle)
+object activeRectangleClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 465
+y 123
+w 99
+h 13
+lineColor rgb 34048 34048 34048
+fill
+fillColor rgb 34048 34048 34048
+lineWidth 0
+endObjectProperties
+
+# (Static Text)
+object activeXTextClass
+beginObjectProperties
+major 4
+minor 1
+release 1
+x 479
+y 124
+w 71
+h 14
+font "helvetica-medium-r-12.0"
+fontAlign "center"
+fgColor rgb 65280 65280 65280
+bgColor index 3
+useDisplayBg
+value {
+  "Set Phase"
+}
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 20
+w 55
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):TC1"
+indicatorPv "$(P)SRS810:$(N):TC1"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 41
+w 55
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):TC2"
+indicatorPv "$(P)SRS810:$(N):TC2"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 62
+w 55
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):TC3"
+indicatorPv "$(P)SRS810:$(N):TC3"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 123
+w 70
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):Sens2"
+indicatorPv "$(P)SRS810:$(N):Sens2"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 144
+w 70
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):Sens3"
+indicatorPv "$(P)SRS810:$(N):Sens3"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 504
+y 49
+w 71
+h 16
+fgColor rgb 0 0 0
+onColor rgb 47872 49408 34560
+offColor rgb 47872 49408 34560
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:1:AutoPhas.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Phase"
+offLabel "Phase"
+3d
+useEnumNumeric
+font "helvetica-medium-r-8.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 504
+y 69
+w 71
+h 16
+fgColor rgb 0 0 0
+onColor rgb 47872 49408 34560
+offColor rgb 47872 49408 34560
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:1:AutoGain.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Gain"
+offLabel "Gain"
+3d
+useEnumNumeric
+font "helvetica-medium-r-8.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 505
+y 89
+w 71
+h 16
+fgColor rgb 0 0 0
+onColor rgb 47872 49408 34560
+offColor rgb 47872 49408 34560
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:1:AutoResv.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Reserve"
+offLabel "Reserve"
+3d
+useEnumNumeric
+font "helvetica-medium-r-8.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 171
+y 121
+w 80
+h 18
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):ReadX.SCAN"
+indicatorPv "$(P)SRS810:$(N):ReadX.SCAN"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 269
+y 121
+w 63
+h 18
+fgColor rgb 6656 29440 2304
+onColor rgb 55808 55808 55808
+offColor rgb 55808 55808 55808
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:$(N):ReadX.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Read"
+offLabel "Read"
+3d
+useEnumNumeric
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 103
+w 70
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):Sens1"
+indicatorPv "$(P)SRS810:$(N):Sens1"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 3
+y 184
+w 100
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 47872 49408 34560
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):ResvCh"
+indicatorPv "$(P)SRS810:$(N):ResvCh"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 169
+y 85
+w 86
+h 20
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):Disp1Ch.VAL"
+indicatorPv "$(P)SRS810:$(N):Disp1Ch.VAL"
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 367
+y 85
+w 86
+h 20
+fgColor rgb 6656 29440 2304
+bgColor rgb 55808 55808 55808
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):Disp2Ch.VAL"
+indicatorPv "$(P)SRS810:$(N):Disp2Ch.VAL"
+font "helvetica-medium-r-12.0"
+endObjectProperties
+
+# (Menu Button)
+object activeMenuButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 67
+y 60
+w 90
+h 18
+fgColor rgb 0 0 0
+bgColor rgb 10240 37632 5376
+inconsistentColor rgb 17920 17920 17920
+topShadowColor rgb 55808 55808 55808
+botShadowColor rgb 17920 17920 17920
+controlPv "$(P)SRS810:$(N):FiltCh"
+indicatorPv "$(P)SRS810:$(N):FiltCh"
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 87
+y 142
+w 63
+h 18
+fgColor rgb 6656 29440 2304
+onColor rgb 55808 55808 55808
+offColor rgb 55808 55808 55808
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:$(N):ReadSens.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Read"
+offLabel "Read"
+3d
+useEnumNumeric
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
+# (Message Button)
+object activeMessageButtonClass
+beginObjectProperties
+major 4
+minor 0
+release 0
+x 92
+y 41
+w 63
+h 18
+fgColor rgb 6656 29440 2304
+onColor rgb 55808 55808 55808
+offColor rgb 55808 55808 55808
+topShadowColor rgb 65280 65280 65280
+botShadowColor rgb 0 0 0
+controlPv "$(P)SRS810:$(N):ReadTC.PROC"
+pressValue "1"
+releaseValue 
+onLabel "Read"
+offLabel "Read"
+3d
+useEnumNumeric
+font "helvetica-medium-r-10.0"
+endObjectProperties
+
