@@ -4,4 +4,4 @@
 
 source source_caqtdm.sh
 
-medm -x XFD-Display.adl &
+caQtDM -attach -noMsg XFD-Display.adl &

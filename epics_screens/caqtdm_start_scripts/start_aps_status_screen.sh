@@ -4,4 +4,4 @@
 
 source source_caqtdm.sh
 
-medm -x SR_Status.adl &
+caQtDM -attach -noMsg SR_Status.adl &
