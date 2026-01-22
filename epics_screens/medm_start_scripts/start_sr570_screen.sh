@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source source_caqtdm.sh
+source source_medm.sh
 
 Check provided arguments for record prefix
 if [ -z "$1" ]
@@ -12,4 +12,4 @@ else
       export VAL=$1
 fi
 
-medm -x -noMsg -macro "P=18ID:SR570:$VAL:, A=asyn_$VAL" SR570.ui &
+medm -x -noMsg -macro "P=18ID:SR570:$VAL:, A=asyn_$VAL" SR570.adl &
