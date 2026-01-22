@@ -258,6 +258,27 @@ class EPICSLauncherPanel(wx.Panel):
         camera_sizer.Add(cam_coflow_needle_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
+        amp_box = wx.StaticBox(parent, label='Amplifiers')
+        sr570_1_button = wx.Button(amp_box, label='SR570 1 (I0)')
+        sr570_2_button = wx.Button(amp_box, label='SR570 2 (I1)')
+        sr570_3_button = wx.Button(amp_box, label='SR570 3 (I2)')
+        sr570_4_button = wx.Button(amp_box, label='SR570 4 (I3)')
+
+        sr570_1_button.Bind(wx.EVT_BUTTON, self._on_sr570_1_button)
+        sr570_2_button.Bind(wx.EVT_BUTTON, self._on_sr570_2_button)
+        sr570_3_button.Bind(wx.EVT_BUTTON, self._on_sr570_3_button)
+        sr570_4_button.Bind(wx.EVT_BUTTON, self._on_sr570_4_button)
+
+        amp_sizer = wx.StaticBoxSizer(amp_box, wx.VERTICAL)
+        amp_sizer.Add(sr570_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        amp_sizer.Add(sr570_2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        amp_sizer.Add(sr570_3_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        amp_sizer.Add(sr570_4_button, flag=wx.ALL,
+            border=self._FromDIP(5))
+
         col1_sizer = wx.BoxSizer(wx.VERTICAL)
         col1_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.TOP|wx.BOTTOM,
             border=self._FromDIP(5))
@@ -274,6 +295,8 @@ class EPICSLauncherPanel(wx.Panel):
         col2_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
         col2_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
+        col2_sizer.Add(amp_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -441,6 +464,23 @@ class EPICSLauncherPanel(wx.Panel):
 
         script = self._epics_path / 'start_ffmpeg_screen.sh'
         cmd = '{} {}'.format(script, cam)
+        self._start_epics(cmd)
+
+    def _on_sr570_1_button(self, evt):
+        self._start_sr570(1)
+
+    def _on_sr570_2_button(self, evt):
+        self._start_sr570(2)
+
+    def _on_sr570_3_button(self, evt):
+        self._start_sr570(3)
+
+    def _on_sr570_4_button(self, evt):
+        self._start_sr570(4)
+
+    def _start_sr570(self, num):
+        script = self._epics_path / 'start_sr570_screen.sh'
+        cmd = '{} {}'.format(script, num)
         self._start_epics(cmd)
 
     def _start_epics(self, cmd):

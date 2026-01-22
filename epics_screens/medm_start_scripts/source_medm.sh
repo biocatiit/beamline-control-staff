@@ -31,13 +31,15 @@ quadempath=$base_display_path/quadEMApp/op/adl
 genicampath=$base_display_path/GenICamApp/op/adl
 ffmpegpath=$base_display_path/ffmpegServerApp/op/adl
 spinnakerpath=$base_display_path/spinnakerApp/op/adl
+ippath=$base_display_path/ipApp/op/adl
+
 
 EPICS_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$adcorepath:$eigerpath:$marpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$pilatuspath:$labjackpath:$apspath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$meascomppath:$opticspath:$newportpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
-EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$spinnakerpath
+EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$spinnakerpath:$ippath
 
 export EPICS_DISPLAY_PATH
 
