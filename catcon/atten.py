@@ -406,6 +406,8 @@ class AttenuatorPanel2(wx.Panel):
 
         self.mx_database = mx_database
 
+        self.callback_ids = {}
+
         self._initialize_pvs()
         self._create_layout()
         self._initialize()
@@ -422,7 +424,16 @@ class AttenuatorPanel2(wx.Panel):
             return size
 
     def on_close(self):
-        pass
+        for atten in self.callback_ids:
+            ids_dict = self.callback_ids[atten]
+            pvs_dict = self.atten_pvs[atten]
+
+            for cb_pv_id in ids_dict:
+                pv = pvs_dict[cb_pv_id]
+                pv.remove_callback(ids_dict[cb_pv_id])
+
+        for ctrl in self._single_atten_crls:
+            ctrl.remove_callbacks()
 
     def _create_layout(self):
         """
@@ -430,11 +441,15 @@ class AttenuatorPanel2(wx.Panel):
 
         """
 
-        self.energy_ctrl = wx.TextCtrl(self, size=self._FromDIP((60, -1)),
+        self._single_atten_crls = []
+
+        atten_ctrl_box = wx.StaticBox(self, label='Attenuation')
+
+        self.energy_ctrl = wx.TextCtrl(atten_ctrl_box, size=self._FromDIP((60, -1)),
             style=wx.TE_PROCESS_ENTER, validator=utils.CharValidator('float_te'))
-        self.trans_ctrl = wx.ComboBox(self, size=self._FromDIP((120,-1)),
+        self.trans_ctrl = wx.ComboBox(atten_ctrl_box, size=self._FromDIP((120,-1)),
             style=wx.TE_PROCESS_ENTER, validator=utils.CharValidator('float_te'))
-        self.atten_ctrl = wx.ComboBox(self, size=self._FromDIP((120, -1)),
+        self.atten_ctrl = wx.ComboBox(atten_ctrl_box, size=self._FromDIP((120, -1)),
             style=wx.TE_PROCESS_ENTER, validator=utils.CharValidator('float_te'))
 
         self.energy_ctrl.Bind(wx.EVT_TEXT_ENTER, self._on_energy_change)
@@ -450,28 +465,56 @@ class AttenuatorPanel2(wx.Panel):
         atten_controls = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(3))
 
-        atten_controls.Add(wx.StaticText(self, label='Energy (keV):'),
+        atten_controls.Add(wx.StaticText(atten_ctrl_box, label='Energy (keV):'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_controls.Add(self.energy_ctrl, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_controls.Add(wx.StaticText(self, label='Transmission:'),
+        atten_controls.Add(wx.StaticText(atten_ctrl_box, label='Transmission:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_controls.Add(self.trans_ctrl, flag=wx.ALIGN_CENTER_VERTICAL)
-        atten_controls.Add(wx.StaticText(self, label='Attenuation factor:'),
+        atten_controls.Add(wx.StaticText(atten_ctrl_box, label='Attenuation factor:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         atten_controls.Add(self.atten_ctrl, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        shutter_box = wx.StaticBox(self, label='Shutter')
-        shutter_ctrl = SingleAttenCtrl(self.atten_pvs[1], shutter_box)
+        atten_ctrl_sizer = wx.StaticBoxSizer(atten_ctrl_box, wx.VERTICAL)
+        atten_ctrl_sizer.Add(atten_controls, flag=wx.ALL, border=self._FromDIP(5))
 
-        shutter_sizer = wx.StaticBoxSizer(shutter_box, wx.VERTICAL)
-        shutter_sizer.Add(shutter_ctrl, flag=wx.ALL, border=self._FromDIP(5))
+
+        shutter_ctrl = SingleAttenCtrl(self.atten_pvs[1], 'Shutter',
+            ['Closed', 'Open'], self.calc_attenuation, self)
+
+        self._single_atten_crls.append(shutter_ctrl)
+
+        shutter_sizer = wx.BoxSizer(wx.VERTICAL)
+        shutter_sizer.Add(shutter_ctrl)
 
         # Add individual attenuator controls in collapsible pane (or just visible?)
         # Add static box for attenuator?
 
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        top_sizer.Add(shutter_sizer, flag=wx.LEFT, border=self._FromDIP(5))
-        top_sizer.Add(atten_controls)
+        atten_box = wx.StaticBox(self, label='Individual attenuators')
+        atten_parent = atten_box
+
+        atten_sub_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
+            vgap=self._FromDIP(5))
+
+        for atten in self.attenuator_thickness:
+            ctrl = SingleAttenCtrl(self.atten_pvs[atten], 'Atten. {}'.format(atten),
+            ['In', 'Out'], self.calc_attenuation, atten_parent)
+
+            self._single_atten_crls.append(ctrl)
+
+            atten_sub_sizer.Add(ctrl)
+
+        atten_single_sizer = wx.StaticBoxSizer(atten_box, wx.VERTICAL)
+        atten_single_sizer.Add(atten_sub_sizer)
+
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(shutter_sizer)
+        main_sizer.Add(atten_ctrl_sizer, flag=wx.LEFT, border=self._FromDIP(5))
+
+        top_sizer =wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(main_sizer, flag=wx.LEFT|wx.RIGHT|wx.TOP,
+            border=self._FromDIP(5))
+        top_sizer.Add(atten_single_sizer, flag=wx.ALL, border=self._FromDIP(5))
 
         self.SetSizer(top_sizer)
 
@@ -500,16 +543,12 @@ class AttenuatorPanel2(wx.Panel):
                 else:
                     if 'Out' in pv_name:
                         self.atten_pvs[atten]['ctrl'] = pv
-                        pv.add_callback(self._on_atten_pv_callback)
+                        cb_id = pv.add_callback(self._on_atten_pv_callback)
+                        self.callback_ids[atten] = {'ctrl' : cb_id}
                     elif 'T{}'.format(atten) in pv_name:
                         self.atten_pvs[atten]['thickness'] = pv
                     elif 'L{}'.format(atten) in pv_name:
                         self.atten_pvs[atten]['material'] = pv
-
-
-    def _initialize(self):
-        self.setting_attenuation = False
-        self.current_attenuation = 1
 
         self.attenuator_thickness = {}
 
@@ -517,6 +556,10 @@ class AttenuatorPanel2(wx.Panel):
             if self.atten_pvs[atten]['material'].get().lower() == 'al':
                 self.attenuator_thickness[atten] = float(self.atten_pvs[atten]['thickness'].get())
                 #thickness in microns
+
+    def _initialize(self):
+        self.setting_attenuation = False
+        self.current_attenuation = 1
 
         atten_keys = list(self.attenuator_thickness.keys())
 
@@ -538,9 +581,16 @@ class AttenuatorPanel2(wx.Panel):
         self.atten_ctrl.Set(self.atten_choices)
         self.energy_ctrl.ChangeValue(str(self.energy))
 
+        for ctrl in self._single_atten_crls:
+            ctrl.set_atten()
+
+        self.trans_ctrl.SetBackgroundColour(wx.NullColour)
+        self.atten_ctrl.SetBackgroundColour(wx.NullColour)
+
     def _on_text(self, evt):
         widget = evt.GetEventObject()
         widget.SetBackgroundColour('yellow')
+        print('In _on_text')
 
     def _on_energy_change(self, evt):
         self.energy = float(self.energy_ctrl.GetValue())
@@ -561,6 +611,9 @@ class AttenuatorPanel2(wx.Panel):
 
         widget = evt.GetEventObject()
         widget.SetBackgroundColour(wx.NullColour)
+
+        for ctrl in self._single_atten_crls:
+            ctrl.set_atten()
 
     def _on_atten_change(self, evt):
         atten = self.atten_ctrl.GetValue()
@@ -615,7 +668,7 @@ class AttenuatorPanel2(wx.Panel):
             length = 0
             for pos in combo:
                 length += self.attenuator_thickness[pos]
-            atten = math.exp(-length/self.atten_length)
+            atten = self.calc_attenuation(length)
 
             self.attenuations[atten] = (combo, length, atten)
 
@@ -635,7 +688,7 @@ class AttenuatorPanel2(wx.Panel):
                 trans = '{:.2e}'.format(atten)
 
             if factor > 100:
-                factor = '{}'.format(round(factor, 0))
+                factor = '{:d}'.format(int(round(factor, 0)))
             elif factor > 10:
                 factor = '{:.1f}'.format(round(factor, 1))
             else:
@@ -649,6 +702,9 @@ class AttenuatorPanel2(wx.Panel):
 
         self.trans_choices = sorted(self.transmission_vals.keys(), reverse=True, key=lambda x: float(x))
         self.atten_choices = sorted(self.atten_factors.keys(), reverse=False, key=lambda x: float(x))
+
+    def calc_attenuation(self, length):
+        return math.exp(-length/self.atten_length)
 
     def _set_attenuators(self, attenuation):
         self.setting_attenuation = True
@@ -699,13 +755,18 @@ class AttenuatorPanel2(wx.Panel):
         wx.CallAfter(self._get_attenuators)
 
 class SingleAttenCtrl(wx.Panel):
-    def __init__(self, pvs, *args, **kwargs):
+    def __init__(self, pvs, name, on_off_labels, calc_callback, *args, **kwargs):
         wx.Panel.__init__(self, *args, **kwargs)
 
         self.pvs = pvs
+        self.calc_callback = calc_callback
 
-        self._create_layout()
-        # self._initialize()
+        self.callback_ids = {}
+
+        self._create_layout(name, on_off_labels)
+        self._initialize()
+
+
 
     def _FromDIP(self, size):
         # This is a hack to provide easy back compatibility with wxpython < 4.1
@@ -714,13 +775,21 @@ class SingleAttenCtrl(wx.Panel):
         except Exception:
             return size
 
-    def _create_layout(self):
-        parent = self
+    def _create_layout(self, name, on_off_labels):
+        box = wx.StaticBox(self, label=name)
+
+        parent = box
 
         self._thickness = epics.wx.PVText(parent, self.pvs['thickness'])
         self._material = epics.wx.PVText(parent, self.pvs['material'])
         self._nom_atten = wx.StaticText(parent, size=self._FromDIP((60,-1)),
             style=wx.ST_NO_AUTORESIZE)
+
+        indic = wx.Image(os.path.join('.', 'resources', 'red_circle.png'))
+        indic.Rescale(self._FromDIP(20), self._FromDIP(20))
+        indic = indic.ConvertToBitmap()
+
+        self._indic_btm = wx.StaticBitmap(parent, bitmap=indic)
 
         info_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
@@ -735,19 +804,62 @@ class SingleAttenCtrl(wx.Panel):
         info_sizer.Add(self._nom_atten)
 
         self._in = epics.wx.PVRadioButton(parent, self.pvs['ctrl'], 1,
-            label='In', style=wx.RB_GROUP)
+            label=on_off_labels[0], style=wx.RB_GROUP)
         self._out = epics.wx.PVRadioButton(parent, self.pvs['ctrl'], 0,
-            label='Out')
+            label=on_off_labels[1])
 
-        ctrl_sizer = wx.BoxSizer(wx.VERTICAL)
-        ctrl_sizer.Add(self._in)
-        ctrl_sizer.Add(self._out, flag=wx.TOP, border=self._FromDIP(5))
+        self._ctrl_sizer = wx.BoxSizer(wx.VERTICAL)
+        self._ctrl_sizer.Add(self._in)
+        self._ctrl_sizer.Add(self._out, flag=wx.TOP, border=self._FromDIP(5))
+        self._ctrl_sizer.Add(self._indic_btm, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|
+            wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
+            border=self._FromDIP(5))
 
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        if self.pvs['ctrl'].get() == 0:
+            self._ctrl_sizer.Hide(self._indic_btm)
+
+        top_sizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
         top_sizer.Add(info_sizer)
-        top_sizer.Add(ctrl_sizer, flag=wx.LEFT, border=self._FromDIP(5))
+        top_sizer.Add(self._ctrl_sizer, flag=wx.LEFT, border=self._FromDIP(5))
 
         self.SetSizer(top_sizer)
+
+    def _initialize(self):
+        cb_id = self.pvs['ctrl'].add_callback(self._on_atten_pv_callback)
+
+        self.callback_ids['ctrl'] = cb_id
+
+    def set_atten(self):
+        if self.pvs['material'].get().lower() == 'al':
+            atten = self.calc_callback(self.pvs['thickness'].get())
+
+            factor = 1./atten
+
+            if factor > 100:
+                factor = '{:d}'.format(int(round(factor, 0)))
+            elif factor > 10:
+                factor = '{:.1f}'.format(round(factor, 1))
+            else:
+                factor = '{:.2f}'.format(round(factor, 2))
+
+            self._nom_atten.SetLabel(str(factor))
+
+        else:
+            self._nom_atten.SetLabel('N/A')
+
+    def _on_atten_pv_callback(self, **kwargs):
+        wx.CallAfter(self._set_atten_indic)
+
+    def _set_atten_indic(self):
+        if self.pvs['ctrl'].get() == 0:
+            self._ctrl_sizer.Hide(self._indic_btm)
+        else:
+            self._ctrl_sizer.Show(self._indic_btm)
+
+    def remove_callbacks(self):
+        for cb_pv_id in self.callback_ids:
+            pv = self.pvs[cb_pv_id]
+            pv.remove_callback(self.callback_ids[cb_pv_id])
 
 class AttenuatorFrame(wx.Frame):
     """
@@ -776,6 +888,7 @@ class AttenuatorFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwargs)
 
         self.name = name
+        self._ctrls = []
 
         self.mx_database = mx_database
 
@@ -791,6 +904,8 @@ class AttenuatorFrame(wx.Frame):
 
         if timer:
             self.mx_timer.Start(1000)
+
+        self.Bind(wx.EVT_CLOSE, self._on_closewindow)
 
     def _create_layout(self, use_new):
         """
@@ -815,6 +930,8 @@ class AttenuatorFrame(wx.Frame):
             atten_panel = AttenuatorPanel(self.name, self.mx_database, atten_box)
             atten_box_sizer.Add(atten_panel)
 
+        self._ctrls.append(atten_panel)
+
         return atten_box_sizer
 
     def _on_mxtimer(self, evt):
@@ -823,6 +940,16 @@ class AttenuatorFrame(wx.Frame):
         wait_for_messages on the database.
         """
         self.mx_database.wait_for_messages(0.01)
+
+    def _on_closewindow(self, evt):
+        """
+        Closes the window. In an attempt to minimize trouble with MX it
+        stops and then restarts the MX timer while it destroys the controls.
+        """
+        for ctrl in self._ctrls:
+            ctrl.on_close()
+
+        self.Destroy()
 
 if __name__ == '__main__':
     # try:
