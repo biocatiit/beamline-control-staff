@@ -590,7 +590,6 @@ class AttenuatorPanel2(wx.Panel):
     def _on_text(self, evt):
         widget = evt.GetEventObject()
         widget.SetBackgroundColour('yellow')
-        print('In _on_text')
 
     def _on_energy_change(self, evt):
         self.energy = float(self.energy_ctrl.GetValue())
