@@ -22,4 +22,6 @@ elif [[ "$PREFIX" == "USB1608G_2" ]]; then
     medm -x -noMsg -macro "P=18ID:USB1608G_2:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Pg=PulseGen" 1608G_module.adl &
 elif [[ "$PREFIX" == "USB1608G_2AO_1" ]]; then
     medm -x -noMsg -macro "P=18ID:USB1608G_2AO_1:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Wg=WaveGen,Pg=PulseGen" USB1608G_2AO_module.adl &
+elif [[ "$PREFIX" == "USBCTR08_1" ]]; then
+    medm -x -noMsg -macro "P=18ID:USBCTR08:1:,SP=18ID:USBCTR08:1:,MP=18ID:USBCTR08:1:MCS:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Wg=WaveGen,Pg=PulseGen,S=scaler1" USBCTR.adl &
 fi
