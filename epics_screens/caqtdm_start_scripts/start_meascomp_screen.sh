@@ -22,4 +22,8 @@ elif [[ "$PREFIX" == "USB1608G_2" ]]; then
     caQtDM -attach -noMsg -macro "P=18ID:USB1608G_2:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Pg=PulseGen" 1608G_module.ui &
 elif [[ "$PREFIX" == "USB1608G_2AO_1" ]]; then
     caQtDM -attach -noMsg -macro "P=18ID:USB1608G_2AO_1:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Wg=WaveGen,Pg=PulseGen" USB1608G_2AO_module.ui &
+elif [[ "$PREFIX" == "USBCTR08_1" ]]; then
+    caQtDM -attach -noMsg -macro "P=18ID:USBCTR08:1:,SP=18ID:USBCTR08:1:,MP=18ID:USBCTR08:1:MCS:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Wg=WaveGen,Pg=PulseGen,S=scaler1" USBCTR.ui &
+elif [[ "$PREFIX" == "USBCTR08_2" ]]; then
+    caQtDM -attach -noMsg -macro "P=18ID:USBCTR08:2:,SP=18ID:USBCTR08:2:,MP=18ID:USBCTR08:2:MCS:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig,Wg=WaveGen,Pg=PulseGen,S=scaler1" USBCTR.ui &
 fi

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-<class>MainWindow</class>
-<widget class="QMainWindow" name="MainWindow">
-    <property name="geometry">
-        <rect>
-            <x>241</x>
-            <y>227</y>
-            <width>580</width>
-            <height>800</height>
-        </rect>
-    </property>
-    <property name="styleSheet">
-        <string>
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>580</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string>
 
 QWidget#centralWidget {background: rgba(187, 187, 187, 255);}
 
@@ -104,483 +104,483 @@ border-radius: 2px;
 
 
 </string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="caLabel" name="caLabel_0">
+    <property name="geometry">
+     <rect>
+      <x>182</x>
+      <y>5</y>
+      <width>216</width>
+      <height>25</height>
+     </rect>
     </property>
-    <widget class="QWidget" name="centralWidget">
-        <widget class="caLabel" name="caLabel_0">
-            <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>10</red>
-                    <green>0</green>
-                    <blue>184</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>10</red>
-                    <green>0</green>
-                    <blue>184</blue>
-                </color>
-            </property>
-            <property name="text">
-                <string>USB-CTR08  $(P)</string>
-            </property>
-            <property name="fontScaleMode">
-                <enum>ESimpleLabel::WidthAndHeight</enum>
-            </property>
-            <property name="alignment">
-                <set>Qt::AlignAbsolute|Qt::AlignHCenter|Qt::AlignVCenter</set>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>182</x>
-                    <y>5</y>
-                    <width>216</width>
-                    <height>25</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="caInclude" name="caInclude_0">
-            <property name="geometry">
-                <rect>
-                    <x>10</x>
-                    <y>145</y>
-                    <width>562</width>
-                    <height>157</height>
-                </rect>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>10</x>
-                    <y>145</y>
-                    <width>560</width>
-                    <height>155</height>
-                </rect>
-            </property>
-            <property name="filename">
-                <string>measCompDigitalIO8.adl</string>
-            </property>
-            <property name="macro">
-                <string></string>
-            </property>
-        </widget>
-        <widget class="caLabel" name="caLabel_1">
-            <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="text">
-                <string>Scaler</string>
-            </property>
-            <property name="fontScaleMode">
-                <enum>ESimpleLabel::WidthAndHeight</enum>
-            </property>
-            <property name="alignment">
-                <set>Qt::AlignAbsolute|Qt::AlignRight|Qt::AlignVCenter</set>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>69</x>
-                    <y>735</y>
-                    <width>72</width>
-                    <height>25</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="caGraphics" name="caRectangle_0">
-            <property name="form">
-                <enum>caGraphics::Rectangle</enum>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>15</x>
-                    <y>730</y>
-                    <width>180</width>
-                    <height>65</height>
-                </rect>
-            </property>
-            <property name="lineSize">
-                <number>1</number>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="lineColor">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="linestyle">
-                <enum>Solid</enum>
-            </property>
-        </widget>
-        <widget class="caRelatedDisplay" name="caRelatedDisplay_0">
-            <property name="geometry">
-                <rect>
-                    <x>55</x>
-                    <y>765</y>
-                    <width>100</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="255">
-                    <red>115</red>
-                    <green>223</green>
-                    <blue>255</blue>
-                </color>
-            </property>
-            <property name="label">
-                <string>Scaler</string>
-            </property>
-            <property name="stackingMode">
-                <enum>Menu</enum>
-            </property>
-            <property name="labels">
-                <string>Scaler</string>
-            </property>
-            <property name="files">
-                <string>scaler_full.adl</string>
-            </property>
-            <property name="args">
-                <string>P=$(SP),S=$(S)</string>
-            </property>
-            <property name="removeParent">
-                <string>false</string>
-            </property>
-        </widget>
-        <widget class="caLabel" name="caLabel_2">
-            <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="text">
-                <string>MCS</string>
-            </property>
-            <property name="fontScaleMode">
-                <enum>ESimpleLabel::WidthAndHeight</enum>
-            </property>
-            <property name="alignment">
-                <set>Qt::AlignAbsolute|Qt::AlignHCenter|Qt::AlignVCenter</set>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>272</x>
-                    <y>735</y>
-                    <width>36</width>
-                    <height>25</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="caGraphics" name="caRectangle_1">
-            <property name="form">
-                <enum>caGraphics::Rectangle</enum>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>200</x>
-                    <y>730</y>
-                    <width>180</width>
-                    <height>65</height>
-                </rect>
-            </property>
-            <property name="lineSize">
-                <number>1</number>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="lineColor">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="linestyle">
-                <enum>Solid</enum>
-            </property>
-        </widget>
-        <widget class="caRelatedDisplay" name="caRelatedDisplay_1">
-            <property name="geometry">
-                <rect>
-                    <x>240</x>
-                    <y>765</y>
-                    <width>100</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="255">
-                    <red>115</red>
-                    <green>223</green>
-                    <blue>255</blue>
-                </color>
-            </property>
-            <property name="label">
-                <string>MCS</string>
-            </property>
-            <property name="stackingMode">
-                <enum>Menu</enum>
-            </property>
-            <property name="labels">
-                <string>MCS</string>
-            </property>
-            <property name="files">
-                <string>USBCTR_MCS.adl</string>
-            </property>
-            <property name="args">
-                <string>P=$(MP),M=mca</string>
-            </property>
-            <property name="removeParent">
-                <string>false</string>
-            </property>
-        </widget>
-        <widget class="caLabel" name="caLabel_3">
-            <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="text">
-                <string>Asyn record</string>
-            </property>
-            <property name="fontScaleMode">
-                <enum>ESimpleLabel::WidthAndHeight</enum>
-            </property>
-            <property name="alignment">
-                <set>Qt::AlignAbsolute|Qt::AlignHCenter|Qt::AlignVCenter</set>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>409</x>
-                    <y>735</y>
-                    <width>132</width>
-                    <height>25</height>
-                </rect>
-            </property>
-        </widget>
-        <widget class="caGraphics" name="caRectangle_2">
-            <property name="form">
-                <enum>caGraphics::Rectangle</enum>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>385</x>
-                    <y>730</y>
-                    <width>180</width>
-                    <height>65</height>
-                </rect>
-            </property>
-            <property name="lineSize">
-                <number>1</number>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="0">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="lineColor">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="linestyle">
-                <enum>Solid</enum>
-            </property>
-        </widget>
-        <widget class="caRelatedDisplay" name="caRelatedDisplay_2">
-            <property name="geometry">
-                <rect>
-                    <x>435</x>
-                    <y>765</y>
-                    <width>80</width>
-                    <height>20</height>
-                </rect>
-            </property>
-            <property name="foreground">
-                <color alpha="255">
-                    <red>0</red>
-                    <green>0</green>
-                    <blue>0</blue>
-                </color>
-            </property>
-            <property name="background">
-                <color alpha="255">
-                    <red>115</red>
-                    <green>223</green>
-                    <blue>255</blue>
-                </color>
-            </property>
-            <property name="label">
-                <string>asyn</string>
-            </property>
-            <property name="stackingMode">
-                <enum>Menu</enum>
-            </property>
-            <property name="labels">
-                <string>asyn record</string>
-            </property>
-            <property name="files">
-                <string>asynRecord.adl</string>
-            </property>
-            <property name="args">
-                <string>P=$(P), R=MCS:Asyn</string>
-            </property>
-            <property name="removeParent">
-                <string>false</string>
-            </property>
-        </widget>
-        <widget class="caInclude" name="caInclude_1">
-            <property name="geometry">
-                <rect>
-                    <x>5</x>
-                    <y>305</y>
-                    <width>572</width>
-                    <height>422</height>
-                </rect>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>5</x>
-                    <y>305</y>
-                    <width>570</width>
-                    <height>420</height>
-                </rect>
-            </property>
-            <property name="filename">
-                <string>measCompPulseGen4Vert.adl</string>
-            </property>
-            <property name="macro">
-                <string></string>
-            </property>
-        </widget>
-        <widget class="caInclude" name="caInclude_2">
-            <property name="geometry">
-                <rect>
-                    <x>35</x>
-                    <y>35</y>
-                    <width>512</width>
-                    <height>107</height>
-                </rect>
-            </property>
-            <property name="geometry">
-                <rect>
-                    <x>35</x>
-                    <y>35</y>
-                    <width>510</width>
-                    <height>105</height>
-                </rect>
-            </property>
-            <property name="filename">
-                <string>measCompDeviceVert.adl</string>
-            </property>
-            <property name="macro">
-                <string></string>
-            </property>
-        </widget>
-        <zorder>caLabel_0</zorder>
-        <zorder>caInclude_0</zorder>
-        <zorder>caLabel_1</zorder>
-        <zorder>caRectangle_0</zorder>
-        <zorder>caLabel_2</zorder>
-        <zorder>caRectangle_1</zorder>
-        <zorder>caLabel_3</zorder>
-        <zorder>caRectangle_2</zorder>
-        <zorder>caInclude_1</zorder>
-        <zorder>caInclude_2</zorder>
-        <zorder>caRelatedDisplay_0</zorder>
-        <zorder>caRelatedDisplay_1</zorder>
-        <zorder>caRelatedDisplay_2</zorder>
-    </widget>
-</widget>
+    <property name="text">
+     <string>USB-CTR08  $(P)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
+    </property>
+    <property name="fontScaleMode">
+     <enum>ESimpleLabel::WidthAndHeight</enum>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>10</red>
+      <green>0</green>
+      <blue>184</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color alpha="0">
+      <red>10</red>
+      <green>0</green>
+      <blue>184</blue>
+     </color>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+   </widget>
+   <widget class="caInclude" name="caInclude_0">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>145</y>
+      <width>560</width>
+      <height>155</height>
+     </rect>
+    </property>
+    <property name="macro">
+     <string/>
+    </property>
+    <property name="filename" stdset="0">
+     <string>measCompDigitalIO8.adl</string>
+    </property>
+   </widget>
+   <widget class="caLabel" name="caLabel_1">
+    <property name="geometry">
+     <rect>
+      <x>69</x>
+      <y>735</y>
+      <width>72</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Scaler</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignAbsolute|Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+    <property name="fontScaleMode">
+     <enum>ESimpleLabel::WidthAndHeight</enum>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_0">
+    <property name="geometry">
+     <rect>
+      <x>15</x>
+      <y>730</y>
+      <width>180</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>1</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caRelatedDisplay" name="caRelatedDisplay_0">
+    <property name="geometry">
+     <rect>
+      <x>55</x>
+      <y>765</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="label">
+     <string>Scaler</string>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color>
+      <red>115</red>
+      <green>223</green>
+      <blue>255</blue>
+     </color>
+    </property>
+    <property name="labels">
+     <string>Scaler</string>
+    </property>
+    <property name="files">
+     <string>scaler_full.adl</string>
+    </property>
+    <property name="args">
+     <string>P=$(SP),S=$(S)</string>
+    </property>
+    <property name="stackingMode" stdset="0">
+     <enum>caRowColMenu::Menu</enum>
+    </property>
+    <property name="removeParent" stdset="0">
+     <string>false</string>
+    </property>
+   </widget>
+   <widget class="caLabel" name="caLabel_2">
+    <property name="geometry">
+     <rect>
+      <x>272</x>
+      <y>735</y>
+      <width>36</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>MCS</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
+    </property>
+    <property name="fontScaleMode">
+     <enum>ESimpleLabel::WidthAndHeight</enum>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_1">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>730</y>
+      <width>180</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>1</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caRelatedDisplay" name="caRelatedDisplay_1">
+    <property name="geometry">
+     <rect>
+      <x>240</x>
+      <y>765</y>
+      <width>100</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="label">
+     <string>MCS</string>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color>
+      <red>115</red>
+      <green>223</green>
+      <blue>255</blue>
+     </color>
+    </property>
+    <property name="labels">
+     <string>MCS</string>
+    </property>
+    <property name="files">
+     <string>USBCTR_MCS.adl</string>
+    </property>
+    <property name="args">
+     <string>P=$(MP),M=mca</string>
+    </property>
+    <property name="stackingMode" stdset="0">
+     <enum>caRowColMenu::Menu</enum>
+    </property>
+    <property name="removeParent" stdset="0">
+     <string>false</string>
+    </property>
+   </widget>
+   <widget class="caLabel" name="caLabel_3">
+    <property name="geometry">
+     <rect>
+      <x>409</x>
+      <y>735</y>
+      <width>132</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Asyn record</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
+    </property>
+    <property name="fontScaleMode">
+     <enum>ESimpleLabel::WidthAndHeight</enum>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_2">
+    <property name="geometry">
+     <rect>
+      <x>385</x>
+      <y>730</y>
+      <width>180</width>
+      <height>65</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>1</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caRelatedDisplay" name="caRelatedDisplay_2">
+    <property name="geometry">
+     <rect>
+      <x>435</x>
+      <y>765</y>
+      <width>80</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="label">
+     <string>asyn</string>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>0</red>
+      <green>0</green>
+      <blue>0</blue>
+     </color>
+    </property>
+    <property name="background">
+     <color>
+      <red>115</red>
+      <green>223</green>
+      <blue>255</blue>
+     </color>
+    </property>
+    <property name="labels">
+     <string>asyn record</string>
+    </property>
+    <property name="files">
+     <string>asynRecord.ui</string>
+    </property>
+    <property name="args">
+     <string>P=$(P), R=MCS:Asyn</string>
+    </property>
+    <property name="stackingMode" stdset="0">
+     <enum>caRowColMenu::Menu</enum>
+    </property>
+    <property name="removeParent" stdset="0">
+     <string>false</string>
+    </property>
+   </widget>
+   <widget class="caInclude" name="caInclude_1">
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>305</y>
+      <width>570</width>
+      <height>420</height>
+     </rect>
+    </property>
+    <property name="macro">
+     <string/>
+    </property>
+    <property name="filename" stdset="0">
+     <string>measCompPulseGen4Vert.adl</string>
+    </property>
+   </widget>
+   <widget class="caInclude" name="caInclude_2">
+    <property name="geometry">
+     <rect>
+      <x>35</x>
+      <y>35</y>
+      <width>510</width>
+      <height>105</height>
+     </rect>
+    </property>
+    <property name="macro">
+     <string/>
+    </property>
+    <property name="filename" stdset="0">
+     <string>measCompDeviceVert.adl</string>
+    </property>
+   </widget>
+   <zorder>caLabel_0</zorder>
+   <zorder>caInclude_0</zorder>
+   <zorder>caLabel_1</zorder>
+   <zorder>caRectangle_0</zorder>
+   <zorder>caLabel_2</zorder>
+   <zorder>caRectangle_1</zorder>
+   <zorder>caLabel_3</zorder>
+   <zorder>caRectangle_2</zorder>
+   <zorder>caInclude_1</zorder>
+   <zorder>caInclude_2</zorder>
+   <zorder>caRelatedDisplay_0</zorder>
+   <zorder>caRelatedDisplay_1</zorder>
+   <zorder>caRelatedDisplay_2</zorder>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>caRelatedDisplay</class>
+   <extends>QWidget</extends>
+   <header>caRelatedDisplay</header>
+  </customwidget>
+  <customwidget>
+   <class>caLabel</class>
+   <extends>QLabel</extends>
+   <header>caLabel</header>
+  </customwidget>
+  <customwidget>
+   <class>caGraphics</class>
+   <extends>QWidget</extends>
+   <header>caGraphics</header>
+  </customwidget>
+  <customwidget>
+   <class>caInclude</class>
+   <extends>QWidget</extends>
+   <header>caInclude</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
 </ui>
