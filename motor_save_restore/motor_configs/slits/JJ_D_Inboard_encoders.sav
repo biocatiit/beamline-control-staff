@@ -1,9 +1,9 @@
-# File saved by pyepics AutoSaver.save() on 2025-05-14 11:05:56.057808
+# File saved by pyepics AutoSaver.save() on 2026-01-27 14:42:57.661269
 # Edit with extreme care.
 18ID_DMC_E01:3.DIR 1
 18ID_DMC_E01:3.DHLM 250.0
 18ID_DMC_E01:3.DLLM -250.0
-18ID_DMC_E01:3.TWV 1.0
+18ID_DMC_E01:3.TWV 0.8
 18ID_DMC_E01:3.SREV 800
 18ID_DMC_E01:3.MRES 0.0005
 18ID_DMC_E01:3.ERES 0.0001
