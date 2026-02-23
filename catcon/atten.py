@@ -567,7 +567,8 @@ class AttenuatorPanel2(wx.Panel):
 
         root_dir = os.path.split(__file__)[0]
 
-        self.atten_e_data, self.atten_len_data = np.loadtxt(os.path.join(root_dir, 'data/al_atten.txt'), unpack=True)
+        self.atten_e_data, self.atten_len_data = np.loadtxt(os.path.join(
+            root_dir, 'data/al_atten.txt'), unpack=True)
         self.get_atten_len = interp.interp1d(self.atten_e_data, self.atten_len_data)
 
         self.attenuator_combos = []
