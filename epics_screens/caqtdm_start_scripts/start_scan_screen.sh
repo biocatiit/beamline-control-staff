@@ -12,4 +12,4 @@ else
       export VAL=$1
 fi
 
-caQtDM -attach -noMsg -macro "P=18ID:Scans:, S=scan$VAL" scan.ui &
+caQtDM -attach -noMsg -macro "P=18ID:Scans:, S=scan$VAL" scan_full.ui &
