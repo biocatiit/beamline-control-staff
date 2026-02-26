@@ -292,9 +292,9 @@ class MonoTunePanel(wx.Panel):
 
 
 
-        exp_shutter_in = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 0,
+        exp_shutter_in = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 1,
             label='Closed', style=wx.RB_GROUP)
-        exp_shutter_out = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 1,
+        exp_shutter_out = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 0,
             label='Open')
 
         exp_shutter_sizer = wx.BoxSizer(wx.VERTICAL)

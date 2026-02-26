@@ -100,6 +100,7 @@ class MainFrame(wx.Frame):
             'Motor Channels MEDM'       : epics_launcher.MotorChannelPanel,
             'Motor Channels caQtDM'     : epics_launcher.MotorChannelPanel,
             'Cameras'                   : cameracon.CameraControlPanel,
+            'Mono Piezo Tune'           : monotunecon.MonoTunePanel,
             }
 
         self.ctrl_panels = {}
