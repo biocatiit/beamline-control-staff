@@ -58,6 +58,7 @@ import overview
 import epics_launcher
 import motor_config
 import cameracon
+import monotunecon
 
 
 class MainFrame(wx.Frame):
