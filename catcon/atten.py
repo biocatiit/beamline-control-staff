@@ -517,7 +517,8 @@ class AttenuatorPanel2(wx.Panel):
         top_sizer.Add(atten_single_sizer, flag=wx.ALL, border=self._FromDIP(5))
 
         self.SetSizer(top_sizer)
-
+        self.Layout()
+        self.Refresh()
 
     def _initialize_pvs(self):
         self.attenuator_position = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -766,7 +767,7 @@ class SingleAttenCtrl(wx.Panel):
         self._create_layout(name, on_off_labels)
         self._initialize()
 
-
+        self.Layout()
 
     def _FromDIP(self, size):
         # This is a hack to provide easy back compatibility with wxpython < 4.1
@@ -812,15 +813,15 @@ class SingleAttenCtrl(wx.Panel):
         self._ctrl_sizer.Add(self._in)
         self._ctrl_sizer.Add(self._out, flag=wx.TOP, border=self._FromDIP(5))
         self._ctrl_sizer.Add(self._indic_btm, flag=wx.TOP|wx.ALIGN_CENTER_HORIZONTAL|
-            wx.RESERVE_SPACE_EVEN_IF_HIDDEN,
-            border=self._FromDIP(5))
+            wx.RESERVE_SPACE_EVEN_IF_HIDDEN, border=self._FromDIP(5))
 
         if self.pvs['ctrl'].get() == 0:
             self._ctrl_sizer.Hide(self._indic_btm)
 
         top_sizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
-        top_sizer.Add(info_sizer)
-        top_sizer.Add(self._ctrl_sizer, flag=wx.LEFT, border=self._FromDIP(5))
+        top_sizer.Add(info_sizer, flag=wx.ALL, border=self._FromDIP(5))
+        top_sizer.Add(self._ctrl_sizer, flag=wx.RIGHT|wx.TOP|wx.BOTTOM,
+            border=self._FromDIP(5))
 
         self.SetSizer(top_sizer)
 
@@ -855,6 +856,9 @@ class SingleAttenCtrl(wx.Panel):
             self._ctrl_sizer.Hide(self._indic_btm)
         else:
             self._ctrl_sizer.Show(self._indic_btm)
+
+        self.Layout()
+        self.Refresh()
 
     def remove_callbacks(self):
         for cb_pv_id in self.callback_ids:
