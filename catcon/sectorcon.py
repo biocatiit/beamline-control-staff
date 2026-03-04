@@ -32,6 +32,7 @@ import json
 import collections
 import platform
 import copy
+import logging
 
 import wx
 import wx.aui as aui
@@ -1494,6 +1495,18 @@ class MyApp(wx.App):
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    h1 = logging.StreamHandler(sys.stdout)
+    h1.setLevel(logging.INFO)
+    # h1.setLevel(logging.DEBUG)
+    # h1.setLevel(logging.ERROR)
+
+    # formatter = logging.Formatter('%(asctime)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s')
+    h1.setFormatter(formatter)
+    logger.addHandler(h1)
+
     setup_thread_excepthook()
 
     app = MyApp(0)   #MyApp(redirect = True)
