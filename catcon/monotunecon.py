@@ -804,6 +804,10 @@ default_mono_tune_settings = {
             }
         },
         ], # Compatibility with the standard format
+    'optimize_step'         : 0.05, #Initial optimize step value in V
+    'optimize_min_step'     : 0.005, #Minimum optimize step size in V
+    'optimize_step_scale'   : 3.1, #Scaling factor for reducing step size in search
+    'optimize_ct_time'      : 0.05, #Joerger count time or optimize
     'fe_shutter'        : 'PA:18ID:STA_A_FES_OPEN_PL',
     'd_shutter'         : 'PA:18ID:STA_D_SDS_OPEN_PL',
     'fe_shutter_open'   : '18ID:rshtr:A:OPEN',
