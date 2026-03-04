@@ -72,7 +72,7 @@ class MonoTunePanel(wx.Panel):
         self.mx_database = mx_database
 
         # Converts from biocon to catcon style settings, yes kind of stupid
-        self.settings = default_mono_tune_settings
+        self.settings = copy.deepcopy(default_mono_tune_settings)
         self.settings['device_data'] = self.settings.pop('device_init')[0]
 
         self._callbacks = []

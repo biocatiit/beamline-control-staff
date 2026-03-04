@@ -29,6 +29,7 @@ import time
 import sys
 import string
 import platform
+import math
 
 import wx
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
