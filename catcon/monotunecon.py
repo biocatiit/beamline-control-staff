@@ -83,6 +83,10 @@ class MonoTunePanel(wx.Panel):
 
         self._initialize()
 
+        self.SetMinSize(self._FromDIP((450, -1)))
+        self.Layout()
+        self.Refresh()
+
     def _FromDIP(self, size):
         # This is a hack to provide easy back compatibility with wxpython < 4.1
         try:
@@ -142,7 +146,6 @@ class MonoTunePanel(wx.Panel):
             border=self._FromDIP(5))
         top_sizer.Add(shutter_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND,
             border=self._FromDIP(5))
-
 
         self.SetSizer(top_sizer)
 
