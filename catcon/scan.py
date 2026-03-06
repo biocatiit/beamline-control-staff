@@ -590,7 +590,7 @@ class ScanProcess(multiprocessing.Process):
         elif self.scan_dim == '2D':
             image_name = 'scan_{:03}_{:03}.tif'.format(num+1, num2+1)
 
-        if self.detector != 'Eiger2 XE 9M' or self.detector == 'Pilatus3 X 1M':
+        if self.detector != 'Eiger2 XE 9M' and self.detector != 'Pilatus3 X 1M':
             self.det_filename.put(image_name)
         else:
             image_name = image_name.rstrip('.tif')
