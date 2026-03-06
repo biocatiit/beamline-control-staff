@@ -398,7 +398,7 @@ class MonoTunePanel(wx.Panel):
             flag=wx.ALIGN_CENTER_VERTICAL)
         sub_sizer.Add(self.c_hutch_x_rbv,
             flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.LEFT)
-        sub_sizer.Add(wx.StaticText(parent, label='C BPM X [Arb.]:'),
+        sub_sizer.Add(wx.StaticText(parent, label='C BPM Y [Arb.]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         sub_sizer.Add(self.c_hutch_y_rbv,
             flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.LEFT)
