@@ -103,6 +103,7 @@ class MainFrame(wx.Frame):
             'Motor Channels caQtDM'     : epics_launcher.MotorChannelPanel,
             'Cameras'                   : cameracon.CameraControlPanel,
             'Mono Piezo Tune'           : monotunecon.MonoTunePanel,
+            'SRS Amplifiers'            : ac.MultiSRSAmpPanel,
             }
 
         self.ctrl_panels = {}
