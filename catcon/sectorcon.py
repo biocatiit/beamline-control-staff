@@ -60,6 +60,7 @@ import epics_launcher
 import motor_config
 import cameracon
 import monotunecon
+import measure_dark
 
 
 class MainFrame(wx.Frame):
@@ -104,6 +105,7 @@ class MainFrame(wx.Frame):
             'Cameras'                   : cameracon.CameraControlPanel,
             'Mono Piezo Tune'           : monotunecon.MonoTunePanel,
             'SRS Amplifiers'            : ac.MultiSRSAmpPanel,
+            'Measure Dark'              : measure_dark.MeasureDarkPanel,
             }
 
         self.ctrl_panels = {}
