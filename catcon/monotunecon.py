@@ -50,6 +50,226 @@ except Exception:
 import utils
 import custom_epics_widgets
 
+class MonoAutoTune(object):
+    """
+    This class is copied from BioCon. Make updates there!
+    """
+    def __init__(self, settings):
+        if 'device_data' not in settings:
+            settings['device_data'] = settings['device_init'][0]
+
+        self.settings = settings
+
+        self._pv_callbacks = []
+
+        self._init_pvs()
+
+        self._initialize()
+
+    def _init_pvs(self):
+        # Happens before create layout
+        self.ao_pv, connected = self._initialize_pv('{}.VAL'.format(
+            self.settings['device_data']['kwargs']['output']))
+        self.ao_low_lim_pv, connected = self._initialize_pv('{}.LOPR'.format(
+            self.settings['device_data']['kwargs']['output']))
+        self.ao_high_lim_pv, connected = self._initialize_pv('{}.HOPR'.format(
+            self.settings['device_data']['kwargs']['output']))
+
+        self.ct_time_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['device_data']['kwargs']['ct_time']))
+        self.ct_start_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['device_data']['kwargs']['ct_start']))
+        self.ct_val_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['device_data']['kwargs']['ct_val']))
+
+        self.i0_shutter_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['exp_slow_shtr1']))
+
+    def _initialize_pv(self, pv_name):
+        pv = epics.get_pv(pv_name)
+        connected = pv.wait_for_connection(5)
+
+        if not connected:
+            logger.error('Failed to connect to EPICS PV %s on startup', pv_name)
+
+        return pv, connected
+
+    def _initialize(self):
+        self.step_start = self.settings['optimize_step']
+        self.step_min = self.settings['optimize_min_step']
+        self.step_scale = self.settings['optimize_step_scale']
+
+        self.low_lim = self.ao_low_lim_pv.get()
+        self.high_lim = self.ao_high_lim_pv.get()
+
+    def _measure_intensity(self):
+        logger.debug('Measuring intensity')
+        self.ct_start_pv.put(1, wait=True)
+
+        start = time.monotonic()
+        while self.ct_start_pv.get() == 1:
+            time.sleep(0.01)
+            if time.monotonic() - start > 10:
+                break
+
+        val = self.ct_val_pv.get(use_monitor=False)
+        # logger.debug(val)
+
+        return val
+
+    def optimize_intensity(self):
+        self.ct_time_pv.put(self.settings['optimize_ct_time'], wait=True)
+        self.i0_shutter_pv.put(0, wait=True)
+        time.sleep(0.1) #Waits for shutter to open
+
+        v_start = self.ao_pv.get()
+        i_start = self._measure_intensity()
+
+        logger.info('Starting optimizing I0 intensity. Initial: %s cts/s at %s V',
+            i_start/self.settings['optimize_ct_time'], v_start)
+
+        logger.debug("Initial step %s V", self.step_start)
+
+        i_best, v_best, improved = self._search_up(self.step_start, i_start, v_start)
+
+        logger.debug('Search improved: %s, V new: %s V, I0 new: %s ct/s',
+                improved, v_best, i_best/self.settings['optimize_ct_time'])
+
+        if not improved:
+            i_best, v_best, improved = self._search_down(self.step_start, i_start, v_start)
+            search_dir = 'up'
+            logger.debug('Search improved: %s, V new: %s V, I0 new: %s ct/s',
+                improved, v_best, i_best/self.settings['optimize_ct_time'])
+        else:
+            search_dir = 'down'
+
+        logger.debug('Initial search direction: %s', search_dir)
+
+        step = self.step_start
+
+        while step > self.step_min:
+            step = max(self.step_min, step/self.step_scale)
+
+            logger.debug('Step %s V', step)
+
+            if step == self.step_min:
+                final = True
+            else:
+                final = False
+
+            if search_dir == 'up':
+                i_best, v_best, improved = self._search_up(step, i_best, v_best, final)
+                search_dir = 'down'
+            else:
+                i_best, v_best, improved = self._search_down(step, i_best, v_best, final)
+                search_dir = 'up'
+
+            logger.debug('Search improved: %s, V new: %s V, I0 new: %s ct/s',
+                improved, v_best, i_best/self.settings['optimize_ct_time'])
+
+        self.i0_shutter_pv.put(1)
+
+        logger.info('Finished optimizing I0 intensity. Final: %s cts/s at %s V',
+            i_best/self.settings['optimize_ct_time'], v_best)
+
+    def _search_up(self, step, i_start, v_start, final=False):
+        i_new = np.inf
+        i_prev = copy.copy(i_start)
+        v_new = v_start
+
+        logger.debug('Searching up')
+        # logger.debug(i_prev)
+
+        while i_new > i_prev and v_new != self.high_lim:
+            v_prev = copy.copy(v_new)
+            v_new += step
+
+            if v_new > self.high_lim:
+                v_new = self.high_lim
+
+            self.ao_pv.put(v_new, wait=True)
+            # Need a settle/wait here?
+
+            if not np.isinf(i_new):
+                i_prev = copy.copy(i_new)
+
+            i_new = self._measure_intensity()
+
+            # logger.debug(i_new)
+            # logger.debug(i_prev)
+            # logger.debug(v_new)
+
+        if v_new == v_start + step:
+            improved = False
+            i_ret = i_start
+            v_ret = v_start
+        else:
+            improved = True
+            i_ret = i_new
+            v_ret = v_new
+
+        if final:
+            self.ao_pv.put(v_prev)
+            i_ret = i_prev
+            v_ret = v_prev
+
+        # logger.debug(i_ret)
+        # logger.debug(v_ret)
+        # logger.debug(improved)
+
+        return i_ret, v_ret, improved
+
+    def _search_down(self, step, i_start, v_start, final=False):
+        i_new = np.inf
+        i_prev = copy.copy(i_start)
+        v_new = v_start
+
+        logger.debug('Searching down')
+        # logger.debug(i_prev)
+
+        while i_new > i_prev and v_new != self.low_lim:
+            v_prev = copy.copy(v_new)
+            v_new -= step
+
+            if v_new < self.low_lim:
+                v_new = self.low_lim
+
+            self.ao_pv.put(v_new, wait=True)
+            # Need a settle/wait here?
+
+            if not np.isinf(i_new):
+                i_prev = copy.copy(i_new)
+
+            i_new = self._measure_intensity()
+
+            # logger.debug(i_new)
+            # logger.debug(i_prev)
+            # logger.debug(v_new)
+
+        if v_new == v_start - step:
+            improved = False
+            i_ret = i_start
+            v_ret = v_start
+        else:
+            improved = True
+            i_ret = i_new
+            v_ret = v_new
+
+        if final:
+            self.ao_pv.put(v_prev)
+            i_ret = i_prev
+            v_ret = v_prev
+
+        # logger.debug(i_ret)
+        # logger.debug(v_ret)
+        # logger.debug(improved)
+
+        return i_ret, v_ret, improved
+
+    def stop(self):
+        for pv, cbid in self._pv_callbacks:
+            pv.remove_callback(cbid)
+
 class MonoTunePanel(wx.Panel):
     def __init__(self, name, mx_database, parent, panel_id=wx.ID_ANY,
         panel_name=''):
@@ -72,7 +292,7 @@ class MonoTunePanel(wx.Panel):
         self.mx_database = mx_database
 
         # Converts from biocon to catcon style settings, yes kind of stupid
-        self.settings = default_mono_tune_settings
+        self.settings = copy.deepcopy(default_mono_tune_settings)
         self.settings['device_data'] = self.settings.pop('device_init')[0]
 
         self._callbacks = []
@@ -82,6 +302,10 @@ class MonoTunePanel(wx.Panel):
         self._create_layout()
 
         self._initialize()
+
+        self.SetMinSize(self._FromDIP((450, -1)))
+        self.Layout()
+        self.Refresh()
 
     def _FromDIP(self, size):
         # This is a hack to provide easy back compatibility with wxpython < 4.1
@@ -143,7 +367,6 @@ class MonoTunePanel(wx.Panel):
         top_sizer.Add(shutter_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND,
             border=self._FromDIP(5))
 
-
         self.SetSizer(top_sizer)
 
     def _create_readout_layout(self, parent):
@@ -175,7 +398,7 @@ class MonoTunePanel(wx.Panel):
             flag=wx.ALIGN_CENTER_VERTICAL)
         sub_sizer.Add(self.c_hutch_x_rbv,
             flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.LEFT)
-        sub_sizer.Add(wx.StaticText(parent, label='C BPM X [Arb.]:'),
+        sub_sizer.Add(wx.StaticText(parent, label='C BPM Y [Arb.]:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         sub_sizer.Add(self.c_hutch_y_rbv,
             flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.LEFT)
@@ -238,10 +461,15 @@ class MonoTunePanel(wx.Panel):
         ao_sizer.Add(wx.StaticText(parent, label='0.10'), flag=wx.ALIGN_CENTER_VERTICAL)
         ao_sizer.AddGrowableCol(3)
 
+        optimize_btn = wx.Button(parent, label='Optimize')
+        optimize_btn.Bind(wx.EVT_BUTTON, self._on_optimize)
+
         ctrl_sizer = wx.StaticBoxSizer(ctrl_box, wx.VERTICAL)
         ctrl_sizer.Add(ao_float_sizer, flag=wx.ALL, border=self._FromDIP(5))
         ctrl_sizer.Add(ao_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
+        ctrl_sizer.Add(optimize_btn, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|
+            wx.ALIGN_CENTER_HORIZONTAL, border=self._FromDIP(5))
 
         return ctrl_sizer
 
@@ -292,9 +520,9 @@ class MonoTunePanel(wx.Panel):
 
 
 
-        exp_shutter_in = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 0,
+        exp_shutter_in = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 1,
             label='Closed', style=wx.RB_GROUP)
-        exp_shutter_out = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 1,
+        exp_shutter_out = epics.wx.PVRadioButton(parent, self.exp_shutter_pv, 0,
             label='Open')
 
         exp_shutter_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -331,6 +559,8 @@ class MonoTunePanel(wx.Panel):
 
         cbid = self.i0_gain_unit_pv.add_callback(self._on_gain_change)
         self._callbacks.append((self.i0_gain_unit_pv, cbid))
+
+        self.auto_tune_ctrl = MonoAutoTune(self.settings)
 
     def set_ao_vals(self, ao_val):
         if ao_val < 0:
@@ -415,6 +645,45 @@ class MonoTunePanel(wx.Panel):
     @EpicsFunction
     def _on_gain_change(self, **kwargs):
         wx.CallAfter(self.set_gain)
+
+    def _on_optimize(self, evt):
+        wx.CallAfter(self._start_optimize)
+
+    def _start_optimize(self):
+        if self.fe_shutter_status_pv is not None:
+            fes_val = self.fe_shutter_status_pv.get(timeout=2)
+
+            if fes_val is not None:
+                if fes_val == 0:
+                    fes = False
+                else:
+                    fes = True
+            else:
+                fes = False
+        else:
+            fes = True
+
+        if self.d_shutter_status_pv is not None:
+            ds_val = self.d_shutter_status_pv.get(timeout=2)
+
+            if ds_val is not None:
+                if ds_val == 0:
+                    ds = False
+                else:
+                    ds = True
+            else:
+                ds = False
+        else:
+            ds = True
+
+        if fes and ds:
+            self.auto_tune_ctrl.optimize_intensity()
+
+        else:
+            msg = ('Both the A and D shutters must be open to optimize '
+                'the intensity')
+            wx.MessageBox(msg, 'Cannot optimize intensity',
+                style=wx.OK|wx.ICON_ERROR)
 
     def on_close(self):
         """Device specific stuff goes here"""
@@ -529,16 +798,23 @@ default_mono_tune_settings = {
             'c_hutch_x_pos' : '18ID:C_Mono_BPM:PosX:MeanValue_RBV',
             'c_hutch_y_pos' : '18ID:C_Mono_BPM:PosY:MeanValue_RBV',
             'c_hutch_int'   : '18ID:C_Mono_BPM:SumAll:MeanValue_RBV',
+            'ct_time'       : '18ID:scaler2.TP',
+            'ct_start'      : '18ID:scaler2.CNT',
+            'ct_val'        : '18ID:scaler2.S3',
             }
         },
         ], # Compatibility with the standard format
+    'optimize_step'         : 0.05, #Initial optimize step value in V
+    'optimize_min_step'     : 0.005, #Minimum optimize step size in V
+    'optimize_step_scale'   : 3.1, #Scaling factor for reducing step size in search
+    'optimize_ct_time'      : 0.05, #Joerger count time or optimize
     'fe_shutter'        : 'PA:18ID:STA_A_FES_OPEN_PL',
     'd_shutter'         : 'PA:18ID:STA_D_SDS_OPEN_PL',
     'fe_shutter_open'   : '18ID:rshtr:A:OPEN',
     'fe_shutter_close'  : '18ID:rshtr:A:CLOSE',
     'd_shutter_open'    : '18ID:rshtr:D:OPEN',
     'd_shutter_close'   : '18ID:rshtr:D:CLOSE',
-    'exp_slow_shtr1'    : '18ID:LJT4:3:Bi6',
+    'exp_slow_shtr1'    : '18ID:LJT4:2:Bo6',
     }
 
 

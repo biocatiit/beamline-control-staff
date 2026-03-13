@@ -28,15 +28,22 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "catcon"
 
 import os
+import logging
+import sys
 
 import wx
 import epics, epics.wx
+from epics.wx.wxlib import EpicsFunction
+
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
-import Mp as mp
-import MpWx as mpwx
-import custom_widgets
+try:
+    import Mp as mp
+    import MpWx as mpwx
+    import custom_widgets
+except Exception:
+    pass
 
 class AmpPanel(wx.Panel):
     """
@@ -444,13 +451,263 @@ class DBPMAmpPanel(wx.Panel):
                 and not isinstance(item, wx.StaticBox)):
                 item.Enable(self._enabled)
 
+class SRSAmpPanel(wx.Panel):
+    """
+    .. todo::
+        Eventually this should allow viewing (and setting?) of the amp
+        settings, ideally through a generic GUI that works for various
+        types of devices, not just amps.
+
+    This amp panel supports standard amplifier controls, such as setting the
+    gain and the offset. It is mean to be embedded in a larger application,
+    and can be instanced several times, once for each amp. It communicates
+    with the amps by calling ``Mp``, the python wrapper for ``MX``.
+    """
+    def __init__(self, amp_name, mx_database, parent, panel_id=wx.ID_ANY,
+        panel_name=''):
+        """
+        Initializes the custom panel. Important parameters here are the
+        ``amp_name``, and the ``mx_database``.
+
+        :param str amp_name: The amplifier name in the Mx database.
+
+        :param Mp.RecordList mx_database: The database instance from Mp.
+
+        :param wx.Window parent: Parent class for the panel.
+
+        :param int panel_id: wx ID for the panel.
+
+        :param str panel_name: Name for the panel.
+        """
+        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
+
+        self.mx_database = mx_database
+        self.amp_name = amp_name
+
+        self._pv_callbacks = []
+
+        self._initialize()
+
+        self._create_layout()
+
+        self._set_gain_ctrl()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _initialize_pv(self, pv_name):
+        pv = epics.get_pv(pv_name)
+        connected = pv.wait_for_connection(5)
+
+        if not connected:
+            logger.error('Failed to connect to EPICS PV %s on startup', pv_name)
+
+        return pv, connected
+
+    def _initialize(self):
+        self.gain_pv, _ = self._initialize_pv('{}sens_num.VAL'.format(self.amp_name))
+        self.unit_pv, _ = self._initialize_pv('{}sens_unit.VAL'.format(self.amp_name))
+
+        gain_opts = self.gain_pv.get_ctrlvars()['enum_strs']
+        unit_opts = self.unit_pv.get_ctrlvars()['enum_strs']
+
+        self.gain_set_lookup = {}
+        self.rev_gain_set_lookup = {}
+
+        for uval in unit_opts:
+            if uval == 'pA/V':
+                base = 1e-12
+            elif uval == 'nA/V':
+                base = 1e-9
+            elif uval == 'uA/V':
+                base = 1e-6
+            elif uval == 'mA/V':
+                base = 1e-3
+
+            if uval != 'mA/V':
+                for gval in gain_opts:
+                    gain = 1/(float(gval)*base)
+                    self.gain_set_lookup['{:.0E}'.format(gain)] = [uval, gval]
+                    self.rev_gain_set_lookup['{}_{}'.format(uval, gval)] = gain
+            else:
+                gain = 1/base
+                self.gain_set_lookup['{:.0E}'.format(gain)] = [uval, '1']
+                self.rev_gain_set_lookup['{}_{}'.format(uval, '1')] = gain
+
+        cbid = self.gain_pv.add_callback(self._gain_callback)
+        self._pv_callbacks.append([self.gain_pv, cbid])
+
+        cbid = self.unit_pv.add_callback(self._gain_callback)
+        self._pv_callbacks.append([self.unit_pv, cbid])
+
+    def on_close(self):
+        for pv, cbid in self._pv_callbacks:
+            pv.remove_callback(cbid)
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        :returns: wx Sizer for the panel.
+        :rtype: wx.Sizer
+        """
+        parent = self
+
+        gain_choices = [val for val in self.gain_set_lookup.keys()]
+
+        self.gain_ctrl = wx.Choice(parent, choices=gain_choices)
+        self.gain_ctrl.Bind(wx.EVT_CHOICE, self._on_gain_ctrl)
+
+        amp_name = epics.wx.PVText(parent, '{}init.DESC'.format(self.amp_name))
+
+        sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
+            vgap=self._FromDIP(5))
+        sizer.Add(wx.StaticText(parent, label='Amp:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(amp_name, flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(wx.StaticText(parent, label='Gain [V/A]:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self.gain_ctrl, flag=wx.ALIGN_CENTER_VERTICAL)
+
+        self.SetSizer(sizer)
+        self.Layout()
+
+    @EpicsFunction
+    def _gain_callback(self, **kwargs):
+        wx.CallAfter(self._set_gain_ctrl)
+
+    def _on_gain_ctrl(self, evt):
+        self._set_gain()
+
+    @EpicsFunction
+    def _set_gain_ctrl(self):
+        gval = self.gain_pv.get(as_string=True)
+        uval = self.unit_pv.get(as_string=True)
+
+        gain = self.rev_gain_set_lookup['{}_{}'.format(uval, gval)]
+
+        self.gain_ctrl.SetStringSelection('{:.0E}'.format(gain))
+
+    @EpicsFunction
+    def _set_gain(self):
+        gain = self.gain_ctrl.GetStringSelection()
+
+        uval, gval = self.gain_set_lookup[gain]
+
+        self.gain_pv.put(gval)
+        self.unit_pv.put(uval)
+
+
+class MultiSRSAmpPanel(wx.Panel):
+    """
+    .. todo::
+        Eventually this should allow viewing (and setting?) of the amp
+        settings, ideally through a generic GUI that works for various
+        types of devices, not just amps.
+
+    This amp panel supports standard amplifier controls, such as setting the
+    gain and the offset. It is mean to be embedded in a larger application,
+    and can be instanced several times, once for each amp. It communicates
+    with the amps by calling ``Mp``, the python wrapper for ``MX``.
+    """
+    def __init__(self, amp_name, mx_database, parent, panel_id=wx.ID_ANY,
+        panel_name=''):
+        """
+        Initializes the custom panel. Important parameters here are the
+        ``amp_name``, and the ``mx_database``.
+
+        :param str amp_name: The amplifier name in the Mx database.
+
+        :param Mp.RecordList mx_database: The database instance from Mp.
+
+        :param wx.Window parent: Parent class for the panel.
+
+        :param int panel_id: wx ID for the panel.
+
+        :param str panel_name: Name for the panel.
+        """
+        wx.Panel.__init__(self, parent, panel_id, name=panel_name)
+
+        self.mx_database = mx_database
+        self.amp_name = amp_name
+
+        self._srs_amps = ['18ID:SR570:1:asyn_1', '18ID:SR570:2:asyn_2',
+            '18ID:SR570:3:asyn_3', '18ID:SR570:4:asyn_4']
+
+
+        self._create_layout()
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def on_close(self):
+        for pv, cbid in self._pv_callbacks:
+            pv.remove_callback(cbid)
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        :returns: wx Sizer for the panel.
+        :rtype: wx.Sizer
+        """
+        num_cols = 2
+        amp_grid = wx.FlexGridSizer(cols=num_cols, vgap=self._FromDIP(2),
+            hgap=self._FromDIP(2))
+
+        for i in range(num_cols):
+            amp_grid.AddGrowableCol(i)
+
+        for amp in self._srs_amps:
+            amp_panel = SRSAmpPanel(amp, self.mx_database, self)
+
+            amp_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(amp)))
+            amp_box_sizer.Add(amp_panel, flag=wx.ALL, border=self._FromDIP(5))
+            amp_grid.Add(amp_box_sizer)
+
+        self.SetSizer(amp_grid)
+        self.Layout()
+
+    @EpicsFunction
+    def _gain_callback(self, **kwargs):
+        wx.CallAfter(self._set_gain_ctrl)
+
+    def _on_gain_ctrl(self, evt):
+        self._set_gain()
+
+    @EpicsFunction
+    def _set_gain_ctrl(self):
+        gval = self.gain_pv.get(as_string=True)
+        uval = self.unit_pv.get(as_string=True)
+
+        gain = self.rev_gain_set_lookup['{}_{}'.format(uval, gval)]
+
+        self.gain_ctrl.SetStringSelection('{:.0E}'.format(gain))
+
+    @EpicsFunction
+    def _set_gain(self):
+        gain = self.gain_ctrl.GetStringSelection()
+
+        uval, gval = self.gain_set_lookup[gain]
+
+        self.gain_pv.put(gval)
+        self.unit_pv.put(uval)
 
 class AmpFrame(wx.Frame):
     """
     A lightweight amplifier frame designed to hold an arbitrary number of amps
     in an arbitrary grid pattern.
     """
-    def __init__(self, mx_database, amps, shape, timer=True, dbpm=False, *args, **kwargs):
+    def __init__(self, mx_database, amps, shape, timer=True, dbpm=False,
+        srs=False, multi_srs=False, *args, **kwargs):
         """
         Initializes the amp frame. This frame is designed to function either as
         a stand alone application, or as part of a larger application.
@@ -477,6 +734,8 @@ class AmpFrame(wx.Frame):
         self.mx_timer.Bind(wx.EVT_TIMER, self._on_mxtimer)
 
         self.dbpm = dbpm
+        self.srs = srs
+        self.multi_srs = multi_srs
 
         top_sizer = self._create_layout(amps, shape)
 
@@ -506,10 +765,14 @@ class AmpFrame(wx.Frame):
             amp_grid.AddGrowableCol(i)
 
         for amp in amps:
-            if not self.dbpm:
-                amp_panel = AmpPanel(amp, self.mx_database, self)
-            else:
+            if self.dbpm:
                 amp_panel = DBPMAmpPanel(amp, self.mx_database, self)
+            elif self.srs:
+                amp_panel = SRSAmpPanel(amp, self.mx_database, self)
+            elif self.multi_srs:
+                amp_panel = MultiSRSAmpPanel(amp, self.mx_database, self)
+            else:
+                amp_panel = AmpPanel(amp, self.mx_database, self)
 
             amp_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(amp)))
             amp_box_sizer.Add(amp_panel)
@@ -528,6 +791,18 @@ class AmpFrame(wx.Frame):
         self.mx_database.wait_for_messages(0.01)
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    h1 = logging.StreamHandler(sys.stdout)
+    h1.setLevel(logging.INFO)
+    # h1.setLevel(logging.DEBUG)
+    # h1.setLevel(logging.ERROR)
+
+    # formatter = logging.Formatter('%(asctime)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s')
+    h1.setFormatter(formatter)
+    logger.addHandler(h1)
+
     try:
         # First try to get the name from an environment variable.
         database_filename = os.environ["MXDATABASE"]
@@ -538,16 +813,23 @@ if __name__ == '__main__':
         database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
         database_filename = os.path.normpath(database_filename)
 
-    mx_database = mp.setup_database(database_filename)
-    mx_database.set_plot_enable(2)
-    mx_database.set_program_name("ampcon")
+    try:
+        mx_database = mp.setup_database(database_filename)
+        mx_database.set_plot_enable(2)
+        mx_database.set_program_name("ampcon")
+    except Exception:
+        mx_database = None
 
     # mx_database = None
 
     app = wx.App()
     # frame = AmpFrame(mx_database, ['keithley1', 'keithley2', 'keithley3', 'keithley4'],
     #     (2,2), parent=None, title='Test Amplifier Control')
-    frame = AmpFrame(mx_database, ['18ID_BPM_D_'],
-        (2,2), False, True, parent=None, title='Test Amplifier Control')
+    # frame = AmpFrame(mx_database, ['18ID_BPM_D_'],
+    #     (2,2), False, True, parent=None, title='Test Amplifier Control')
+    # frame = AmpFrame(mx_database, ['18ID:SR570:1:'],
+    #     (2,2), False, False, True, parent=None, title='Test Amplifier Control')
+    frame = AmpFrame(mx_database, ['SR570'],
+        (2,2), False, False, False, True, parent=None, title='Test Amplifier Control')
     frame.Show()
     app.MainLoop()

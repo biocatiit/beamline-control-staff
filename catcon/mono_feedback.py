@@ -1,645 +1,529 @@
-#! /usr/bin/env python
-# coding: utf-8
-#
-#    Project: BioCAT staff beamline control software (CATCON)
-#             https://github.com/biocatiit/beamline-control-staff
-#
-#
-#    Principal author:       Jesse Hopkins
-#
-#    This is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This software is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this software.  If not, see <http://www.gnu.org/licenses/>.
+"""
+coding: utf-8
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-from builtins import object, range, map
-from io import open
+    Project: BioCAT staff beamline control software (CATCON)
+            https://github.com/biocatiit/beamline-control-staff
 
+
+   Principal author:       Jesse Hopkins
+
+PID controller code modified from the simple-pid python library:
+https://github.com/m-lundberg/simple-pid
+
+Original author: m-lundberg
+
+Used here under the MIT license:
+MIT License
+
+Copyright (c) 2018-2022 Martin Lundberg
+
+Permission is hereby granted, free of charge, to any person obtaining a copy o
+f this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+"""
 import time
 import logging
-import logging.handlers as handlers
+import threading
+import copy
 import sys
+
+import epics
 
 if __name__ != '__main__':
     logger = logging.getLogger(__name__)
 
-import epics
-import numpy as np
-import wx
-import os
 
-import utils
-utils.set_mppath() #This must be done before importing any Mp Modules.
-import Mp as mp
-
-
-def monitor_and_average(pv_list, average_time, update_rate=None):
-    """
-    Could I do  this more efficiently by adding a callback in this function (maybe
-    a lambda function) and removing it at the end of the funciton? Then only adding
-    values when the PV changes? Would have to make the auto_monitor for the PV True
-    """
-    start_time = time.time()
-
-    monitor_values = []
-
-    while time.time() - start_time < average_time:
-        if update_rate is not None:
-            update_start_time = time.time()
-
-        monitor_values.append([pv.get() for pv in pv_list])
-
-        if update_rate is not None:
-            while time.time() - update_start_time < update_rate:
-                time.sleep(0.001)
-
-    monitor_values = np.array(monitor_values, dtype=np.float)
-
-    monitor_avgs = [np.mean(monitor_values[:, i]) for i in range(len(pv_list))]
-
-    return monitor_avgs
-
-# Tries to interpret what's going on based on results of move. I think it might fail
-# if things are changing too quickly, so moves don't necessarily have the expected
-# results
-# def position_feedback(value, target, motor, pv, step_size, min_step_size, max_step_size,
-#     close, timeout=0.25, average_time=0.5, osc_step=0, dark_step=0):
-#     abs_diff = abs(target-value)
-
-#     if abs_diff > close:
-#         logger.debug('Starting position %s', value)
-#         logger.debug('Starting distance %s', abs_diff)
-
-#         if value < target:
-#             logger.debug("Making positive move by %s", step_size)
-#             motor.move_relative(step_size)
-#         elif value >  target:
-#             logger.debug("Making negative move by %s", step_size)
-#             motor.move_relative(-step_size)
-
-#         while motor.is_busy():
-#             time.sleep(0.01)
-
-#         start_time = time.time()
-
-#         while pv.get() == value and time.time() - start_time < timeout:
-#             time.sleep(0.001)
-
-#         time.sleep(1)
-
-#         new_value = monitor_and_average([pv], average_time, 0.1)[0]
-
-#         new_abs_diff = abs(target-new_value)
-#         move_abs_diff = abs(value - new_value)
-
-#         logger.debug('Absolute moved by %s', move_abs_diff)
-#         logger.debug('Absolute distance to target %s', new_abs_diff)
-#         logger.debug('Target: %s', target)
-#         logger.debug('Current: %s', new_value)
-
-#         if abs(target-new_value) > close and osc_step < 3 and dark_step == 0:
-#             if value == new_value:
-#                 logger.debug("Failed to change feedback value")
-#                 #Case where we don't move at all
-#                 new_step_size = min(abs(step_size*2), max_step_size)
-
-#                 if step_size < 0:
-#                     new_step_size = -new_step_size
-
-#                 if abs(new_step_size) == max_step_size:
-#                     dark_step = dark_step+1
-
-#             elif (((value < target and new_value < target) or (value > target and new_value > target))
-#                 and new_abs_diff > abs_diff):
-#                 #Case where we moved away from target value
-#                 logger.debug("Moved away from target")
-
-#                 new_step_size = -step_size
-
-#             elif (((value < target and new_value < target) or (value > target and new_value > target))
-#                 and new_abs_diff <= abs_diff):
-#                 #Case where we moved towards but not past target value
-#                 logger.debug("Moved towards but not past target")
-
-#                 new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
-#                 new_step_size = min(new_step_size, max_step_size)
-
-#                 if step_size < 0:
-#                     new_step_size = -new_step_size
-
-#             elif (value < target and new_value > target) or (value > target and new_value < target):
-#                 #Case where we moved towards and past target value
-#                 logger.debug("Moved towards and past target")
-
-#                 new_step_size = max((new_abs_diff/move_abs_diff)*abs(step_size), min_step_size)
-#                 new_step_size = min(new_step_size, max_step_size)
-
-#                 if step_size < 0:
-#                     new_step_size = -new_step_size
-
-#                 if abs(new_step_size) == min_step_size:
-#                     osc_step = osc_step + 1
-
-#             logger.debug("New step size: %s", new_step_size)
-
-#             position_feedback(new_value, target, motor, pv, new_step_size, min_step_size,
-#                 max_step_size, close, timeout, average_time, osc_step)
-
-#         elif abs(target-new_value) > close:
-#             logger.debug('Feedback finished successfully')
-#         elif osc_step == 3:
-#             logger.debug(("Feedback failed, oscillating about position. Try "
-#                 "reducing min_step_size."))
-#         elif dark_step == 1:
-#             logger.debug(("Feedback failed, motor not changing target value. "
-#                 "Check if A shutter is open, and verify the correct motor "
-#                 "is being used."))
-
-#     else:
-#         logger.debug('Position is already within tolerance of target, no feedback necessary.')
+def _clamp(value, limits):
+    lower, upper = limits
+    if value is None:
+        return None
+    elif (upper is not None) and (value > upper):
+        return upper
+    elif (lower is not None) and (value < lower):
+        return lower
+    return value
 
 
-# This is based on assuming motor motion is consistent, so all you have to do if
-# a move doesn't get the right result is make another move. Any discrepancies are
-# coming from motion not caused by the motor (i.e. incident beam motion)
-def position_feedback(value, target, motor, pv, step_calibration, min_step_size,
-    max_step_size, close, timeout=0.25, average_time=0.5, osc_step=0, dark_step=0):
-    step_size = calc_position_step(target, value, step_calibration, min_step_size,
-        max_step_size)
+class PID(object):
+    """A simple PID controller."""
 
-    abs_diff = abs(target-value)
+    def __init__(
+        self,
+        Kp=1.0,
+        Ki=0.0,
+        Kd=0.0,
+        setpoint=0,
+        sample_time=0.01,
+        output_limits=(None, None),
+        auto_mode=True,
+        proportional_on_measurement=False,
+        differential_on_measurement=True,
+        error_map=None,
+        time_fn=None,
+        starting_output=0.0,
+    ):
+        """
+        Initialize a new PID controller.
 
-    if abs_diff > close:
-        logger.debug('Starting position %s', value)
-        logger.debug('Starting distance %s', abs_diff)
+        :param Kp: The value for the proportional gain Kp
+        :param Ki: The value for the integral gain Ki
+        :param Kd: The value for the derivative gain Kd
+        :param setpoint: The initial setpoint that the PID will try to achieve
+        :param sample_time: The time in seconds which the controller should wait before generating
+            a new output value. The PID works best when it is constantly called (eg. during a
+            loop), but with a sample time set so that the time difference between each update is
+            (close to) constant. If set to None, the PID will compute a new output value every time
+            it is called.
+        :param output_limits: The initial output limits to use, given as an iterable with 2
+            elements, for example: (lower, upper). The output will never go below the lower limit
+            or above the upper limit. Either of the limits can also be set to None to have no limit
+            in that direction. Setting output limits also avoids integral windup, since the
+            integral term will never be allowed to grow outside of the limits.
+        :param auto_mode: Whether the controller should be enabled (auto mode) or not (manual mode)
+        :param proportional_on_measurement: Whether the proportional term should be calculated on
+            the input directly rather than on the error (which is the traditional way). Using
+            proportional-on-measurement avoids overshoot for some types of systems.
+        :param differential_on_measurement: Whether the differential term should be calculated on
+            the input directly rather than on the error (which is the traditional way).
+        :param error_map: Function to transform the error value in another constrained value.
+        :param time_fn: The function to use for getting the current time, or None to use the
+            default. This should be a function taking no arguments and returning a number
+            representing the current time. The default is to use time.monotonic() if available,
+            otherwise time.time().
+        :param starting_output: The starting point for the PID's output. If you start controlling
+            a system that is already at the setpoint, you can set this to your best guess at what
+            output the PID should give when first calling it to avoid the PID outputting zero and
+            moving the system away from the setpoint.
+        """
+        self.Kp, self.Ki, self.Kd = Kp, Ki, Kd
+        self.setpoint = setpoint
+        self.sample_time = sample_time
 
-        logger.debug("Making positive move by %s", step_size)
-        motor.move_relative(step_size)
+        self._min_output, self._max_output = None, None
+        self._auto_mode = auto_mode
+        self.proportional_on_measurement = proportional_on_measurement
+        self.differential_on_measurement = differential_on_measurement
+        self.error_map = error_map
 
-        while motor.is_busy():
-            time.sleep(0.01)
+        self._proportional = 0
+        self._integral = 0
+        self._derivative = 0
 
-        start_time = time.time()
+        self._last_time = None
+        self._last_output = None
+        self._last_error = None
+        self._last_input = None
 
-        while pv.get() == value and time.time() - start_time < timeout:
-            time.sleep(0.001)
-
-        time.sleep(1)
-
-        new_value = monitor_and_average([pv], average_time, 0.1)[0]
-
-        new_abs_diff = abs(target-new_value)
-        move_abs_diff = abs(value - new_value)
-
-        logger.debug('Absolute moved by %s', move_abs_diff)
-        logger.debug('Absolute distance to target %s', new_abs_diff)
-        logger.debug('Target: %s', target)
-        logger.debug('Current: %s', new_value)
-
-        if abs(target-new_value) > close and osc_step < 2:
-
-            if (value < target and new_value > target) or (value > target and new_value < target):
-                #Case where we moved towards and past target value
-                logger.debug("Moved towards and past target")
-
-                new_step_size = calc_position_step(target, value, step_calibration,
-                    min_step_size, max_step_size)
-
-                if abs(new_step_size) == min_step_size:
-                    osc_step = osc_step + 1
-
-            position_feedback(new_value, target, motor, pv, step_calibration,
-                min_step_size, max_step_size, close, timeout, average_time, osc_step)
-
-        elif abs(target-new_value) > close:
-            logger.debug('Feedback finished successfully')
-        elif osc_step == 2:
-            logger.debug(("Feedback failed, oscillating about position. Try "
-                "reducing min_step_size."))
-
-    else:
-        logger.debug('Position is already within tolerance of target, no feedback necessary.')
-
-
-def calc_position_step(target, value, step_calibration, min_step, max_step):
-    step = (target-value)*step_calibration
-    if abs(step) < min_step:
-        if step > 0:
-            step = min_step
+        if time_fn is not None:
+            # Use the user supplied time function
+            self.time_fn = time_fn
         else:
-            step = -min_step
+            import time
 
-    elif abs(step) > max_step:
-        if step > 0:
-            step = max_step
+            try:
+                # Get monotonic time to ensure that time deltas are always positive
+                self.time_fn = time.monotonic
+            except AttributeError:
+                # time.monotonic() not available (using python < 3.3), fallback to time.time()
+                self.time_fn = time.time
+
+        self.output_limits = output_limits
+        self.reset()
+
+        # Set initial state of the controller
+        self._integral = _clamp(starting_output, output_limits)
+
+    def __call__(self, input_, dt=None):
+        """
+        Update the PID controller.
+
+        Call the PID controller with *input_* and calculate and return a control output if
+        sample_time seconds has passed since the last update. If no new output is calculated,
+        return the previous output instead (or None if no value has been calculated yet).
+
+        :param dt: If set, uses this value for timestep instead of real time. This can be used in
+            simulations when simulation time is different from real time.
+        """
+        if not self.auto_mode:
+            return self._last_output
+
+        now = self.time_fn()
+        if dt is None:
+            dt = now - self._last_time if (now - self._last_time) else 1e-16
+        elif dt <= 0:
+            raise ValueError('dt has negative value {}, must be positive'.format(dt))
+
+        if self.sample_time is not None and dt < self.sample_time and self._last_output is not None:
+            # Only update every sample_time seconds
+            return self._last_output
+
+        # Compute error terms
+        error = self.setpoint - input_
+        d_input = input_ - (self._last_input if (self._last_input is not None) else input_)
+        d_error = error - (self._last_error if (self._last_error is not None) else error)
+
+        # Check if must map the error
+        if self.error_map is not None:
+            error = self.error_map(error)
+
+        # Compute the proportional term
+        if not self.proportional_on_measurement:
+            # Regular proportional-on-error, simply set the proportional term
+            self._proportional = self.Kp * error
         else:
-            step = -max_step
+            # Add the proportional error on measurement to error_sum
+            self._proportional -= self.Kp * d_input
 
-    return step
+        # Compute integral and derivative terms
+        self._integral += self.Ki * error * dt
+        self._integral = _clamp(self._integral, self.output_limits)  # Avoid integral windup
 
-
-# This is based on feathering the tune to determine which way to go
-
-# def intensity_feedback(value, target, motor, pv, step_size, min_step_size,
-#     close, timeout=0.25, average_time=0.2):
-#     if value < target-close:
-
-#         target = intensity_optimize(value, target, motor, pv, step_size,
-#             min_step_size, close, timeout, average_time)
-
-#     else:
-#         logger.debug('Intensity is already within tolerance of target, no feedback necessary.')
-
-#     return target
-
-# def intensity_optimize(value, start_val, motor, pv, step_size, min_step_size,
-#     close, timeout=0.25, average_time=0.2, osc_step=0, stop_step=0):
-#     logger.debug("Making move by %s", step_size)
-#     motor.move_relative(step_size)
-
-#     while motor.is_busy():
-#         time.sleep(0.01)
-
-#     start_time = time.time()
-
-#     while pv.get() == value and time.time() - start_time < timeout:
-#         time.sleep(0.001)
-
-#     new_value = monitor_and_average([pv], average_time, average_time/10.)[0]
-
-#     if new_value < value:
-#         osc_step = osc_step + 1
-
-#         if osc_step == 2:
-#             new_step_size = min(abs(step_size)/2., min_step_size)
-
-#             if step_size < 0:
-#                 new_step_size = -new_step_size
-
-#             osc_step = 0
-
-#         else:
-#             new_step_size = step_size
-
-#         if abs(step_size) == min_step_size:
-#             stop_step = stop_step + 1
-
-#         new_step_size = -new_step_size
-
-#         if stop_step == 2:
-#             logger.debug("Making move by %s", new_step_size)
-#             motor.move_relative(new_step_size)
-
-#             start_time = time.time()
-
-#             while pv.get() == value and time.time() - start_time < timeout:
-#                 time.sleep(0.001)
-
-#             final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
-
-#         else:
-#             final_value = intensity_optimize(value, start_val, motor, pv, new_step_size, min_step_size, close,
-#                 timeout, average_time, osc_step, stop_step)
-
-#     elif new_value == value:
-#         stop_step = stop_step+1
-
-#         if stop_step == 2:
-#             logger.debug("Making move by %s", step_size)
-#             motor.move_relative(step_size)
-
-#             start_time = time.time()
-
-#             while pv.get() == value and time.time() - start_time < timeout:
-#                 time.sleep(0.001)
-
-#             final_value = monitor_and_average([pv], average_time, average_time/10.)[0]
-
-#         else:
-#             final_value = intensity_optimize(value, motor, pv, step_size, min_step_size, close,
-#                 timeout, average_time, osc_step, stop_step)
-
-#     else:
-#         final_value = intensity_optimize(value, start_val, motor, pv, step_size, min_step_size, close,
-#                 timeout, average_time, osc_step, stop_step)
-
-#     return final_value
-
-# This is based on using bpm x and y values to know which way to move the intensity
-
-def intensity_feedback(value, target, motor, pv, bpm_x_target, bpm_x_pv,
-    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size,
-    max_step_size, close, timeout=0.25, average_time=0.2):
-
-    current = current_pv.get()
-    scale = current/current_start
-    if value*scale < target-close:
-
-        target, current_target, bpm_int_x_target, bpm_int_y_target = intensity_optimize(value, target, motor, pv, bpm_x_target,
-            bpm_x_pv, bpm_y_target, bpm_y_pv, current_start, current_pv,
-            min_step_size, max_step_size, close, timeout, average_time)
-
-    elif value*scale > target:
-        logger.debug("Intensity is greater than target, resetting target.")
-        target = value
-        current_target = current
-        bpm_int_x_target, bpm_int_y_target = monitor_and_average([bpm_x_pv, bpm_y_pv],
-            average_time, average_time/10.)
-
-    else:
-        logger.debug('Intensity is already within tolerance of target, no feedback necessary.')
-        current_target = current_start
-        bpm_int_x_target = bpm_x_target
-        bpm_int_y_target = bpm_y_target
-
-    return target, current_target, bpm_int_x_target, bpm_int_y_target
-
-def intensity_optimize(value, start_val, motor, pv, bpm_x_target, bpm_x_pv,
-    bpm_y_target, bpm_y_pv, current_start, current_pv, min_step_size,
-    max_step_size, close, timeout=0.25, average_time=0.2, osc_step=0,
-    stop_step=0, recursive_step=0):
-
-    bpm_x_val, bpm_y_val = monitor_and_average([bpm_x_pv, bpm_y_pv],
-        average_time, average_time/10.)
-
-    step_size = calc_intensity_step(value, start_val, min_step_size, max_step_size,
-        bpm_x_val, bpm_x_target, bpm_y_val, bpm_y_target)
-
-    logger.debug("Making move by %s", step_size)
-    motor.move_relative(step_size)
-
-    while motor.is_busy():
-        time.sleep(0.01)
-
-    start_time = time.time()
-
-    while pv.get() == value and time.time() - start_time < timeout:
-        time.sleep(0.001)
-
-    bpm_x_val, bpm_y_val, new_value = monitor_and_average([bpm_x_pv, bpm_y_pv, pv],
-        average_time, average_time/10.)
-
-    current = current_pv.get()
-    scale = current/current_start
-    if new_value*scale < start_val - close/2.:
-
-        new_step_size = calc_intensity_step(value, start_val, min_step_size,
-            max_step_size, bpm_x_val, bpm_x_target, bpm_y_val, bpm_y_target)
-
-        if new_step_size/step_size < 0 and abs(new_step_size) == min_step_size:
-            osc_step = osc_step + 1
-
-        if osc_step == 2:
-            final_value = new_value
-            final_current = current
-            bpm_int_x_target = bpm_x_val
-            bpm_int_y_target = bpm_y_val
-
-        elif recursive_step >= 100:
-            logger.debug('Hit recursion limit.')
-            final_value = start_val
-            final_current = current_start
-            bpm_int_x_target = bpm_x_target
-            bpm_int_y_target = bpm_y_target
-
+        if self.differential_on_measurement:
+            self._derivative = -self.Kd * d_input / dt
         else:
-            recursive_step = recursive_step + 1
+            self._derivative = self.Kd * d_error / dt
 
-            final_value, final_current, bpm_int_x_target, bpm_int_y_target = intensity_optimize(value,
-                start_val, motor, pv, bpm_x_target, bpm_x_pv, bpm_y_target, bpm_y_pv, current_start,
-                current_pv, min_step_size, max_step_size, close, timeout, average_time,
-                osc_step, stop_step, recursive_step)
+        # Compute final output
+        output = self._proportional + self._integral + self._derivative
+        output = _clamp(output, self.output_limits)
+
+        # Keep track of state
+        self._last_output = output
+        self._last_input = input_
+        self._last_error = error
+        self._last_time = now
+
+        return output
+
+    def __repr__(self):
+        return (
+            '{self.__class__.__name__}('
+            'Kp={self.Kp!r}, Ki={self.Ki!r}, Kd={self.Kd!r}, '
+            'setpoint={self.setpoint!r}, sample_time={self.sample_time!r}, '
+            'output_limits={self.output_limits!r}, auto_mode={self.auto_mode!r}, '
+            'proportional_on_measurement={self.proportional_on_measurement!r}, '
+            'differential_on_measurement={self.differential_on_measurement!r}, '
+            'error_map={self.error_map!r}'
+            ')'
+        ).format(self=self)
+
+    @property
+    def components(self):
+        """
+        The P-, I- and D-terms from the last computation as separate components as a tuple. Useful
+        for visualizing what the controller is doing or when tuning hard-to-tune systems.
+        """
+        return self._proportional, self._integral, self._derivative
+
+    @property
+    def tunings(self):
+        """The tunings used by the controller as a tuple: (Kp, Ki, Kd)."""
+        return self.Kp, self.Ki, self.Kd
+
+    @tunings.setter
+    def tunings(self, tunings):
+        """Set the PID tunings."""
+        self.Kp, self.Ki, self.Kd = tunings
+
+    @property
+    def auto_mode(self):
+        """Whether the controller is currently enabled (in auto mode) or not."""
+        return self._auto_mode
+
+    @auto_mode.setter
+    def auto_mode(self, enabled):
+        """Enable or disable the PID controller."""
+        self.set_auto_mode(enabled)
+
+    def set_auto_mode(self, enabled, last_output=None):
+        """
+        Enable or disable the PID controller, optionally setting the last output value.
+
+        This is useful if some system has been manually controlled and if the PID should take over.
+        In that case, disable the PID by setting auto mode to False and later when the PID should
+        be turned back on, pass the last output variable (the control variable) and it will be set
+        as the starting I-term when the PID is set to auto mode.
+
+        :param enabled: Whether auto mode should be enabled, True or False
+        :param last_output: The last output, or the control variable, that the PID should start
+            from when going from manual mode to auto mode. Has no effect if the PID is already in
+            auto mode.
+        """
+        if enabled and not self._auto_mode:
+            # Switching from manual mode to auto, reset
+            self.reset()
+
+            self._integral = last_output if (last_output is not None) else 0
+            self._integral = _clamp(self._integral, self.output_limits)
+
+        self._auto_mode = enabled
+
+    @property
+    def output_limits(self):
+        """
+        The current output limits as a 2-tuple: (lower, upper).
+
+        See also the *output_limits* parameter in :meth:`PID.__init__`.
+        """
+        return self._min_output, self._max_output
+
+    @output_limits.setter
+    def output_limits(self, limits):
+        """Set the output limits."""
+        if limits is None:
+            self._min_output, self._max_output = None, None
+            return
+
+        min_output, max_output = limits
+
+        if (None not in limits) and (max_output < min_output):
+            raise ValueError('lower limit must be less than upper limit')
+
+        self._min_output = min_output
+        self._max_output = max_output
+
+        self._integral = _clamp(self._integral, self.output_limits)
+        self._last_output = _clamp(self._last_output, self.output_limits)
+
+    def reset(self):
+        """
+        Reset the PID controller internals.
+
+        This sets each term to 0 as well as clearing the integral, the last output and the last
+        input (derivative calculation).
+        """
+        self._proportional = 0
+        self._integral = 0
+        self._derivative = 0
+
+        self._integral = _clamp(self._integral, self.output_limits)
+
+        self._last_time = self.time_fn()
+        self._last_output = None
+        self._last_input = None
+        self._last_error = None
 
 
-    else:
-        final_value = new_value
-        final_current = current
-        bpm_int_x_target = bpm_x_val
-        bpm_int_y_target = bpm_y_val
+class PositionFeedback(object):
 
-    return final_value, final_current, bpm_int_x_target, bpm_int_y_target
+    def __init__(self, settings, direction='Y'):
+        if 'device_data' not in settings:
+            settings['device_data'] = settings['device_init'][0]
 
-def calc_intensity_step(value, start_val, min_step_size, max_step_size,
-    bpm_x_val, bpm_x_target, bpm_y_val, bpm_y_target):
-    calibration = 1/0.03 # Needs calibration
-    step_size = abs((value-start_val))*(calibration)
-    step_size = max(step_size, min_step_size)
-    step_size = min(step_size, max_step_size)
+        self.settings = settings
+        self.direction = direction
 
-    #Use motion on BPM to determine direction of intensity step, need to determine correct directions
-    if bpm_x_val < bpm_x_target and bpm_y_val < bpm_y_target:
-        step_size = -step_size
-    else:
-        step_size = step_size
+        self._pv_callbacks = []
+        self._feedback_active = False
 
-    return step_size
+        self._init_pvs()
 
-def run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name, motor_y_name,
-    motor_int_name, mx_database, shutter_name, current_name, bpm_x_target=None,
-    bpm_y_target=None, feedback_time=10,run_for=0):
+        self._initialize()
 
-    logger.info('Starting feedback for %s', mono)
-    logger.info('X BPM PV: %s', bpm_x_name)
-    logger.info('Y BPM PV: %s', bpm_y_name)
-    logger.info('Intensity BPM PV: %s', bpm_int_name)
-    logger.info('X motor name: %s', motor_x_name)
-    logger.info('Y motor name: %s', motor_y_name)
-    logger.info('Intensity motor name: %s', motor_int_name)
-    logger.info('Front end shutter PV: %s', shutter_name)
-    logger.info('Ring current PV: %s', current_name)
+    def _init_pvs(self):
+        self.ao_pv, connected = self._initialize_pv('{}.VAL'.format(
+            self.settings['device_data']['kwargs']['output']))
+        self.ao_low_lim_pv, connected = self._initialize_pv('{}.LOPR'.format(
+            self.settings['device_data']['kwargs']['output']))
+        self.ao_high_lim_pv, connected = self._initialize_pv('{}.HOPR'.format(
+            self.settings['device_data']['kwargs']['output']))
 
-    logger.debug("Connecting to PVs")
-    bpm_x_pv = epics.get_pv(bpm_x_name, auto_monitor=False)
-    bpm_y_pv = epics.get_pv(bpm_y_name, auto_monitor=False)
-    bpm_int_pv = epics.get_pv(bpm_int_name, auto_monitor=False)
-    shutter_pv = epics.get_pv(shutter_name, auto_monitor=False)
-    current_pv = epics.get_pv(current_name, auto_monitor=False)
-    logger.debug("Connected to PVs")
+        self.c_hutch_pos_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['device_data']['kwargs']['c_hutch_pos']))
+        self.c_hutch_int_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['device_data']['kwargs']['c_hutch_int']))
 
-    logger.debug("Connecting to motors")
-    motor_x = mx_database.get_record(motor_x_name)
-    motor_y = mx_database.get_record(motor_y_name)
-    motor_int = mx_database.get_record(motor_int_name)
-    logger.debug("Connected to motors")
+        self.fe_shutter_pv, connected = self._initialize_pv('{}'.format(
+            self.settings['fe_shutter']))
 
-    #Initialize PVs with first get
-    logger.debug("Initializing PVs")
-    bpm_x_pv.get()
-    bpm_y_pv.get()
-    bpm_int_pv.get()
-    shutter_pv.get()
-    current_pv.get()
-    logger.debug("Initialized PVs")
+    def _initialize_pv(self, pv_name):
+        pv = epics.get_pv(pv_name)
+        connected = pv.wait_for_connection(5)
 
-    if bpm_x_target is None:
-        logger.info("No X BPM target provided, using initial value")
-        bpm_x_target = monitor_and_average([bpm_x_pv], 0.5, 0.05)[0]
+        if not connected:
+            logger.error('Failed to connect to EPICS PV %s on startup', pv_name)
 
-    if bpm_y_target is None:
-        logger.info("No Y BPM target provided, using initial value")
-        bpm_y_target = monitor_and_average([bpm_y_pv], 0.5, 0.05)[0]
+        return pv, connected
 
+    def _initialize(self):
+        logger.info('Mono %s feedback setting up PID with initial values: %s, %s, %s',
+            self.direction, self.settings['device_data']['kwargs']['P'],
+            self.settings['device_data']['kwargs']['I'],
+            self.settings['device_data']['kwargs']['D'])
 
-    bpm_int_target = monitor_and_average([bpm_int_pv], 0.5, 0.05)[0]
-    current_target = current_pv.get()
+        self.low_lim = self.ao_low_lim_pv.get()
+        self.high_lim = self.ao_high_lim_pv.get()
 
-    bpm_int_x_target = bpm_x_target
-    bpm_int_y_target = bpm_y_target
+        self.pid = PID(self.settings['device_data']['kwargs']['P'],
+            self.settings['device_data']['kwargs']['I'],
+            self.settings['device_data']['kwargs']['D'])
 
-    logger.info("X BPM target: %s", bpm_x_target)
-    logger.info("Y BPM target: %s", bpm_x_target)
-    logger.info("Intensity BPM start: %s", bpm_int_target)
-    logger.info("Ring current start: %s", current_target)
+        self.pid.sample_time = self.settings['device_data']['kwargs']['sample_time']
+        self.pid.output_limits = (self.low_lim, self.high_lim)
 
-    x_step_calibration = (50/0.04)
-    y_step_calibration = (50/0.2)
+        self.pid_active = threading.Event()
+        self.stop_pid = threading.Event()
+        self.pid_lock = threading.RLock()
 
-    run_start = time.time()
-    log_time = time.time()
+        cbid = self.fe_shutter_pv.add_callback(self._on_fe_shutter)
+        self._pv_callbacks.append([self.fe_shutter_pv, cbid])
 
-    while True:
-        feedback_start_time = time.time()
+        self.pid_thread = threading.Thread(target=self._do_pid)
+        self.pid_thread.daemon = True
+        self.pid_thread.start()
 
-        while shutter_pv.get() == 0:
-            time.sleep(1)
+    def _do_pid(self):
+        output = None
+        while True:
+            last_output = copy.copy(output)
 
-        if time.time() - log_time > 300:
-            log_time = time.time()
-            log_info = True
-        else:
-            log_info = False
+            if not self.pid_active.is_set():
+                with self.pid_lock:
+                    self.pid.auto_mode = False
 
-        # Do intensity feedback
-        bpm_x_val, bpm_y_val, bpm_int_val = monitor_and_average([bpm_x_pv, bpm_y_pv,
-            bpm_int_pv], 0.5, 0.001)
+                while not self.pid_active.is_set():
+                    time.sleep(0.1)
+                    if self.stop_pid.is_set():
+                        break
 
-        if log_info:
-            logger.info("BPM X, Y, and Intensity target: %s, %s, %s", bpm_x_target,
-                bpm_y_target, bpm_int_target)
-            logger.info("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
-                bpm_y_val, bpm_int_val)
-        else:
-            logger.debug("BPM X, Y, and Intensity target: %s, %s, %s", bpm_x_target,
-                bpm_y_target, bpm_int_target)
-            logger.debug("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
-                bpm_y_val, bpm_int_val)
+                if output is not None:
+                    with self.pid_lock:
+                        # This should maybe be a different last_output value if you
+                        # manually adjust the position while it is disabled?
+                        self.pid.set_auto_mode(True, last_output=output)
 
-        logger.debug("Doing Intensity feedback")
-
-        # bpm_int_target = intensity_feedback(bpm_int_val, bpm_int_target, motor_int,
-        #     bpm_int_pv, 10, 1, 0.02)
-
-        max_int_step = 10
-        min_int_step = 1
-        close_int = 0.03
-
-        bpm_int_target, current_target, bpm_int_x_target, bpm_int_y_target = intensity_feedback(bpm_int_val,
-            bpm_int_target, motor_int, bpm_int_pv, bpm_int_x_target, bpm_x_pv,
-            bpm_int_y_target, bpm_y_pv, current_target, current_pv, min_int_step,
-            max_int_step, close_int)
-
-        bpm_x_val, bpm_y_val, bpm_int_val = monitor_and_average([bpm_x_pv, bpm_y_pv,
-            bpm_int_pv], 0.5, 0.001)
-
-        if log_info:
-            logger.info("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
-                bpm_y_val, bpm_int_val)
-        else:
-            logger.debug("BPM X, Y, and Intensity values: %s, %s, %s", bpm_x_val,
-                bpm_y_val, bpm_int_val)
-
-        # logger.debug("Doing X feedback")
-
-        # # position_feedback(bpm_x_val, bpm_x_target, motor_x, bpm_x_pv, x_step, 1, 50, 0.001)
-        # position_feedback(bpm_x_val, bpm_x_target, motor_x, bpm_x_pv,
-        #     x_step_calibration, 1, 50, 0.001)
-
-        # logger.debug("Doing Y feedback")
-        # # position_feedback(bpm_y_val, bpm_y_target, motor_y, bpm_y_pv, 10, 1, 50, 0.002)
-        # position_feedback(bpm_y_val, bpm_y_target, motor_y, bpm_y_pv,
-        #     y_step_calibration, 1, 50, 0.002)
-
-        if log_info:
-            logger.info('X motor (%s) position: %s', motor_x_name, motor_x.get_position())
-            logger.info('Y motor (%s) position: %s', motor_y_name, motor_y.get_position())
-            logger.info('Intensity motor (%s) position: %s', motor_int_name, motor_int.get_position())
-        else:
-            logger.debug('X motor (%s) position: %s', motor_x_name, motor_x.get_position())
-            logger.debug('Y motor (%s) position: %s', motor_y_name, motor_y.get_position())
-            logger.debug('Intensity motor (%s) position: %s', motor_int_name, motor_int.get_position())
-
-        while time.time() - feedback_start_time < feedback_time:
-            time.sleep(0.01)
-
-        if run_for > 0:
-            if time.time() - run_start > run_for:
+            if self.stop_pid.is_set():
                 break
 
+            y_pos = self.c_hutch_pos_pv.get(timeout=1)
+            intensity = self.c_hutch_int_pv.get(timeout=1)
+
+            if y_pos is not None and intensity is not None:
+                if intensity > 10: # Prevents against chasing no intensity/beam loss
+                    with self.pid_lock:
+                        output = self.pid(y_pos)
+                    self.ao_pv.put(output, wait=True)
+
+                    if last_output != output:
+                        logger.debug('Got %s: %s, setting output to %s V',
+                            self.direction, y_pos, output)
+
+            epics.poll(1e-3)
+
+    def feedback_on(self, on):
+        logger.info('Mono %s position feedback: %s', self.direction, on)
+        if on:
+            if self.fe_shutter_pv.get():
+                self.pid_active.set()
+            self._feedback_active = True
+        else:
+            self.pid_active.clear()
+            self._feedback_active = False
+
+    def feedback_setpoint(self, setpoint):
+        logger.info('Mono %s position feedback setpoint: %s', self.direction, setpoint)
+        with self.pid_lock:
+            self.pid.setpoint = setpoint
+
+    def set_pid(self, P, I, D):
+        logger.info('Mono %s position feedback PID: %s, %s, %s', self.direction, P, I, D)
+        with self.pid_lock:
+            self.pid.tunings = (P, I, D)
+
+    def set_P(self, P):
+        logger.info('Mono %s position feedback P: %s', self.direction, P)
+        with self.pid_lock:
+            self.Kp = P
+
+    def set_I(self, I):
+        logger.info('Mono %s position feedback I: %s', self.direction, I)
+        with self.pid_lock:
+            self.Ki = I
+
+    def set_D(self, D):
+        logger.info('Mono %s position feedback D: %s', self.direction, D)
+        with self.pid_lock:
+            self.Kd = D
+
+    def reset(self):
+        logger.info('Resetting mono %s position feedback', self.direction)
+        self.feedback_on(False)
+
+        with self.pid_lock:
+            self.pid.reset()
+
+    def _on_fe_shutter(self, **kwargs):
+        is_open = kwargs['value']
+
+        if not is_open:
+            logger.info('FE shutter is closed, stopping mono %s position feedback', self.direction)
+            self.pid_active.clear()
+        else:
+            if self._feedback_active:
+                logger.info('FE shutter is open, stopping mono %s position feedback', self.direction)
+                self.pid_active.set()
+
+    def get_position(self):
+        return self.c_hutch_pos_pv.get(timeout=1)
+
+    def stop(self):
+        logger.info('Closing mono %s position feedback control', self.direction)
+        self.stop_pid.set()
+
+        for pv, cbid in self._pv_callbacks:
+            pv.remove_callback(cbid)
+
+        self.pid_thread.join(3)
+
+#Settings
+default_mono_feedback_settings = {
+    'device_init'           : [
+        {'name': 'Mono Tune', 'args': [], 'kwargs': {
+            'output'        : '18ID:USB1608G_2AO_1:Ao1',
+            'c_hutch_pos'   : '18ID:C_Mono_BPM:PosY:MeanValue_RBV',
+            'c_hutch_int'   : '18ID:C_Mono_BPM:SumAll:MeanValue_RBV',
+            'P'             : 1,
+            'I'             : 0.1,
+            'D'             : 0,
+            'sample_time'   : 0.5,
+            }
+        },
+        ], # Compatibility with the standard format
+    'fe_shutter'        : 'PA:18ID:STA_A_FES_OPEN_PL',
+    }
 
 if __name__ == '__main__':
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
-
     h1 = logging.StreamHandler(sys.stdout)
     # h1.setLevel(logging.INFO)
     h1.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    # h1.setLevel(logging.ERROR)
+
+    # formatter = logging.Formatter('%(asctime)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s')
     h1.setFormatter(formatter)
     logger.addHandler(h1)
 
-    app = wx.App()
-    standard_paths = wx.StandardPaths.Get() #Can't do this until you start the wx app
-    info_dir = standard_paths.GetUserLocalDataDir()
-
-    print (info_dir)
-
-    if not os.path.exists(info_dir):
-        os.mkdir(info_dir)
-
-    h2 = handlers.RotatingFileHandler(os.path.join(info_dir, 'mono_feedback.log'), maxBytes=10e6, backupCount=5, delay=True)
-    # h2.setLevel(logging.INFO)
-    h2.setLevel(logging.DEBUG)
-    formatter2 = logging.Formatter('%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s')
-    h2.setFormatter(formatter2)
-    logger.addHandler(h2)
-
-    bpm_x_name = '18ID:BPM:CMono:X'
-    bpm_y_name = '18ID:BPM:CMono:Y'
-    bpm_int_name = '18ID:BPM:CMono:Intensity'
-
-    mono = 'mono2'
-
-    motor_x_name = '{}_x1_chi'.format(mono)
-    motor_y_name = '{}_x2_perp'.format(mono)
-    motor_int_name = '{}_tune'.format(mono)
-
-    shutter_name = 'FE:18:ID:FEshutter'
-    current_name = 'XFD:srCurrent'
+    feedback = PositionFeedback(default_mono_feedback_settings)
+    feedback.feedback_setpoint(feedback.get_position())
+    feedback.feedback_on(True)
 
     try:
-        # First try to get the name from an environment variable.
-        database_filename = os.environ["MXDATABASE"]
-    except:
-        # If the environment variable does not exist, construct
-        # the filename for the default MX database.
-        mxdir = utils.get_mxdir()
-        database_filename = os.path.join(mxdir, "etc", "mxmotor.dat")
-        database_filename = os.path.normpath(database_filename)
-
-    mx_database = mp.setup_database(database_filename)
-    mx_database.set_plot_enable(2)
-    mx_database.set_program_name("mono_feedback")
-
-    run_feedback(bpm_x_name, bpm_y_name, bpm_int_name, motor_x_name,
-        motor_y_name, motor_int_name, mx_database, shutter_name, current_name,
-        run_for=8*3600)
-
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        feedback.stop()

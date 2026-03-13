@@ -29,6 +29,7 @@ import time
 import sys
 import string
 import platform
+import math
 
 import wx
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg
@@ -437,14 +438,19 @@ class FloatSpinCtrl(wx.Panel):
 
         self._never_negative = never_negative
 
+        if self._never_negative:
+            validator = CharValidator('float_te')
+        else:
+            validator = CharValidator('float_neg_te')
+
         if platform.system() != 'Windows':
             self.Scale = wx.TextCtrl(self, -1, initValue,
                 size=self._FromDIP((TextLength,-1)), style=wx.TE_PROCESS_ENTER,
-                validator=CharValidator('float_te'))
+                validator=validator)
         else:
             self.Scale = wx.TextCtrl(self, -1, initValue,
                 size=self._FromDIP((TextLength,22)), style=wx.TE_PROCESS_ENTER,
-                validator=CharValidator('float_te'))
+                validator=validator)
 
         self.Scale.Bind(wx.EVT_KILL_FOCUS, self.OnFocusChange)
         self.Scale.Bind(wx.EVT_TEXT_ENTER, self.OnEnter)
@@ -499,6 +505,11 @@ class FloatSpinCtrl(wx.Panel):
 
         val = self.Scale.GetValue()
         val = val.replace(',', '.')
+
+        try:
+            float(val)
+        except ValueError:
+            return
 
         if self.max is not None:
             if float(val) > self.max:

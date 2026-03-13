@@ -32,6 +32,7 @@ import json
 import collections
 import platform
 import copy
+import logging
 
 import wx
 import wx.aui as aui
@@ -58,6 +59,7 @@ import overview
 import epics_launcher
 import motor_config
 import cameracon
+import monotunecon
 
 
 class MainFrame(wx.Frame):
@@ -100,6 +102,8 @@ class MainFrame(wx.Frame):
             'Motor Channels MEDM'       : epics_launcher.MotorChannelPanel,
             'Motor Channels caQtDM'     : epics_launcher.MotorChannelPanel,
             'Cameras'                   : cameracon.CameraControlPanel,
+            'Mono Piezo Tune'           : monotunecon.MonoTunePanel,
+            'SRS Amplifiers'            : ac.MultiSRSAmpPanel,
             }
 
         self.ctrl_panels = {}
@@ -1492,6 +1496,18 @@ class MyApp(wx.App):
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    h1 = logging.StreamHandler(sys.stdout)
+    h1.setLevel(logging.INFO)
+    # h1.setLevel(logging.DEBUG)
+    # h1.setLevel(logging.ERROR)
+
+    # formatter = logging.Formatter('%(asctime)s - %(message)s')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(threadName)s - %(levelname)s - %(message)s')
+    h1.setFormatter(formatter)
+    logger.addHandler(h1)
+
     setup_thread_excepthook()
 
     app = MyApp(0)   #MyApp(redirect = True)
