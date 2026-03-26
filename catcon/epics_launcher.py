@@ -124,11 +124,19 @@ class EPICSLauncherPanel(wx.Panel):
         scaler_box = wx.StaticBox(parent, label='Scalers')
         struck_button = wx.Button(scaler_box, label='Struck SIS3820')
         joerger_button = wx.Button(scaler_box, label='Joerger')
+        mc_ctr08_1_button = wx.Button(scaler_box, label='MC CTR08 1')
+        mc_ctr08_2_button = wx.Button(scaler_box, label='MC CTR08 2')
 
         struck_button.Bind(wx.EVT_BUTTON, self._on_struck_button)
         joerger_button.Bind(wx.EVT_BUTTON, self._on_joerger_button)
+        mc_ctr08_1_button.Bind(wx.EVT_BUTTON, self._on_mc_ctr08_1_button)
+        mc_ctr08_2_button.Bind(wx.EVT_BUTTON, self._on_mc_ctr08_2_button)
 
         scaler_sizer = wx.StaticBoxSizer(scaler_box, wx.VERTICAL)
+        scaler_sizer.Add(mc_ctr08_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        scaler_sizer.Add(mc_ctr08_2_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
         scaler_sizer.Add(struck_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         scaler_sizer.Add(joerger_button, flag=wx.ALL,
@@ -337,6 +345,12 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_mc_etc_button(self, evt):
         self._start_mc('ETC')
+
+    def _on_mc_ctr08_1_button(self, evt):
+        self._start_mc('USBCTR08_1')
+
+    def _on_mc_ctr08_2_button(self, evt):
+        self._start_mc('USBCTR08_2')
 
     def _start_mc(self, prefix):
         script = self._epics_path / 'start_meascomp_screen.sh'
