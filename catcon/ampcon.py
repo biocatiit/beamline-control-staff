@@ -649,8 +649,8 @@ class MultiSRSAmpPanel(wx.Panel):
             return size
 
     def on_close(self):
-        for pv, cbid in self._pv_callbacks:
-            pv.remove_callback(cbid)
+        for panel in self.amp_panels:
+            panel.on_close()
 
     def _create_layout(self):
         """
@@ -662,7 +662,7 @@ class MultiSRSAmpPanel(wx.Panel):
         num_cols = 2
         amp_grid = wx.FlexGridSizer(cols=num_cols, vgap=self._FromDIP(2),
             hgap=self._FromDIP(2))
-
+        self.amp_panels = []
         for i in range(num_cols):
             amp_grid.AddGrowableCol(i)
 
@@ -672,6 +672,8 @@ class MultiSRSAmpPanel(wx.Panel):
             amp_box_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='{} Controls'.format(amp)))
             amp_box_sizer.Add(amp_panel, flag=wx.ALL, border=self._FromDIP(5))
             amp_grid.Add(amp_box_sizer)
+
+            self.amp_panels.append(amp_panel)
 
         self.SetSizer(amp_grid)
         self.Layout()
