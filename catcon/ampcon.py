@@ -676,30 +676,6 @@ class MultiSRSAmpPanel(wx.Panel):
         self.SetSizer(amp_grid)
         self.Layout()
 
-    @EpicsFunction
-    def _gain_callback(self, **kwargs):
-        wx.CallAfter(self._set_gain_ctrl)
-
-    def _on_gain_ctrl(self, evt):
-        self._set_gain()
-
-    @EpicsFunction
-    def _set_gain_ctrl(self):
-        gval = self.gain_pv.get(as_string=True)
-        uval = self.unit_pv.get(as_string=True)
-
-        gain = self.rev_gain_set_lookup['{}_{}'.format(uval, gval)]
-
-        self.gain_ctrl.SetStringSelection('{:.0E}'.format(gain))
-
-    @EpicsFunction
-    def _set_gain(self):
-        gain = self.gain_ctrl.GetStringSelection()
-
-        uval, gval = self.gain_set_lookup[gain]
-
-        self.gain_pv.put(gval)
-        self.unit_pv.put(uval)
 
 class AmpFrame(wx.Frame):
     """
