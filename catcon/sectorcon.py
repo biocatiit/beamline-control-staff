@@ -91,7 +91,7 @@ class MainFrame(wx.Frame):
                         }
 
         self.custom_ctrl_type = {
-            'Attenuators'               : atten.AttenuatorPanel,
+            'Attenuators'               : atten.AttenuatorPanel2,
             'Ion Chamber Calculator'    : ic_calc.ICCalcPanel,
             'Diamond BPM Calculator'    : dbpm_calc.DBPMCalcPanel,
             'Switch Monos'              : switch_monos.SWMonosPanel,
