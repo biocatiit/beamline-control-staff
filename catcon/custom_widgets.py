@@ -30,8 +30,8 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 import MpWx as mpwx
-import MpCa as mpca
-import MpWxCa as mpwxca
+# import MpCa as mpca
+# import MpWxCa as mpwxca
 
 
 def network_value_callback(nf, widget, args, value):
@@ -97,7 +97,7 @@ class CustomLimitValueEntry(mpwx.ValueEntry):
 
         style = style | wx.TE_PROCESS_ENTER
 
-        super(CustomLimitValueEntry, self).__init__(parent, 
+        super(CustomLimitValueEntry, self).__init__(parent,
             server_record=server_record, field_name=field_name, nf=nf,
         function=function, args=args, id=id, pos=pos,
         size=size, style=style, name=name,
