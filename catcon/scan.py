@@ -38,6 +38,7 @@ import platform
 import glob
 import traceback
 import copy
+import sys
 
 import wx
 import wx.lib.agw.genericmessagedialog as GMD
@@ -56,8 +57,8 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
 
-os.sys.path.append('/usr/local/beamline-control-user/biocon')
-import detectorcon
+sys.path.append('/usr/local/beamline-control-user/biocon')
+import devices
 
 class ScanProcess(multiprocessing.Process):
     """
@@ -348,7 +349,7 @@ class ScanProcess(multiprocessing.Process):
     def _get_detector(self):
         if self.detector is not None:
             if self.detector == 'Eiger2 XE 9M':
-                self.det = detectorcon.EPICSEigerDetector('18ID:EIG2:',
+                self.det = devices.EPICSEigerDetector('18ID:EIG2:',
                     use_tiff_writer=False, use_file_writer=True,
                     photon_energy=12.0, images_per_file=1)
 
@@ -359,7 +360,7 @@ class ScanProcess(multiprocessing.Process):
                 self.srs_trig = self.mx_database.get_record('do_10')
 
             elif self.detector == 'Pilatus3 X 1M':
-                self.det = detectorcon.EPICSPilatusDetector('18IDpil1M:')
+                self.det = devices.EPICSPilatusDetector('18IDpil1M:')
 
                 self.ab_burst = self.mx_database.get_record('ab_burst')
                 self.cd_burst = self.mx_database.get_record('cd_burst')
