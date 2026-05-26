@@ -24,6 +24,7 @@ labjackpath=$base_display_path/LabJackApp/op/ui:$base_display_path/LabJackApp/op
 # apspath=$base_display_path/aps
 apspath=$ADLDIR/screens:$ADLDIR/adlsys:$ADLDIR/screens/adl
 apspath=$apspath:$ADLDIR/sr/fe:$ADLDIR/sr/facilitiesApp
+apspath=$apspath:$ADLDIR/screens/adl/iocs/sr-steering
 #apspath=$apspath:$ADLDIR/sr/psApp:$ADLDIR/screens/adl/systems/sr
 #apspath=$apspath:$ADLDIR/screens/adl/iocs/idctl/adl_Global
 #apspath=$apspath:$ADLDIR/screens/adl/iocs/xsrcpt/:$ADLDIR/sr/pss/adl/
