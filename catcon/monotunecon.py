@@ -814,7 +814,7 @@ default_mono_tune_settings = {
     'fe_shutter_close'  : '18ID:rshtr:A:CLOSE',
     'd_shutter_open'    : '18ID:rshtr:D:OPEN',
     'd_shutter_close'   : '18ID:rshtr:D:CLOSE',
-    'exp_slow_shtr1'    : '18ID:LJT4:2:Bo6',
+    'exp_slow_shtr1'    : '18ID:HUBER1:A1Out',
     }
 
 
