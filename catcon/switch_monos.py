@@ -32,11 +32,12 @@ import time
 import threading
 
 import wx
+import epics
 
 import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 import Mp as mp
-import MpCa as mpca
+# import MpCa as mpca
 import MpWx as mpwx
 import custom_widgets
 
@@ -114,7 +115,7 @@ class SWMonosPanel(wx.Panel):
         self.SetSizer(top_sizer)
 
     def _initialize(self):
-        self.fe_shutter_pv = mpca.PV('FE:18:ID:FEshutter')
+        self.fe_shutter_pv = epics.PV('FE:18:ID:FEshutter')
 
         self.mono1_energy = self.mx_database.get_record('mono1_energy')
         self.mono1_normal_enabled = self.mx_database.get_record('mono1_normal_enabled')
@@ -153,7 +154,7 @@ class SWMonosPanel(wx.Panel):
             t.start()
 
     def check_fe_shutter(self):
-        if self.fe_shutter_pv.caget() == 0:
+        if self.fe_shutter_pv.get() == 0:
             fes = False
         else:
             fes = True
@@ -172,12 +173,12 @@ class SWMonosPanel(wx.Panel):
             if result == wx.ID_CANCEL:
                 break
 
-            if self.fe_shutter_pv.caget() == 0:
+            if self.fe_shutter_pv.get() == 0:
                 fes = False
             else:
                 fes = True
 
-        if self.fe_shutter_pv.caget() == 0:
+        if self.fe_shutter_pv.get() == 0:
             fes = False
         else:
             fes = True

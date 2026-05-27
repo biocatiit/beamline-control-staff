@@ -42,7 +42,7 @@ import utils
 utils.set_mppath() #This must be done before importing any Mp Modules.
 try:
     import Mp as mp
-    import MpCa as mpca
+    # import MpCa as mpca
     import MpWx as mpwx
     import custom_widgets
 except Exception:

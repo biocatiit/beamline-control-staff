@@ -197,12 +197,14 @@ class EPICSLauncherPanel(wx.Panel):
 
         aps_box = wx.StaticBox(parent, label='APS')
         id_button = wx.Button(aps_box, label='Undulator')
+        steer_button = wx.Button(aps_box, label='Steering')
         aps_bpm_button = wx.Button(aps_box, label='APS XBPMs')
         pss_button = wx.Button(aps_box, label='PSS')
         status_button = wx.Button(aps_box, label='SR Status')
         aps_overall_button = wx.Button(aps_box, label='APS Top Level')
 
         id_button.Bind(wx.EVT_BUTTON, self._on_id_button)
+        steer_button.Bind(wx.EVT_BUTTON, self._on_steer_button)
         aps_bpm_button.Bind(wx.EVT_BUTTON, self._on_aps_bpm_button)
         pss_button.Bind(wx.EVT_BUTTON, self._on_pss_button)
         status_button.Bind(wx.EVT_BUTTON, self._on_status_button)
@@ -210,6 +212,8 @@ class EPICSLauncherPanel(wx.Panel):
 
         aps_sizer = wx.StaticBoxSizer(aps_box, wx.VERTICAL)
         aps_sizer.Add(id_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        aps_sizer.Add(steer_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         aps_sizer.Add(aps_bpm_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
@@ -384,6 +388,11 @@ class EPICSLauncherPanel(wx.Panel):
 
     def _on_id_button(self, evt):
         script = self._epics_path / 'start_undulator_screen.sh'
+        cmd = '{}'.format(script)
+        self._start_epics(cmd)
+
+    def _on_steer_button(self, evt):
+        script = self._epics_path / 'start_aps_steering_screen.sh'
         cmd = '{}'.format(script)
         self._start_epics(cmd)
 
