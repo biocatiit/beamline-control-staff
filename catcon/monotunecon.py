@@ -118,6 +118,7 @@ class MonoAutoTune(object):
         return val
 
     def optimize_intensity(self):
+        cur_shutter = self.i0_shutter_pv.get()
         self.ct_time_pv.put(self.settings['optimize_ct_time'], wait=True)
         self.i0_shutter_pv.put(0, wait=True)
         time.sleep(0.1) #Waits for shutter to open
@@ -167,7 +168,7 @@ class MonoAutoTune(object):
             logger.debug('Search improved: %s, V new: %s V, I0 new: %s ct/s',
                 improved, v_best, i_best/self.settings['optimize_ct_time'])
 
-        self.i0_shutter_pv.put(1)
+        self.i0_shutter_pv.put(cur_shutter)
 
         logger.info('Finished optimizing I0 intensity. Final: %s cts/s at %s V',
             i_best/self.settings['optimize_ct_time'], v_best)
