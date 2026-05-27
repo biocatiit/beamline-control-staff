@@ -96,8 +96,8 @@ class ScanProcess(multiprocessing.Process):
         self.motor_name = ''
         self.motor_name2 = ''
 
-        self.shutter1_name = 'do_9'
-        self.shutter2_name =  'do_6'
+        self.shutter1_name = '18ID:LJT4:2:Bo9'
+        self.shutter2_name =  '18ID:HUBER1:A1Out'
 
         self.shutter1 = None
         self.shutter2 = None
@@ -232,19 +232,24 @@ class ScanProcess(multiprocessing.Process):
         thread after the scan
         """
         if self.shutter1 is None:
-            self.shutter1 = self.mx_database.get_record(self.shutter1_name)
-            shutter1_type = self.shutter1.get_field('mx_type')
-            if shutter1_type.startswith('epics'):
-                self.shutter1_is_epics = True
-                pv_name = self.shutter1.get_field('epics_variable_name')
-                self.shutter1_pv = epics.get_pv(pv_name)
+            # self.shutter1 = self.mx_database.get_record(self.shutter1_name)
+            # shutter1_type = self.shutter1.get_field('mx_type')
+            # if shutter1_type.startswith('epics'):
+            #     self.shutter1_is_epics = True
+            #     pv_name = self.shutter1.get_field('epics_variable_name')
+            #     self.shutter1_pv = epics.get_pv(pv_name)
+            self.shutter2_is_epics = True
+            self.shutter2_pv = epics.get_pv(self.shutter2_name)
+
         if self.shutter2 is None:
-            self.shutter2 = self.mx_database.get_record(self.shutter2_name)
-            shutter2_type = self.shutter2.get_field('mx_type')
-            if shutter2_type.startswith('epics'):
-                self.shutter2_is_epics = True
-                pv_name = self.shutter2.get_field('epics_variable_name')
-                self.shutter2_pv = epics.get_pv(pv_name)
+            # self.shutter2 = self.mx_database.get_record(self.shutter2_name)
+            # shutter2_type = self.shutter2.get_field('mx_type')
+            # if shutter2_type.startswith('epics'):
+            #     self.shutter2_is_epics = True
+            #     pv_name = self.shutter2.get_field('epics_variable_name')
+            #     self.shutter2_pv = epics.get_pv(pv_name)
+            self.shutter2_is_epics = True
+            self.shutter2_pv = epics.get_pv(self.shutter2_name)
 
         if self.shutter1_is_epics:
             self.shutter1_pv.put(1, wait=True)
@@ -252,7 +257,7 @@ class ScanProcess(multiprocessing.Process):
             self.shutter1.write(1)
 
         if self.shutter2_is_epics:
-            self.shutter2_pv.put(0, wait=True)
+            self.shutter2_pv.put(1, wait=True)
         else:
             self.shutter2.write(0)
 
