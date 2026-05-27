@@ -151,7 +151,7 @@ class MainStatusPanel(wx.Panel):
             'aps_msg3'          : epics.get_pv('XFD:message15'),
             # 'aps_update_msg'    : epics.get_pv('XFD:message18'),
             'aps_bc_time'       : epics.get_pv('S:SRtimeCP'),
-            'aps_bc_current'    : epics.get_pv('S:SRcurrentCP'),
+            'aps_bc_current'    : epics.get_pv('S:UserOpsCurrent'),
             'rf_bpm_18b_p0'     : epics.get_pv('S18B:P0:MPS:idBPLD:InUse'),
             'rf_bpm_19a_p0'     : epics.get_pv('S19A:P0:MPS:idBPLD:InUse'),
             # 'x_bpm_p1_x'        : epics.get_pv('S18ID:P1:ms:x:InUseBO'),
