@@ -37,7 +37,8 @@ genicampath=$base_display_path/GenICamApp/op/ui:$base_display_path/GenICamApp/op
 ffmpegpath=$base_display_path/ffmpegServerApp/op/ui:$base_display_path/ffmpegServerApp/op/ui/autoconvert
 spinnakerpath=$base_display_path/spinnakerApp/op/ui:$base_display_path/spinnakerApp/op/ui/autoconvert
 ippath=$base_display_path/ipApp/op/ui:$base_display_path/ipApp/op/ui/autoconvert:$base_display_path/ipApp/op/ui/Synaccess_netbooster
-asynpath=$base_display_path/asynApp/op/ui:$base_display_path/asynApp/op/ui/autoconvert:$base_display_path/ipApp/op/ui/Synaccess_netbooster
+asynpath=$base_display_path/asynApp/op/ui:$base_display_path/asynApp/op/ui/autoconvert
+autosavepath=$base_display_path/asApp/op/ui:$base_display_path/asApp/op/ui/autoconvert
 
 
 CAQTDM_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
@@ -46,6 +47,7 @@ CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$pilatuspath:$labjackpath:$apspath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$meascomppath:$opticspath:$newportpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$spinnakerpath:$ippath:$asynpath
+CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$autosavepath
 
 export CAQTDM_DISPLAY_PATH
 # echo $CAQTDM_DISPLAY_PATH
