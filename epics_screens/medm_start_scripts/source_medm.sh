@@ -33,6 +33,7 @@ ffmpegpath=$base_display_path/ffmpegServerApp/op/adl
 spinnakerpath=$base_display_path/spinnakerApp/op/adl
 ippath=$base_display_path/ipApp/op/adl
 asynpath=$base_display_path/asynApp/op/adl
+autosavepath=$base_display_path/asApp/op/adl
 
 
 EPICS_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
@@ -41,6 +42,7 @@ EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$pilatuspath:$labjackpath:$apspath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$meascomppath:$opticspath:$newportpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
 EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$spinnakerpath:$ippath:$asynpath
+EPICS_DISPLAY_PATH=$EPICS_DISPLAY_PATH:$autosavepath
 
 export EPICS_DISPLAY_PATH
 
