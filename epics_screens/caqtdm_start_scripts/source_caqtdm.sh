@@ -5,7 +5,9 @@ for i in $(seq ${CONDA_SHLVL}); do
     eval "conda deactivate"
 done
 
-source /usr/local/source_epics.sh
+if [[ -f "/usr/local/source_epics.sh" ]]; then
+    source /usr/local/source_epics.sh
+fi
 
 base_display_path="/usr/local/beamline-control-staff/epics_screens/displays"
 export ADLDIR=/APSshare/adlsys

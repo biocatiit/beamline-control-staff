@@ -2298,7 +2298,7 @@ QWidget#centralWidget {background: rgba(187, 187, 187, 255);}
       <string>galil_profileMove.ui </string>
      </property>
      <property name="args">
-      <string>P=$(DMC),TITLE=Galil profile, R=Prof1:, M1=A, M2=B, M3=C, M4=D, M5=E, M6=F, M7=G, M8=H</string>
+      <string>P=$(DMC),TITLE=Galil profile, R=Prof1:, M1=$(M1), M2=$(M2), M3=$(M3), M4=$(M4), M5=$(M5), M6=$(M6), M7=$(M7), M8=$(M8)</string>
      </property>
      <property name="stackingMode" stdset="0">
       <enum>caRowColMenu::Menu</enum>
