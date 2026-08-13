@@ -513,6 +513,8 @@ class EPICSLauncherPanel(wx.Panel):
 class MotorChannelPanel(wx.Panel):
     def __init__(self, name, mx_database, *args, **kwargs):
 
+        USE_C_MOTORS = True
+
         panel_name = ' '.join(name.split(' ')[:-1])
 
         wx.Panel.__init__(self, *args, name=panel_name, **kwargs)
@@ -537,6 +539,11 @@ class MotorChannelPanel(wx.Panel):
             ('18ID_DMC_E05:', 33, 40, ''),
             ('18ID_DMC_A01:', 1, 8, 'A'),
             ]
+
+        if USE_C_MOTORS:
+            self._channels.append(('18ID_DMC_E06:', 1, 8, 'C'))
+            self._channels.append(('18ID_DMC_E07:', 9, 16, 'C'))
+            self._channels.append(('18ID_DMC_E08:', 17, 24, 'C'))
 
         self._channel_show = {}
 

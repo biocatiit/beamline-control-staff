@@ -20,6 +20,8 @@ class MotorConfigPanel(wx.Panel):
         super(MotorConfigPanel, self).__init__(*args, name=name, **kwargs)
         logger.debug('Setting up the MotorConfigPanel')
 
+        SHOW_C_MOTORS = True
+
         self.settings = {
             'motors'    : [
                             ['18ID_DMC_E01:', 1, 8],
@@ -31,6 +33,11 @@ class MotorConfigPanel(wx.Panel):
                             ],
             'load_pref' : '18ID' #string key all PVs in the config files are expected to start with
             }
+
+        if SHOW_C_MOTORS:
+            self.settings['motors'].append(['18ID_DMC_E06:C', 1, 8])
+            self.settings['motors'].append(['18ID_DMC_E07:C', 9, 16])
+            self.settings['motors'].append(['18ID_DMC_E08:C', 17, 24])
 
         self._base_path = pathlib.Path(__file__).parent.resolve().parent / 'motor_save_restore'
         self._last_path = self._base_path / 'motor_configs'
