@@ -91,6 +91,8 @@ class EPICSLauncherPanel(wx.Panel):
         mc_1608G_2ao_1_button = wx.Button(io_box, label='MC 1608G 2AO 1')
         mc_e1608_button = wx.Button(io_box, label='MC E-1608')
         mc_etc_1_button = wx.Button(io_box, label='MC E-TC')
+        dg645_1_button = wx.Button(io_box, label='SRS DG645 1')
+        dg645_2_button = wx.Button(io_box, label='SRS DG645 1')
 
         labjack1_button.Bind(wx.EVT_BUTTON, self._on_labjack1_button)
         labjack2_button.Bind(wx.EVT_BUTTON, self._on_labjack2_button)
@@ -101,6 +103,9 @@ class EPICSLauncherPanel(wx.Panel):
         mc_1608G_2ao_1_button.Bind(wx.EVT_BUTTON, self._on_mc_1608g_2ao_1_button)
         mc_e1608_button.Bind(wx.EVT_BUTTON, self._on_mc_e1608_button)
         mc_etc_1_button.Bind(wx.EVT_BUTTON, self._on_mc_etc_button)
+
+        dg645_1_button.Bind(wx.EVT_BUTTON, self._on_dg645_1_button)
+        dg645_2_button.Bind(wx.EVT_BUTTON, self._on_dg645_2_button)
 
         io_sizer = wx.StaticBoxSizer(io_box, wx.VERTICAL)
         io_sizer.Add(labjack1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -117,7 +122,11 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
         io_sizer.Add(mc_e1608_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        io_sizer.Add(mc_etc_1_button, flag=wx.ALL,
+        io_sizer.Add(mc_etc_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(dg645_1_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        io_sizer.Add(dg645_2_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -189,7 +198,7 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_e04_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        motor_sizer.Add(dmc_e05_button, flag=wx.ALL,
+        motor_sizer.Add(dmc_e05_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_a01_button, flag=wx.ALL,
             border=self._FromDIP(5))
@@ -359,6 +368,17 @@ class EPICSLauncherPanel(wx.Panel):
     def _start_mc(self, prefix):
         script = self._epics_path / 'start_meascomp_screen.sh'
         cmd = '{} {}'.format(script, prefix)
+        self._start_epics(cmd)
+
+    def _on_dg645_1_button(self, evt):
+        self._start_dg645(1)
+
+    def _on_dg645_2_button(self, evt):
+        self._start_dg645(2)
+
+    def _start_dg645(self, num):
+        script = self._epics_path / 'start_dg645_screen.sh'
+        cmd = '{} {}'.format(script, num)
         self._start_epics(cmd)
 
     def _on_struck_button(self, evt):
