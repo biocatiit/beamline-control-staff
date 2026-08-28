@@ -92,7 +92,7 @@ class EPICSLauncherPanel(wx.Panel):
         mc_e1608_button = wx.Button(io_box, label='MC E-1608')
         mc_etc_1_button = wx.Button(io_box, label='MC E-TC')
         dg645_1_button = wx.Button(io_box, label='SRS DG645 1')
-        dg645_2_button = wx.Button(io_box, label='SRS DG645 1')
+        dg645_2_button = wx.Button(io_box, label='SRS DG645 2')
 
         labjack1_button.Bind(wx.EVT_BUTTON, self._on_labjack1_button)
         labjack2_button.Bind(wx.EVT_BUTTON, self._on_labjack2_button)
