@@ -32,14 +32,14 @@ import wx.lib.ogl as ogl
 import epics, epics.wx
 from epics.wx.wxlib import EpicsFunction
 
-import scancon
-import custom_widgets
+# import scancon
+# import custom_widgets
 import custom_epics_widgets
 import utils
-utils.set_mppath() #This must be done before importing any Mp Modules.
-import Mp as mp
-# import MpCa as mpca
-import MpWx as mpwx
+# utils.set_mppath() #This must be done before importing any Mp Modules.
+# import Mp as mp
+# # import MpCa as mpca
+# import MpWx as mpwx
 
 
 class MotorPanel(wx.Panel):
@@ -613,6 +613,925 @@ class MotorPanel(wx.Panel):
         if self.epics_motor is not None:
             wx.CallAfter(epics.wx.motordetailframe.MotorDetailFrame, parent=self, motor=self.epics_motor)
 
+class Motor(object):
+    """
+    """
+
+    def __init__(self, device, name):
+        """
+        """
+
+        self.device = device
+        self.name = name
+
+    def __repr__(self):
+        return '{}({}, {})'.format(self.__class__.__name__, self.name, self.device)
+
+    def __str__(self):
+        return '{} {}, connected to {}'.format(self.__class__.__name__, self.name, self.device)
+
+    @property
+    def position(self):
+        """
+        Sets and returns the pump flow rate in units specified by ``Pump.units``.
+        Can be set while the pump is moving, and it will update the flow rate
+        appropriately.
+
+        :type: float
+        """
+        pass #Should be implimented in each subclass
+
+    @position.setter
+    def position(self, position):
+        pass #Should be implimented in each subclass
+
+    @property
+    def units(self):
+        """
+        Sets and returns the pump flow rate units. This can be set to:
+        nL/s, nL/min, uL/s, uL/min, mL/s, mL/min. Changing units keeps the
+        flow rate constant, i.e. if the flow rate was set to 100 uL/min, and
+        the units are changed to mL/min, the flow rate is set to 0.1 mL/min.
+
+        :type: str
+        """
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        old_units = self._units
+
+        if units in ['um/s', 'um/min', 'mm/s', 'mm/min', 'm/s', 'm/min']:
+            self._units = units
+            old_vu, old_tu = old_units.split('/')
+            new_vu, new_tu = self._units.split('/')
+            if old_vu != new_vu:
+                if (old_vu == 'um' and new_vu == 'mm') or (old_vu == 'mm' and new_vu == 'm'):
+                    self._scale = self._scale/1000.
+                elif old_vu == 'um' and new_vu == 'm':
+                    self._scale = self._scale/1000000.
+                elif (old_vu == 'm' and new_vu == 'mm') or (old_vu == 'mm' and new_vu == 'um'):
+                    self._scale = self._scale*1000.
+                elif old_vu == 'm' and new_vu == 'um':
+                    self._scale = self._scale*1000000.
+            if old_tu != new_tu:
+                if old_tu == 'min':
+                    self._scale = self._scale/60
+                else:
+                    self._scale = self._scale*60
+
+            logger.info("Changed motor %s units from %s to %s", self.name, old_units, units)
+        else:
+            logger.warning("Failed to change motor %s units, units supplied were invalid: %s", self.name, units)
+
+
+    def send_cmd(self, cmd, get_response=True):
+        """
+        Sends a command to the pump.
+
+        :param cmd: The command to send to the pump.
+
+        :param get_response: Whether the program should get a response from the pump
+        :type get_response: bool
+        """
+        pass #Should be implimented in each subclass
+
+
+    def is_moving(self):
+        """
+        Queries the pump about whether or not it's moving.
+
+        :returns: True if the pump is moving, False otherwise
+        :rtype: bool
+        """
+        pass #Should be implimented in each subclass
+
+    def move_relative(self):
+        pass #Should be implimented in each subclass
+
+    def move_absolute(self):
+        pass #Should be implimented in each subclass
+
+    def home(self):
+        pass #should be implimented in each subclass
+
+    def get_high_limit(self):
+        pass #should be implimented in each subclass
+
+    def set_high_limit(self, limit):
+        pass
+
+    def get_low_limit(self):
+        pass #should be implimented in each subclass
+
+    def set_low_limit(self, limit):
+        pass
+
+    def get_limits(self):
+        pass
+
+    def set_limits(self, low_lim, high_lim):
+        pass
+
+    def get_velocity(self):
+        pass #should be implimented in each subclass
+
+    def set_velocity(self, velocity):
+        pass
+
+    def get_acceleration(self):
+        pass #should be implimented in each subclass
+
+    def set_acceleration(self, acceleration):
+        pass
+
+    def stop(self):
+        """Stops all pump flow."""
+        pass #Should be implimented in each subclass
+
+    def disconnect(self):
+        """Close any communication connections"""
+        pass #Should be implimented in each subclass
+
+
+class EpicsMotor(Motor):
+    """
+    """
+
+    def __init__(self, name, epics_pv):
+        """
+        """
+
+        Motor.__init__(self, epics_pv, name)
+
+        self.epics_motor = epics.Motor(epics_pv)
+
+        self._offset = 0.
+        self._scale = 1.
+        self._units = 'mm/s'
+
+    @property
+    def position(self):
+        pos = self.epics_motor.get_position()
+        return float(pos)
+
+    @position.setter
+    def position(self, position):
+        self.epics_motor.set_position(position)
+
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        old_units = self._units
+
+        if units in ['um/s', 'um/min', 'mm/s', 'mm/min', 'm/s', 'm/min']:
+            self._units = units
+            old_vu, old_tu = old_units.split('/')
+            new_vu, new_tu = self._units.split('/')
+            if old_vu != new_vu:
+                if (old_vu == 'um' and new_vu == 'mm') or (old_vu == 'mm' and new_vu == 'm'):
+                    self._scale = self._scale/1000.
+                elif old_vu == 'um' and new_vu == 'm':
+                    self._scale = self._scale/1000000.
+                elif (old_vu == 'm' and new_vu == 'mm') or (old_vu == 'mm' and new_vu == 'um'):
+                    self._scale = self._scale*1000.
+                elif old_vu == 'm' and new_vu == 'um':
+                    self._scale = self._scale*1000000.
+            if old_tu != new_tu:
+                if old_tu == 'min':
+                    self._scale = self._scale/60
+                else:
+                    self._scale = self._scale*60
+
+            logger.info("Changed motor %s units from %s to %s", self.name, old_units, units)
+        else:
+            logger.warning("Failed to change motor %s units, units supplied were invalid: %s",
+                self.name, units)
+
+    def get_pv(self, name):
+        return self.epics_motor.get_pv(name)
+
+    def send_cmd(self, cmd, get_response=True):
+        pass #Should be implimented in each subclass
+
+
+    def is_moving(self):
+        """
+        Queries the pump about whether or not it's moving.
+
+        :returns: True if the pump is moving, False otherwise
+        :rtype: bool
+        """
+        mov = not self.epics_motor.get('done_moving')
+        return mov
+
+    def move_relative(self, displacement, wait=False):
+        self.epics_motor.move(displacement, relative=True, wait=wait)
+
+    def move_absolute(self, position, wait=False):
+        self.epics_motor.move(position, wait=wait)
+
+    def home(self):
+        pass #should be implimented in each subclass
+
+    def get_high_limit(self):
+        hlim = self.epics_motor.get('high_limit')
+        return float(hlim)
+
+    def set_high_limit(self, limit):
+        self.epics_motor.put('high_limit', limit)
+
+    def get_low_limit(self):
+        llim = self.epics_motor.get('low_limit')
+        return float(llim)
+
+    def set_low_limit(self, limit):
+        self.epics_motor.put('low_limit', limit)
+
+    def get_limits(self):
+        llim = self.get_low_limit()
+        hlim = self.get_high_limit()
+        return llim, hlim
+
+    def set_limits(self, low_lim, high_lim):
+        self.set_low_limit(low_lim)
+        self.set_high_limit(high_lim)
+
+    def get_velocity(self):
+        speed = self.epics_motor.get('slew_speed')
+        return speed
+
+    def set_velocity(self, velocity):
+        self.epics_motor.put('slew_speed', velocity)
+
+    def get_acceleration(self):
+        accel_time = self.epics_motor.get('acceleration')
+        speed = self.get_velocity()
+        return speed/accel_time
+
+    def set_acceleration(self, acceleration):
+        speed = self.get_velocity()
+        accel_time = speed/acceleration
+        self.epics_motor.put('acceleration', accel_time)
+        return accel_time
+
+    def set_jog_speed(self, val):
+        self.epics_motor.put('jog_speed', val)
+
+    def jog(self, direction, start):
+        if start:
+            val = 1
+        else:
+            val = 0
+
+        if direction == 'positive':
+            self.epics_motor.put('jog_forward', val)
+        else:
+            self.epics_motor.put('jog_reverse', val)
+
+    def on_limits(self):
+        on_hlm = self.epics_motor.get('high_limit_set')
+        on_llm = self.epics_motor.get('low_limit_set')
+
+        return on_llm, on_hlm
+
+    def on_high_limit(self):
+        on_hlm = self.epics_motor.get('high_limit_set')
+
+        return on_hlm
+
+    def on_low_limit(self):
+        on_llm = self.epics_motor.get('low_limit_set')
+
+        return on_llm
+
+    def stop(self):
+        self.epics_motor.stop()
+
+    def disconnect(self):
+        """Close any communication connections"""
+        pass #Should be implimented in each subclass
+
+
+class EpicsMXMotorPanel(wx.Panel):
+    """
+    Motor panel from the beamline staff controls (sectorcon) motorcon.py,
+    with slight modifications to not require an MX database
+    """
+    def __init__(self, motor_name, mx_database=None, *args, **kwargs):
+        """
+        Initializes the custom panel. Important parameters here are the
+        ``motor_name``, and the ``mx_database``.
+
+        :param str motor_name: The motor name in the Mx database.
+
+        :param Mp.RecordList mx_database: The database instance from Mp.
+
+        :param wx.Window parent: Parent class for the panel.
+
+        :param int panel_id: wx ID for the panel.
+
+        :param str panel_name: Name for the panel.
+        """
+        wx.Panel.__init__(self, *args, **kwargs)
+        self.mx_database = mx_database
+        self.motor_name = motor_name
+        self._enabled = True
+        self.scan_frame = None
+        self.is_slit_mtr = False
+
+        font = self.GetFont()
+        self.vert_size = font.GetPixelSize()[1]+5
+
+        if self.mx_database is not None:
+            self.motor = self.mx_database.get_record(self.motor_name)
+            self.mtr_type = self.motor.get_field('mx_type')
+            self.scale = float(self.motor.get_field('scale'))
+            self.offset = float(self.motor.get_field('offset'))
+
+            # if platform.system() == 'Darwin':
+            #     font = self.GetFont()
+            # else:
+            #     font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+            # # self.SetFont(font)
+
+
+            self.is_epics = False
+
+            self.epics_motor = None
+
+            if self.mtr_type == 'epics_motor':
+                self.is_epics = True
+
+                self.epics_pv_name = self.motor.get_field('epics_record_name')
+
+        else:
+            self.is_epics = True
+            self.epics_pv_name = motor_name
+            self.scale = 1
+            self.offset = 0
+            self.mtr_type = 'epics_motor'
+
+        if self.is_epics:
+
+            self.epics_motor = epics.Motor(self.epics_pv_name)
+
+            self.pos_pv = self.epics_motor.PV('RBV')
+
+            if self.scale > 0:
+                nlimit = "LLM"
+                plimit = "HLM"
+            else:
+                nlimit = "HLM"
+                plimit = "LLM"
+
+            self.nlimit_pv = self.epics_motor.PV(nlimit)
+            self.plimit_pv = self.epics_motor.PV(plimit)
+
+            self.hls_pv = self.epics_motor.PV('HLS')
+            self.lls_pv = self.epics_motor.PV('LLS')
+
+            self.set_pv = self.epics_motor.PV('SET')
+
+            self.pos_pv.get()
+            self.nlimit_pv.get()
+            self.plimit_pv.get()
+            self.set_pv.get()
+            self.hls_pv.get()
+            self.lls_pv.get()
+
+            self.epics_motor.add_callback('LVIO', self._on_epics_soft_limit)
+            self.epics_motor.add_callback('HLS', self._on_epics_hard_limit)
+            self.epics_motor.add_callback('LLS', self._on_epics_hard_limit)
+            # self.epics_motor.add_callback('SPMG', self._on_epics_disable)
+
+        if self.mtr_type == 'network_motor':
+            self.server_record_name = self.motor.get_field('server_record')
+            self.remote_record_name = self.motor.get_field('remote_record_name')
+            self.server_record = self.mx_database.get_record(self.server_record_name)
+
+            self.remote_offset = mp.Net(self.server_record, '{}.offset'.format(self.remote_record_name))
+            self.remote_scale = mp.Net(self.server_record, '{}.scale'.format(self.remote_record_name))
+
+            remote_type_name = '{}.mx_type'.format(self.remote_record_name)
+            remote_type = mp.Net(self.server_record, remote_type_name)
+
+            slit_names = ['jjc_v', 'jjc_h', 'jj1v', 'jj1h', 'xenocsv',
+                'xenocsh', 'xenocs_colv', 'xenocs_colh', 'wbv', 'wbh']
+
+            # r_type = remote_type.get()
+            # print(r_type)
+            # try:
+            #     str(r_type)
+            # except Exception:
+            #     r_type = ''
+
+            #if r_type == 'slit_motor':
+            #    self.is_slit_mtr = True
+
+            for name in slit_names:
+                if self.remote_record_name.startswith(name):
+                    self.is_slit_mtr =  True
+                    break
+
+        top_sizer = self._create_layout()
+
+        if self.is_epics:
+            self._on_epics_hard_limit(1)
+
+        self.SetSizer(top_sizer)
+
+    def on_close(self):
+        if self.is_epics:
+            self.epics_motor.clear_callback('LVIO')
+            self.epics_motor.clear_callback('HLS')
+            self.epics_motor.clear_callback('LLS')
+
+    def _FromDIP(self, size):
+        # This is a hack to provide easy back compatibility with wxpython < 4.1
+        try:
+            return self.FromDIP(size)
+        except Exception:
+            return size
+
+    def _create_layout(self):
+        """
+        Creates the layout for the panel.
+
+        :returns: wx Sizer for the panel.
+        :rtype: wx.Sizer
+        """
+        if self.mtr_type == 'network_motor':
+            pos_name = "{}.position".format(self.remote_record_name)
+            pos = mpwx.Value(self, self.server_record, pos_name,
+                function=custom_widgets.network_value_callback, args=(self.scale,
+                    self.offset))
+
+            if self.scale*self.remote_scale.get() > 0:
+                nlimit = "{}.raw_negative_limit".format(self.remote_record_name)
+                plimit = "{}.raw_positive_limit".format(self.remote_record_name)
+            else:
+                nlimit = "{}.raw_positive_limit".format(self.remote_record_name)
+                plimit = "{}.raw_negative_limit".format(self.remote_record_name)
+
+            self.low_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, nlimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(),
+                    self.remote_offset.get()),
+                validator=utils.CharValidator('float_neg_te'),
+                )
+
+            self.high_limit = custom_widgets.CustomLimitValueEntry(self,
+                self.server_record, plimit,
+                function=custom_widgets.limit_network_value_callback,
+                args=(self.scale, self.offset, self.remote_scale.get(),
+                    self.remote_offset.get()),
+                validator=utils.CharValidator('float_neg_te'),
+                )
+
+            mname = wx.StaticText(self, label=self.motor.name)
+
+        elif self.is_epics:
+            pos = custom_epics_widgets.PVTextLabeled(self, self.pos_pv, scale=self.scale,
+                offset=self.offset, size=self._FromDIP((50, -1)))
+            self.low_limit = custom_epics_widgets.PVTextCtrl2(self, self.nlimit_pv,
+                dirty_timeout=None, scale=self.scale, offset=self.offset,
+                validator=utils.CharValidator('float_neg_te'), size=self._FromDIP((50, -1)))
+            self.high_limit = custom_epics_widgets.PVTextCtrl2(self, self.plimit_pv,
+                dirty_timeout=None, scale=self.scale, offset=self.offset,
+                validator=utils.CharValidator('float_neg_te'), size=self._FromDIP((50, -1)))
+
+            lim_indc = wx.Image(os.path.join('.', 'resources', 'red_circle.png'))
+            lim_indc.Rescale(self._FromDIP(20), self._FromDIP(20))
+            self.ll_indc = wx.StaticBitmap(self, bitmap=lim_indc.ConvertToBitmap())
+            self.hl_indc = wx.StaticBitmap(self, bitmap=lim_indc.ConvertToBitmap())
+
+            mpv = wx.StaticText(self, label='{}'.format(self.epics_pv_name))
+
+            # print(self.epics_motor.get_pv('description'))
+            mname = epics.wx.PVText(self, self.epics_motor.get_pv('DESC'))
+
+        status_grid = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
+            hgap=self._FromDIP(5))
+        status_grid.Add(wx.StaticText(self, label='Motor PV:'))
+        status_grid.Add(mpv, flag=wx.EXPAND)
+        status_grid.Add(wx.StaticText(self, label='Motor name:'))
+        status_grid.Add(mname, flag=wx.EXPAND)
+        status_grid.AddGrowableCol(1)
+
+        status_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
+            wx.VERTICAL)
+        status_sizer.Add(status_grid, 1, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(2))
+
+        self.pos_ctrl = wx.TextCtrl(self, value='',
+            size=self._FromDIP((50,self.vert_size)),
+            validator=utils.CharValidator('float_neg'))
+        self.mrel_ctrl = wx.TextCtrl(self, value='1.0',
+            size=self._FromDIP((50,self.vert_size)),
+            validator=utils.CharValidator('float_neg'))
+
+        # move_btn = wx.Button(self, label='Move', size=(50, self.vert_size), style=wx.BU_EXACTFIT)
+        move_btn = buttons.ThemedGenButton(self, label='Move',
+            size=self._FromDIP((-1, self.vert_size)), style=wx.BU_EXACTFIT)
+        move_btn.Bind(wx.EVT_BUTTON, self._on_moveto)
+        set_btn = buttons.ThemedGenButton(self, label='Set',
+            size=self._FromDIP((-1, self.vert_size)), style=wx.BU_EXACTFIT)
+        set_btn.Bind(wx.EVT_BUTTON, self._on_setto)
+
+        tp_btn = buttons.ThemedGenButton(self, label='+ >',
+            size=self._FromDIP((-1, self.vert_size)), style=wx.BU_EXACTFIT,
+            name='rel_move_plus')
+        tm_btn = buttons.ThemedGenButton(self, label='< -',
+            size=self._FromDIP((-1, self.vert_size)), style=wx.BU_EXACTFIT,
+            name='rel_move_minus')
+        tp_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
+        tm_btn.Bind(wx.EVT_BUTTON, self._on_mrel)
+
+        stop_btn = buttons.ThemedGenButton(self, label='Abort',
+            size=self._FromDIP((-1,self.vert_size)), style=wx.BU_EXACTFIT)
+        stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
+
+        # scan_btn = buttons.ThemedGenButton(self, label='Scan', size=(-1, self.vert_size), style=wx.BU_EXACTFIT)
+        # scan_btn.Bind(wx.EVT_BUTTON, self._on_scan)
+
+        if self.is_epics:
+            more_btn = buttons.ThemedGenButton(self, label='More',
+                size=(-1,self.vert_size), style=wx.BU_EXACTFIT)
+            more_btn.Bind(wx.EVT_BUTTON, self._on_more)
+
+        self.pos_sizer = wx.FlexGridSizer(vgap=self._FromDIP(2),
+            hgap=self._FromDIP(2), cols=7)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(wx.StaticText(self, label='Low lim.'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        if self.mtr_type == 'network_motor':
+            self.pos_sizer.Add(wx.StaticText(self, label='Pos. ({})'.format(
+                self.motor.get_field('units'))), flag=wx.ALIGN_CENTER_VERTICAL)
+        else:
+            self.pos_sizer.Add(wx.StaticText(self, label='Pos. ({})'.format(
+                self.epics_motor.get('units'))), flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(wx.StaticText(self, label='High lim.'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        self.pos_sizer.Add((1,1))
+        if self.is_epics:
+            self.pos_sizer.Add(self.ll_indc,
+                flag=wx.ALIGN_CENTER_VERTICAL|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        else:
+            self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(self.low_limit,
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(pos, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
+        self.pos_sizer.Add((1,1))
+        self.pos_sizer.Add(self.high_limit,
+            flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
+        if self.is_epics:
+            self.pos_sizer.Add(self.hl_indc,
+                flag=wx.ALIGN_CENTER_VERTICAL|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        else:
+            self.pos_sizer.Add((1,1))
+        self.pos_sizer.AddGrowableCol(1)
+        self.pos_sizer.AddGrowableCol(3)
+        self.pos_sizer.AddGrowableCol(5)
+
+        if self.is_epics:
+            self.pos_sizer.Hide(self.ll_indc)
+            self.pos_sizer.Hide(self.hl_indc)
+
+        mabs_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mabs_sizer.Add(wx.StaticText(self, label='Position:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(self.pos_ctrl, 1, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(move_btn, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mabs_sizer.Add(set_btn, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+
+        mrel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        mrel_sizer.Add(wx.StaticText(self, label='Rel. Move:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(tm_btn, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(self.mrel_ctrl, 1, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+        mrel_sizer.Add(tp_btn, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
+
+        ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # ctrl_btn_sizer.Add(scan_btn, flag=wx.ALIGN_LEFT)
+        if self.is_epics:
+            ctrl_btn_sizer.Add(more_btn, flag=wx.ALIGN_LEFT)
+        ctrl_btn_sizer.AddStretchSpacer(1)
+        ctrl_btn_sizer.Add(stop_btn, border=self._FromDIP(5), flag=wx.LEFT)
+
+
+        control_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Controls'),
+            wx.VERTICAL)
+        control_sizer.Add(self.pos_sizer, border=self._FromDIP(2),
+            flag=wx.EXPAND|wx.ALL)
+        control_sizer.Add(mabs_sizer, border=self._FromDIP(2),
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM)
+        control_sizer.Add(mrel_sizer, border=self._FromDIP(2),
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM)
+        control_sizer.Add(wx.StaticLine(self), border=self._FromDIP(10),
+            flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM)
+        control_sizer.Add(ctrl_btn_sizer, border=self._FromDIP(2),
+            flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.EXPAND)
+
+        top_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer.Add(status_sizer, flag=wx.EXPAND)
+        top_sizer.Add(control_sizer, border=self._FromDIP(2),
+            flag=wx.EXPAND|wx.TOP)
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+        for item in self.GetChildren():
+            if ((isinstance(item, wx.StaticText) or isinstance(item, wx.StaticBox))
+                and not (isinstance(item, custom_epics_widgets.PVTextLabeled)
+                or isinstance(item, custom_epics_widgets.PVTextCtrl2))
+                ):
+                item.Bind(wx.EVT_RIGHT_DOWN, self._on_rightclick)
+
+
+
+        return top_sizer
+
+    def _on_moveto(self, evt):
+        """
+        Called when the user requests an absolute move by pressing the
+        "Move to" button.
+        """
+        pval = self.pos_ctrl.GetValue()
+
+        if self._is_num(pval):
+            pval = float(pval)
+
+            if self.is_epics:
+                wx.CallAfter(self._move_epics_position, pval)
+
+            else:
+                try:
+                    self.motor.move_absolute(pval)
+                except mp.Would_Exceed_Limit_Error as e:
+                    msg = str(e)
+                    msg1, msg2 = msg.split('to')
+                    pos, msg2 = msg2.split('would')
+                    msg2 = msg2.split('limit')[0]
+
+                    pos = float(pos.split()[0].strip())
+                    pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                    pos = pos*self.scale + self.offset
+
+                    msg = msg1 + ' {} '.format(pos) + msg2 + 'limit.'
+                    wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+        else:
+            msg = 'Position has to be numeric.'
+            wx.CallAfter(wx.MessageBox, msg, 'Error moving motor')
+
+    @EpicsFunction
+    def _move_epics_position(self, pval):
+        pval = (float(pval) - self.offset)*self.scale
+        self.epics_motor.put('SET', 0, wait=True)
+        self.epics_motor.move(pval)
+
+    def _on_setto(self, evt):
+        """
+        Called when the user requests to set the motor position by pressing the
+        "Set to" button.
+        """
+        pval = self.pos_ctrl.GetValue()
+
+        if self._is_num(pval):
+            pval = float(pval)
+        else:
+            msg = 'Position has to be numeric.'
+            wx.MessageBox(msg, 'Error setting position')
+            return
+
+        if self.is_epics:
+            wx.CallAfter(self._set_epics_position, pval)
+
+        else:
+            current_pos = float(self.motor.get_position())
+
+            if self.is_slit_mtr:
+                remote_offset = float(self.remote_offset.get())
+
+                remote_current_pos = (current_pos-self.offset)/self.scale
+                remote_target_pos = (pval-self.offset)/self.scale
+
+                delta =  remote_target_pos - remote_current_pos
+                new_remote_offset = remote_offset + delta
+
+                self.remote_offset.put(new_remote_offset)
+
+            else:
+                self.motor.set_position(pval)
+
+            if self.mtr_type == 'network_motor':
+                pos_change = pval - current_pos
+
+                low_lim = float(self.low_limit.GetValue())
+                new_low_lim = low_lim + pos_change
+
+                high_lim = float(self.high_limit.GetValue())
+                new_high_lim = high_lim + pos_change
+
+                self.low_limit.SetValue(str(new_low_lim))
+                self.high_limit.SetValue(str(new_high_lim))
+
+                self.low_limit.OnEnter(None)
+                self.high_limit.OnEnter(None)
+
+        return
+
+    @EpicsFunction
+    def _set_epics_position(self, pval):
+        pval = (float(pval) - self.offset)*self.scale
+        self.epics_motor.set_position(pval)
+
+    def _on_mrel(self, evt):
+        """
+        Called when the user requests a relative move by pressing the
+        "Step +" or "Step -" button.
+        """
+        pval = self.mrel_ctrl.GetValue()
+
+        if self._is_num(pval):
+            btn = evt.GetEventObject().GetName()
+
+            if btn == 'rel_move_plus':
+                mult = 1
+            else:
+                mult = -1
+
+            if self.is_epics:
+                wx.CallAfter(self._tweak_epics_position, pval, mult)
+
+            else:
+                pval = mult*float(pval)
+
+                try:
+                    self.motor.move_relative(pval)
+                except mp.Would_Exceed_Limit_Error as e:
+                    msg = str(e)
+                    msg1, msg2 = msg.split('to')
+                    pos, msg2 = msg2.split('would')
+                    msg2 = msg2.split('limit')[0]
+
+                    pos = float(pos.split()[0].strip())
+                    pos = pos*self.remote_scale.get() + self.remote_offset.get()
+                    pos = pos*self.scale + self.offset
+
+                    if 'negative' in msg:
+                        limit_val = self.low_limit.GetValue()
+                    else:
+                        limit_val = self.high_limit.GetValue()
+                    msg = msg1 + ' {} '.format(pos) + msg2 + 'limit of {}.'.format(limit_val)
+                    wx.MessageBox(msg, 'Error moving motor')
+        else:
+            msg = 'Step size has to be numeric.'
+            wx.MessageBox(msg, 'Error moving motor')
+
+    @EpicsFunction
+    def _tweak_epics_position(self, pval, mult):
+        pval = float(pval)/self.scale
+
+        self.epics_motor.tweak_val = pval
+
+        if mult > 0:
+            self.epics_motor.tweak()
+        else:
+            self.epics_motor.tweak('rev')
+
+    def _on_stop(self, evt):
+        """
+        Called when the user clicks the "Stop" button. Does a soft abort"""
+
+        if self.is_epics:
+            wx.CallAfter(self._stop_epics_motor)
+        else:
+            self.motor.soft_abort()
+
+    @EpicsFunction
+    def _stop_epics_motor(self):
+        self.epics_motor.stop()
+
+    def _on_epics_soft_limit(self, value, **kwargs):
+        pass
+
+    def _on_epics_hard_limit(self, value, **kwargs):
+        if int(self.lls_pv.get()) == 0:
+            wx.CallAfter(self.pos_sizer.Hide, self.ll_indc)
+        else:
+            wx.CallAfter(self.pos_sizer.Show, self.ll_indc)
+        if int(self.hls_pv.get()) == 0:
+            wx.CallAfter(self.pos_sizer.Hide, self.hl_indc)
+        else:
+            wx.CallAfter(self.pos_sizer.Show, self.hl_indc)
+
+    def _is_num(self, val):
+        """
+        Convenience function to check where motor move/set values are numbers.
+
+        :param val: Parameter to check whether or not it is a number.
+
+        :returns: ``True`` if val is a number. ``False`` otherwise.
+        :rtype: bool
+        """
+        try:
+            float(val)
+            return True
+        except ValueError:
+            return False
+
+    def _on_rightclick(self, evt):
+        """
+        Shows a context menu. Current options allow enabling/disabling
+        the control panel.
+        """
+        menu = wx.Menu()
+        menu.Bind(wx.EVT_MENU, self._on_enablechange)
+
+        if self._enabled:
+            menu.Append(1, 'Disable Control')
+        else:
+            menu.Append(1, 'Enable Control')
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_enablechange(self, evt):
+        """
+        Called from the panel context menu. Enables/disables the control
+        panel.
+        """
+        if self._enabled:
+            self._enabled = False
+        else:
+            self._enabled = True
+
+        for item in self.GetChildren():
+            if (not isinstance(item, wx.StaticText) and not isinstance(item, wx.StaticBox)):
+                item.Enable(self._enabled)
+
+        if self.is_epics:
+            wx.CallAfter(self._epics_enablechange)
+
+    @EpicsFunction
+    def _epics_enablechange(self):
+        if self._enabled:
+            self.epics_motor.stop_go = 3
+        else:
+            self.epics_motor.stop_go = 0
+
+    def _on_epics_disable(self, value, **kwargs):
+        if value == 0:
+            self._enabled = True
+            self._on_enablechange(None)
+
+        elif value == 3:
+            self._enabled = False
+            self._on_enablechange(None)
+
+    def _on_scan(self, evt):
+        """
+        .. todo::
+            Due to the problesm with MP, you can't open a scan window for the same
+            control twice. Ideally this would check whether a window was open,
+            if so it would highlight it/bring it to the current window. If not it
+            would open/reopen one.
+
+        Called when the user requests a scan. Opens a scan window.
+        """
+        # if self.scan_frame is not None:
+        #     try:
+        #         self.scan_frame.Close()
+        #     except Exception as e:
+        #         print(e)
+        #     self.scan_frame = scancon.ScanFrame(self.motor_name, self.motor,
+        #         self.server_record, self.mx_database, parent=None,
+        #         title='{} Scan Control'.format(self.motor_name))
+        #     self.scan_frame.Show()
+        # else:
+        #     self.scan_frame = scancon.ScanFrame(self.motor_name, self.motor,
+        #         self.server_record, self.mx_database, parent=None,
+        #         title='{} Scan Control'.format(self.motor_name))
+        #     self.scan_frame.Show()
+
+        frame = scancon.ScanFrame(self.motor_name, self.motor, self.server_record,
+            self.mx_database, parent=None, title='{} Scan Control'.format(self.motor_name))
+        frame.Show()
+
+    def _on_more(self, evt):
+        if self.epics_motor is not None:
+            wx.CallAfter(epics.wx.motordetailframe.MotorDetailFrame, parent=self, motor=self.epics_motor)
 
 
 class MotorFrame(wx.Frame):

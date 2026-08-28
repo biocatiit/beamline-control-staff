@@ -72,7 +72,7 @@ class MeasureDarkPanel(wx.Panel):
         self.mx_database = mx_database
 
         # Converts from biocon to catcon style settings, yes kind of stupid
-        self.settings = copy.deepcopy(default_mono_tune_settings)
+        self.settings = copy.deepcopy(default_measure_dark_settings)
         self.settings['device_data'] = self.settings.pop('device_init')[0]
 
         self._callbacks = []
@@ -473,9 +473,9 @@ class MeasureDarkFrame(wx.Frame):
         self.Destroy()
 
 #Settings
-default_mono_tune_settings = {
+default_measure_dark_settings = {
     'device_init'           : [
-        {'name': 'Mono Tune', 'args': [], 'kwargs': {
+        {'name': 'Measure Dark', 'args': [], 'kwargs': {
             'scalers'   : ['18ID:USBCTR08:1:', '18ID:USBCTR08:2:'],
             }
         },
