@@ -155,11 +155,11 @@ class HomeMotorController(object):
             home_to = self._home_settings['home_to']
             final_pos = self._home_settings['final_pos']
             home_offset = self._home_settings['offset']
-            self.at_soft_lim_pv = self.motor.PV('LVIO')
+            self.at_soft_lim_pv = self.motor.get_pv('LVIO')
 
             if self._home_settings['ignore_lim']:
-                self.llimit_pv = self.motor.PV('LLM')
-                self.hlimit_pv = self.motor.PV('HLM')
+                self.llimit_pv = self.motor.get_pv('LLM')
+                self.hlimit_pv = self.motor.get_pv('HLM')
 
                 self._soft_limits['low_lim'] = self.llimit_pv.get()
                 self._soft_limits['high_lim'] = self.hlimit_pv.get()
@@ -571,6 +571,15 @@ class HomeMotorPanel(wx.Panel):
 
         self.Layout()
         self.Fit()
+        self.SendSizeEvent()
+        self.Refresh()
+        self.Update()
+
+        self.Layout()
+        self.Fit()
+        self.SendSizeEvent()
+        self.Refresh()
+        self.Update()
 
     def _get_home_settings(self):
         home_to = self._home_to.GetStringSelection()
@@ -715,7 +724,7 @@ class HomeMotorPanel(wx.Panel):
             self._start_home_btn.Disable()
             self._stop_home_btn.Enable()
 
-            motor = self._motor_panel.epics_motor
+            motor = self._motor
 
             self._home_controller.start_home(motor, **home_settings)
 
