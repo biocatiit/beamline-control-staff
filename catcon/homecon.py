@@ -23,12 +23,9 @@ from io import open
 
 import threading
 import time
-from collections import deque, OrderedDict
 import logging
 import sys
 import copy
-import platform
-import math
 import traceback
 import pathlib
 import os
@@ -38,7 +35,6 @@ import statistics
 if __name__ != '__main__':
     logger = logging.getLogger(__name__)
 
-import numpy as np
 import wx
 
 try:
@@ -47,6 +43,7 @@ try:
     from epics.wx.wxlib import EpicsFunction
 except Exception:
     pass
+    traceback.print_exc()
 
 try:
     import motorcon
@@ -55,7 +52,6 @@ except Exception:
     traceback.print_exc()
 
 import utils
-import custom_epics_widgets
 
 class HomeMotorController(object):
     def __init__(self):
@@ -63,6 +59,7 @@ class HomeMotorController(object):
         self._home_abort_evt = threading.Event()
         self._home_abort_evt.clear()
         self._home_motor_thread = None
+        self._home_error = False
 
         self.motor = None
         self.llimit_pv = None
@@ -80,7 +77,8 @@ class HomeMotorController(object):
         self._status_callbacks = []
 
     def add_status_callback(self, func):
-        self._status_callbacks.append(func)
+        if func not in self._status_callbacks:
+            self._status_callbacks.append(func)
 
     def remove_status_callback(self, func):
         if func in self._status_callbacks:
@@ -92,11 +90,15 @@ class HomeMotorController(object):
     def _update_status(self, status):
         self._status = status
 
-        for func in self._status_callbacks:
+        for func in copy.copy(self._status_callbacks):
             func(status)
 
     def start_home(self, motor, home_to, final_pos, offset, step, speed, cycles,
         move_off, ignore_lim):
+
+        if self._home_motor_thread is not None and self._home_motor_thread.is_alive():
+            logger.error('Homing already running, not starting another home sequence')
+            return
 
         self.motor = motor
 
@@ -111,6 +113,7 @@ class HomeMotorController(object):
             'ignore_lim': ignore_lim
         }
 
+        self._home_error = False
         self._home_abort_evt.clear()
         self._home_motor_thread = threading.Thread(target=self._home_motor)
         self._home_motor_thread.daemon = True
@@ -125,81 +128,100 @@ class HomeMotorController(object):
             self.motor.stop()
             self._home_motor_thread.join(5)
 
+            if self._home_motor_thread.is_alive():
+                logger.warning("Home thread still running after abort")
+
     def _on_home_finish(self):
+        self.motor.stop() #Make sure motor is stopped
+
         self._restore_soft_lims()
-        self._update_status('Done')
+
+        if self._home_error:
+            status = 'Error'
+        elif self._home_abort_evt.is_set():
+            status = 'Aborted'
+        else:
+            status = 'Done'
+
+        self._update_status(status)
 
         logger.info('Motor homing finished')
 
     def _home_motor(self):
-        logger.info('Starting motor homing')
-        self._update_status('Homing')
+        try:
+            logger.info('Starting motor homing')
+            self._update_status('Homing')
 
-        home_to = self._home_settings['home_to']
-        final_pos = self._home_settings['final_pos']
-        home_offset = self._home_settings['offset']
-        self.at_soft_lim_pv = self.motor.PV('LVIO')
+            home_to = self._home_settings['home_to']
+            final_pos = self._home_settings['final_pos']
+            home_offset = self._home_settings['offset']
+            self.at_soft_lim_pv = self.motor.PV('LVIO')
 
-        if self._home_settings['ignore_lim']:
-            self.llimit_pv = self.motor.PV('LLM')
-            self.hlimit_pv = self.motor.PV('HLM')
+            if self._home_settings['ignore_lim']:
+                self.llimit_pv = self.motor.PV('LLM')
+                self.hlimit_pv = self.motor.PV('HLM')
 
-            self._soft_limits['low_lim'] = self.llimit_pv.get()
-            self._soft_limits['high_lim'] = self.hlimit_pv.get()
+                self._soft_limits['low_lim'] = self.llimit_pv.get()
+                self._soft_limits['high_lim'] = self.hlimit_pv.get()
 
-            self.llimit_pv.put(-1e9)
-            self.hlimit_pv.put(1e9)
+                self.llimit_pv.put(-1e9)
+                self.hlimit_pv.put(1e9)
 
-        if home_to == 'center':
-            logger.info('Home to center')
-            plus_lim = self._inner_home_to_limit(1)
+            if home_to == 'center':
+                logger.info('Home to center')
+                plus_lim = self._inner_home_to_limit(1)
 
-            if not self._home_abort_evt.is_set():
-                minus_lim = self._inner_home_to_limit(-1)
-            else:
-                minus_lim = None
+                if not self._home_abort_evt.is_set():
+                    minus_lim = self._inner_home_to_limit(-1)
+                else:
+                    minus_lim = None
 
-            if plus_lim is not None and minus_lim is not None:
-                home_pos = (plus_lim+minus_lim)/2
+                if plus_lim is not None and minus_lim is not None:
+                    home_pos = (plus_lim+minus_lim)/2
+                else:
+                    home_pos = None
+
+            elif home_to == 'plus':
+                logger.info('Home to positive limit')
+                home_pos = self._inner_home_to_limit(1)
+
+            elif home_to == 'minus':
+                logger.info('Home to negative limit')
+                home_pos = self._inner_home_to_limit(-1)
+
             else:
                 home_pos = None
 
-        elif home_to == 'plus':
-            logger.info('Home to positive limit')
-            home_pos = self._inner_home_to_limit(1)
+            if home_pos is not None:
+                home_pos += home_offset
 
-        elif home_to == 'minus':
-            logger.info('Home to negative limit')
-            home_pos = self._inner_home_to_limit(-1)
+                logger.info('Found new home position: %s', home_pos)
 
-        else:
-            home_pos = None
+                if not self._home_abort_evt.is_set():
+                    self.motor.move_absolute(home_pos)
 
-        if home_pos is not None:
-            home_pos += home_offset
+                    start = time.monotonic()
 
-            logger.info('Found new home position: %s', home_pos)
-
-            if not self._home_abort_evt.is_set():
-                self.motor.move_absolute(home_pos)
-
-                start = time.monotonic()
-
-                while not self.motor.is_moving() and time.monotonic()-start < 1:
-                    time.sleep(0.05)
-                    abort = self._home_abort_evt.is_set()
-
-                abort = self._home_abort_evt.is_set()
-
-                while self.motor.is_moving() and not abort:
+                    while not self.motor.is_moving() and time.monotonic()-start < 1:
                         time.sleep(0.05)
                         abort = self._home_abort_evt.is_set()
 
-                logger.info('Set home position: %s set to %s', home_pos, final_pos)
+                    abort = self._home_abort_evt.is_set()
 
-            self.motor.position = final_pos
+                    while self.motor.is_moving() and not abort:
+                            time.sleep(0.05)
+                            abort = self._home_abort_evt.is_set()
 
-        self._on_home_finish()
+                    if not abort:
+                        logger.info('Set home position: %s set to %s', home_pos, final_pos)
+                        self.motor.position = final_pos
+
+        except Exception:
+            logger.exception('Homing failed')
+            self._home_error = True
+
+        finally:
+            self._on_home_finish()
 
 
     def _inner_home_to_limit(self, direction):
@@ -260,9 +282,19 @@ class HomeMotorController(object):
                 if not on_lim and self.at_soft_lim_pv.get() == 1:
                     if self._home_settings['ignore_lim']:
                         if direction == 1:
-                            self.hlimit_pv.put(self.hlimit_pv.get()*2)
+                            high_lim = self.hlimit_pv.get()
+                            if high_lim > 0:
+                                high_lim *= 2
+                            else:
+                                high_lim *= -1
+                            self.hlimit_pv.put(high_lim)
                         else:
-                            self.llimit_pv.put(self.llimit_pv.get()*2)
+                            low_lim = self.llimit_pv.get()
+                            if low_lim < 0:
+                                low_lim *= 2
+                            else:
+                                low_lim *= -1
+                            self.llimit_pv.put(low_lim)
                     else:
                         logger.error('Hit soft limit, aborting homing')
                         self._home_abort_evt.set()
@@ -281,7 +313,7 @@ class HomeMotorController(object):
 
                 time.sleep(0.05)
 
-                while self.motor.is_moving():
+                while self.motor.is_moving() and not abort:
                     time.sleep(0.05)
                     abort = self._home_abort_evt.is_set()
 
@@ -300,16 +332,20 @@ class HomeMotorController(object):
         lim_pos = None
 
         if not abort:
-            if all([pos is not None for pos in lim_pos_list]):
+            if len(lim_pos_list) == cycles and all(pos is not None for pos in lim_pos_list):
                 lim_pos = statistics.mean(lim_pos_list)
                 logger.info('%s average limit position: %s', jog_dir.capitalize(), lim_pos)
+
+        self.motor.stop() #Make sure motor is stopped, even in event of abort
 
         return lim_pos
 
     def _restore_soft_lims(self):
         if self._home_settings['ignore_lim']:
-            self.llimit_pv.put(self._soft_limits['low_lim'])
-            self.hlimit_pv.put(self._soft_limits['high_lim'])
+            if self.llimit_pv is not None:
+                self.llimit_pv.put(self._soft_limits['low_lim'])
+            if self.hlimit_pv is not None:
+                self.hlimit_pv.put(self._soft_limits['high_lim'])
 
 
 class HomeMotorPanel(wx.Panel):
@@ -336,8 +372,6 @@ class HomeMotorPanel(wx.Panel):
         # Converts from biocon to catcon style settings, yes kind of stupid
         self.settings = copy.deepcopy(default_home_settings)
 
-        self._callbacks = []
-
         self._home_controller = HomeMotorController()
 
         self._motor_panel = None
@@ -347,6 +381,8 @@ class HomeMotorPanel(wx.Panel):
         self._initialize()
 
         self._create_layout()
+
+        self._initialize_gui()
 
         self._home_controller.add_status_callback(self._on_status_update)
 
@@ -393,14 +429,8 @@ class HomeMotorPanel(wx.Panel):
         self._last_path = self._base_path
         self._last_path = str(self._last_path)
 
-    def _initialize_pv(self, pv_name):
-        pv = epics.get_pv(pv_name)
-        connected = pv.wait_for_connection(5)
-
-        if not connected:
-            logger.error('Failed to connect to EPICS PV %s on startup', pv_name)
-
-        return pv, connected
+    def _initialize_gui(self):
+        self._set_home_settings(self.settings)
 
     def _create_layout(self):
         """Creates the layout"""
@@ -575,6 +605,28 @@ class HomeMotorPanel(wx.Panel):
         self._step.SetValue(str(home_settings['step']))
         self._ignore_soft_limits.SetValue(home_settings['ignore_lim'])
 
+    def _validate_home_settings(self, home_settings):
+        errors = []
+
+        if home_settings['step'] <= 0:
+            errors.append('Step must be > 0')
+
+        if home_settings['speed'] <= 0:
+            errors.append('Speed must be > 0')
+
+        if home_settings['move_off'] <= 0:
+            errors.append('Move off must be > 0')
+
+        if home_settings['cycles'] < 1:
+            errors.append('Cycles must be >=1')
+
+        if len(errors) > 0:
+            valid = False
+        else:
+            valid = True
+
+        return valid, errors
+
     @EpicsFunction
     def _save_settings(self, save_name):
         save_settings = {
@@ -593,13 +645,7 @@ class HomeMotorPanel(wx.Panel):
 
     def _load_settings(self, filename):
         with open(filename, 'r') as f:
-            data = f.readlines()
-
-        data_str = ''
-        for each_line in data:
-            data_str += each_line
-
-        settings = dict(json.loads(data_str))
+            settings = json.load(f)
 
         self._set_home_settings(settings)
         self._pv_choice.SetStringSelection(settings['pv'])
@@ -661,21 +707,35 @@ class HomeMotorPanel(wx.Panel):
         self._stop_home()
 
     def _start_home(self):
-        self._start_home_btn.Disable()
-        self._stop_home_btn.Enable()
-
         home_settings = self._get_home_settings()
-        motor = self._motor_panel.epics_motor
 
-        self._home_controller.start_home(motor, **home_settings)
+        valid, errors = self._validate_home_settings(home_settings)
+
+        if valid:
+            self._start_home_btn.Disable()
+            self._stop_home_btn.Enable()
+
+            motor = self._motor_panel.epics_motor
+
+            self._home_controller.start_home(motor, **home_settings)
+
+        else:
+            err_str = ('The following errors were found in homing settings. '
+                'Correct these errors and then start the homing again:\n- ')
+            err_str += '\n- '.join(errors)
+
+            wx.MessageBox(err_str, 'Errors in homing settings',wx.OK, self)
 
     def _stop_home(self):
         self._home_controller.abort_home()
 
     def _on_status_update(self, status):
-        wx.CallAfter(self._home_status.SetLabel, status)
+        wx.CallAfter(self._update_status, status)
 
-        if status.lower() == 'done':
+    def _update_status(self, status):
+        self._home_status.SetLabel(status)
+
+        if status.lower() in ('done', 'aborted', 'error'):
             self._on_home_done()
 
     def _on_home_done(self):
@@ -684,14 +744,10 @@ class HomeMotorPanel(wx.Panel):
 
     def on_close(self):
         """Device specific stuff goes here"""
-
-        for pv, cbid in self._callbacks:
-            pv.remove_callback(cbid)
-
         self._home_controller.remove_status_callback(self._on_status_update)
 
     def on_exit(self):
-        self.close()
+        self.Close()
 
 
 class HomeMotorFrame(wx.Frame):
@@ -769,6 +825,14 @@ class HomeMotorFrame(wx.Frame):
 
 #Settings
 default_home_settings = {
+    'home_to'       : 'plus',
+    'final_pos'     : 0.,
+    'offset'        : 0.,
+    'speed'         : 1.,
+    'cycles'        : 3,
+    'move_off'      : 1.,
+    'step'          : 0.05,
+    'ignore_lim'    : True,
     }
 
 
