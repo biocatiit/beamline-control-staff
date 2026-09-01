@@ -30,6 +30,10 @@ import copy
 import platform
 import math
 import traceback
+import pathlib
+import os
+import json
+import statistics
 
 if __name__ != '__main__':
     logger = logging.getLogger(__name__)
@@ -61,11 +65,38 @@ class HomeMotorController(object):
         self._home_motor_thread = None
 
         self.motor = None
+        self.llimit_pv = None
+        self.hlimit_pv = None
+        self.at_soft_lim_pv = None
+        self._soft_limits = {
+            'low_lim'   : 0.,
+            'high_lim'  : 0.,
+            }
 
         self._home_settings = {}
 
+        self._status = 'Done'
+
+        self._status_callbacks = []
+
+    def add_status_callback(self, func):
+        self._status_callbacks.append(func)
+
+    def remove_status_callback(self, func):
+        if func in self._status_callbacks:
+            self._status_callbacks.remove(func)
+
+    def get_status(self):
+        return self._status
+
+    def _update_status(self, status):
+        self._status = status
+
+        for func in self._status_callbacks:
+            func(status)
+
     def start_home(self, motor, home_to, final_pos, offset, step, speed, cycles,
-        move_off):
+        move_off, ignore_lim):
 
         self.motor = motor
 
@@ -77,6 +108,7 @@ class HomeMotorController(object):
             'speed'     : speed,
             'cycles'    : cycles,
             'move_off'  : move_off,
+            'ignore_lim': ignore_lim
         }
 
         self._home_abort_evt.clear()
@@ -85,29 +117,47 @@ class HomeMotorController(object):
         self._home_motor_thread.start()
 
     def abort_home(self):
+        logger.info('Aborting motor homing')
+
         self._home_abort_evt.set()
 
         if self._home_motor_thread is not None:
             self.motor.stop()
             self._home_motor_thread.join(5)
 
+    def _on_home_finish(self):
+        self._restore_soft_lims()
+        self._update_status('Done')
+
+        logger.info('Motor homing finished')
+
     def _home_motor(self):
         logger.info('Starting motor homing')
+        self._update_status('Homing')
+
         home_to = self._home_settings['home_to']
         final_pos = self._home_settings['final_pos']
         home_offset = self._home_settings['offset']
+        self.at_soft_lim_pv = self.motor.PV('LVIO')
+
+        if self._home_settings['ignore_lim']:
+            self.llimit_pv = self.motor.PV('LLM')
+            self.hlimit_pv = self.motor.PV('HLM')
+
+            self._soft_limits['low_lim'] = self.llimit_pv.get()
+            self._soft_limits['high_lim'] = self.hlimit_pv.get()
+
+            self.llimit_pv.put(-1e9)
+            self.hlimit_pv.put(1e9)
 
         if home_to == 'center':
-            logger.debug('Home to center')
+            logger.info('Home to center')
             plus_lim = self._inner_home_to_limit(1)
 
-            if self._home_abort_evt.is_set():
-                return
-
-            minus_lim = self._inner_home_to_limit(-1)
-
-            if self._home_abort_evt.is_set():
-                return
+            if not self._home_abort_evt.is_set():
+                minus_lim = self._inner_home_to_limit(-1)
+            else:
+                minus_lim = None
 
             if plus_lim is not None and minus_lim is not None:
                 home_pos = (plus_lim+minus_lim)/2
@@ -115,46 +165,41 @@ class HomeMotorController(object):
                 home_pos = None
 
         elif home_to == 'plus':
-            logger.debug('Home to positive limit')
+            logger.info('Home to positive limit')
             home_pos = self._inner_home_to_limit(1)
 
         elif home_to == 'minus':
-            logger.debug('Home to negative limit')
+            logger.info('Home to negative limit')
             home_pos = self._inner_home_to_limit(-1)
 
         else:
             home_pos = None
 
         if home_pos is not None:
-            logger.debug('Found new home position: %s', home_pos)
-
-            if self._home_abort_evt.is_set():
-                return
-
             home_pos += home_offset
 
-            self.motor.move_absolute(home_pos)
+            logger.info('Found new home position: %s', home_pos)
 
-            start = time.monotonic()
+            if not self._home_abort_evt.is_set():
+                self.motor.move_absolute(home_pos)
 
-            while not self.motor.is_moving() and time.monotonic()-start < 1:
-                time.sleep(0.05)
-                abort = self._home_abort_evt.is_set()
+                start = time.monotonic()
 
-            abort = self._home_abort_evt.is_set()
-
-            while self.motor.is_moving() and not abort:
+                while not self.motor.is_moving() and time.monotonic()-start < 1:
                     time.sleep(0.05)
                     abort = self._home_abort_evt.is_set()
 
-            if abort:
-                return
+                abort = self._home_abort_evt.is_set()
 
-            logger.info('Set home position: %s set to %s', home_pos, final_pos)
+                while self.motor.is_moving() and not abort:
+                        time.sleep(0.05)
+                        abort = self._home_abort_evt.is_set()
+
+                logger.info('Set home position: %s set to %s', home_pos, final_pos)
 
             self.motor.position = final_pos
 
-        wx.CallAfter(self._on_home_finish)
+        self._on_home_finish()
 
 
     def _inner_home_to_limit(self, direction):
@@ -171,8 +216,10 @@ class HomeMotorController(object):
 
         if direction == 1:
             jog_dir = 'positive'
+            lim_check = self.motor.on_high_limit
         else:
             jog_dir = 'negative'
+            lim_check = self.motor.on_low_limit
 
         step_off = -1*direction*step
         move_off = -1*direction*move_off
@@ -184,7 +231,7 @@ class HomeMotorController(object):
                 break
 
             if i != 0:
-                logger.debug('Moving off %s limit by %s', jog_dir, move_off)
+                logger.info('Moving off %s limit by %s', jog_dir, move_off)
                 self.motor.move_relative(move_off)
 
                 start = time.monotonic()
@@ -201,30 +248,34 @@ class HomeMotorController(object):
             if abort:
                 break
 
-            if direction == 1:
-                on_lim = self.motor.on_high_limit()
-            else:
-                on_lim = self.motor.on_low_limit()
+            on_lim = lim_check()
 
             if not on_lim and not abort:
-                logger.debug('Moving to %s limit', jog_dir)
+                logger.info('Moving to %s limit', jog_dir)
                 self.motor.jog(jog_dir, True)
 
             while not on_lim and not abort:
-                if direction == 1:
-                    on_lim = self.motor.on_high_limit()
-                else:
-                    on_lim = self.motor.on_low_limit()
+                on_lim = lim_check()
+
+                if not on_lim and self.at_soft_lim_pv.get() == 1:
+                    if self._home_settings['ignore_lim']:
+                        if direction == 1:
+                            self.hlimit_pv.put(self.hlimit_pv.get()*2)
+                        else:
+                            self.llimit_pv.put(self.llimit_pv.get()*2)
+                    else:
+                        logger.error('Hit soft limit, aborting homing')
+                        self._home_abort_evt.set()
 
                 time.sleep(0.05)
                 abort = self._home_abort_evt.is_set()
 
-            logger.debug('Hit %s limit', jog_dir)
+            logger.info('Hit %s limit', jog_dir)
 
             self.motor.jog(jog_dir, False)
 
             while on_lim and not abort:
-                logger.debug('Stepping off %s limit by %s', jog_dir, step_off)
+                logger.info('Stepping off %s limit by %s', jog_dir, step_off)
 
                 self.motor.move_relative(step_off, wait=True)
 
@@ -234,17 +285,14 @@ class HomeMotorController(object):
                     time.sleep(0.05)
                     abort = self._home_abort_evt.is_set()
 
-                if direction == 1:
-                    on_lim = self.motor.on_high_limit()
-                else:
-                    on_lim = self.motor.on_low_limit()
+                on_lim = lim_check()
 
             if not abort:
                 motor_pos = self.motor.position
-                logger.debug('%s limit position found: %s', jog_dir.capitalize(), motor_pos)
+                logger.info('%s limit position found: %s', jog_dir.capitalize(), motor_pos)
             else:
                 motor_pos = None
-                logger.debug('%s limit position not found', jog_dir.capitalize())
+                logger.info('%s limit position not found', jog_dir.capitalize())
 
             if motor_pos is not None:
                 lim_pos_list.append(motor_pos)
@@ -254,9 +302,14 @@ class HomeMotorController(object):
         if not abort:
             if all([pos is not None for pos in lim_pos_list]):
                 lim_pos = statistics.mean(lim_pos_list)
-                logger.debug('%s average limit position: %s', jog_dir.capitalize(), lim_pos)
+                logger.info('%s average limit position: %s', jog_dir.capitalize(), lim_pos)
 
         return lim_pos
+
+    def _restore_soft_lims(self):
+        if self._home_settings['ignore_lim']:
+            self.llimit_pv.put(self._soft_limits['low_lim'])
+            self.hlimit_pv.put(self._soft_limits['high_lim'])
 
 
 class HomeMotorPanel(wx.Panel):
@@ -294,6 +347,8 @@ class HomeMotorPanel(wx.Panel):
         self._initialize()
 
         self._create_layout()
+
+        self._home_controller.add_status_callback(self._on_status_update)
 
         # self.SetMinSize(self._FromDIP((450, -1)))
         self.Layout()
@@ -333,7 +388,10 @@ class HomeMotorPanel(wx.Panel):
                 self._motor_list.append(pv)
 
         self._selected_pv = self._motor_list[0]
-        self._motor = motorcon.EpicsMotor('home_motor', self._selected_pv)
+
+        self._base_path = pathlib.Path(__file__).parent.resolve().parent / 'motor_home'
+        self._last_path = self._base_path
+        self._last_path = str(self._last_path)
 
     def _initialize_pv(self, pv_name):
         pv = epics.get_pv(pv_name)
@@ -366,46 +424,93 @@ class HomeMotorPanel(wx.Panel):
         self._motor_sizer.Add(self._motor_panel, flag=wx.TOP, border=self._FromDIP(5))
 
 
-        home_box = wx.StaticBox(parent, label='Home settings')
-        home_parent = home_box
+        home_settings_box = wx.StaticBox(parent, label='Home settings')
+        home_settings_parent = home_settings_box
 
-        self._home_to = wx.Choice(home_parent, choices=['plus', 'minus', 'center'])
+        self._home_to = wx.Choice(home_settings_parent, choices=['plus', 'minus', 'center'])
         self._home_to.SetSelection(0)
-        self._final_pos = wx.TextCtrl(home_parent, value='0', size=self._FromDIP((60, -1)),
+        self._final_pos = wx.TextCtrl(home_settings_parent, value='0', size=self._FromDIP((60, -1)),
             validator=utils.CharValidator('float_neg'))
-        self._offset = wx.TextCtrl(home_parent, value='0', size=self._FromDIP((60, -1)),
+        self._offset = wx.TextCtrl(home_settings_parent, value='0', size=self._FromDIP((60, -1)),
             validator=utils.CharValidator('float_neg'))
-        self._speed = wx.TextCtrl(home_parent, value='1', size=self._FromDIP((60, -1)),
+        self._speed = wx.TextCtrl(home_settings_parent, value='1', size=self._FromDIP((60, -1)),
             validator=utils.CharValidator('float_neg'))
-        self._cycles = wx.TextCtrl(home_parent, value='3', size=self._FromDIP((60, -1)),
+        self._cycles = wx.TextCtrl(home_settings_parent, value='3', size=self._FromDIP((60, -1)),
             validator=utils.CharValidator('int'))
-        self._move_off = wx.TextCtrl(home_parent, value='1', size=self._FromDIP((60, -1)),
+        self._move_off = wx.TextCtrl(home_settings_parent, value='2', size=self._FromDIP((60, -1)),
             validator=utils.CharValidator('float'))
+        self._step = wx.TextCtrl(home_settings_parent, value='0.05', size=self._FromDIP((60, -1)),
+            validator=utils.CharValidator('float'))
+        self._ignore_soft_limits = wx.CheckBox(home_settings_parent, label='Ignore soft limits')
+        self._ignore_soft_limits.SetValue(True)
 
         home_ctrl_sizer = wx.FlexGridSizer(cols=2, hgap=self._FromDIP(5),
             vgap=self._FromDIP(5))
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Home direction:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Home direction:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._home_to, flag=wx.ALIGN_CENTER_VERTICAL)
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Offset from limit/center:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Offset from limit/center:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._offset, flag=wx.ALIGN_CENTER_VERTICAL)
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Home position value:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Home position value:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._final_pos, flag=wx.ALIGN_CENTER_VERTICAL)
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Home speed:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Home speed:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._speed, flag=wx.ALIGN_CENTER_VERTICAL)
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Limit cycles:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Limit cycles:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._cycles, flag=wx.ALIGN_CENTER_VERTICAL)
-        home_ctrl_sizer.Add(wx.StaticText(home_parent, label='Limit move off:'),
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Limit move off:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         home_ctrl_sizer.Add(self._move_off, flag=wx.ALIGN_CENTER_VERTICAL)
+        home_ctrl_sizer.Add(wx.StaticText(home_settings_parent, label='Push off step:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        home_ctrl_sizer.Add(self._step, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        home_sizer = wx.StaticBoxSizer(home_box, wx.VERTICAL)
-        home_sizer.Add(home_ctrl_sizer)
+        save_settings_btn = wx.Button(home_settings_parent, label='Save Settings')
+        save_settings_btn.Bind(wx.EVT_BUTTON, self._on_save_settings)
+        load_settings_btn = wx.Button(home_settings_parent, label='Load Settings')
+        load_settings_btn.Bind(wx.EVT_BUTTON, self._on_load_settings)
 
+        settings_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        settings_btn_sizer.Add(save_settings_btn)
+        settings_btn_sizer.Add(load_settings_btn, flag=wx.LEFT, border=self._FromDIP(5))
+
+        home_settings_sizer = wx.StaticBoxSizer(home_settings_box, wx.VERTICAL)
+        home_settings_sizer.Add(home_ctrl_sizer, flag=wx.ALL, border=self._FromDIP(5))
+        home_settings_sizer.Add(self._ignore_soft_limits, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+        home_settings_sizer.Add(settings_btn_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+
+
+        home_ctrl_box = wx.StaticBox(parent, label='Home controls')
+        home_ctrl_parent = home_ctrl_box
+
+        self._home_status = wx.StaticText(home_ctrl_parent, label='Done')
+        self._start_home_btn = wx.Button(home_ctrl_parent, label='Start Homing')
+        self._stop_home_btn = wx.Button(home_ctrl_parent, label='Abort Homing')
+        self._start_home_btn.Bind(wx.EVT_BUTTON, self._on_start_home)
+        self._stop_home_btn.Bind(wx.EVT_BUTTON, self._on_stop_home)
+        self._stop_home_btn.Disable()
+
+        ctrl_status_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ctrl_status_sizer.Add(wx.StaticText(home_ctrl_parent, label='Status:'))
+        ctrl_status_sizer.Add(self._home_status, flag=wx.LEFT, border=self._FromDIP(5))
+
+        ctrl_btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        ctrl_btn_sizer.Add(self._start_home_btn)
+        ctrl_btn_sizer.Add(self._stop_home_btn, flag=wx.LEFT, border=self._FromDIP(5))
+
+        home_ctrl_sizer = wx.StaticBoxSizer(home_ctrl_box, wx.VERTICAL)
+        home_ctrl_sizer.Add(ctrl_status_sizer, flag=wx.ALL, border=self._FromDIP(5))
+        home_ctrl_sizer.Add(ctrl_btn_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM,
+            border=self._FromDIP(5))
+
+        home_sizer = wx.BoxSizer(wx.VERTICAL)
+        home_sizer.Add(home_settings_sizer)
+        home_sizer.Add(home_ctrl_sizer, flag=wx.TOP, border=self._FromDIP(5))
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(self._motor_sizer, flag=wx.ALL|wx.EXPAND, border=self._FromDIP(5))
@@ -421,6 +526,10 @@ class HomeMotorPanel(wx.Panel):
         return motor_panel
 
     def _on_pv_change(self, evt):
+        self._change_pv()
+
+    @EpicsFunction
+    def _change_pv(self):
         self._selected_pv = self._pv_choice.GetStringSelection()
 
         self._motor = motorcon.EpicsMotor('home_motor', self._selected_pv)
@@ -433,11 +542,153 @@ class HomeMotorPanel(wx.Panel):
         self.Layout()
         self.Fit()
 
+    def _get_home_settings(self):
+        home_to = self._home_to.GetStringSelection()
+        final_pos = float(self._final_pos.GetValue())
+        offset = float(self._offset.GetValue())
+        speed = float(self._speed.GetValue())
+        cycles = int(self._cycles.GetValue())
+        move_off = float(self._move_off.GetValue())
+        step = float(self._step.GetValue())
+        ignore_lim = self._ignore_soft_limits.GetValue()
+
+        home_settings = {
+            'home_to'   : home_to,
+            'final_pos' : final_pos,
+            'offset'    : offset,
+            'step'      : step,
+            'speed'     : speed,
+            'cycles'    : cycles,
+            'move_off'  : move_off,
+            'ignore_lim': ignore_lim,
+        }
+
+        return home_settings
+
+    def _set_home_settings(self, home_settings):
+        self._home_to.SetStringSelection(home_settings['home_to'])
+        self._final_pos.SetValue(str(home_settings['final_pos']))
+        self._offset.SetValue(str(home_settings['offset']))
+        self._speed.SetValue(str(home_settings['speed']))
+        self._cycles.SetValue(str(home_settings['cycles']))
+        self._move_off.SetValue(str(home_settings['move_off']))
+        self._step.SetValue(str(home_settings['step']))
+        self._ignore_soft_limits.SetValue(home_settings['ignore_lim'])
+
+    @EpicsFunction
+    def _save_settings(self, save_name):
+        save_settings = {
+            'pv'    : self._pv_choice.GetStringSelection(),
+            'desc'  : self._motor_panel.epics_motor.get_pv('DESC').get(),
+        }
+
+        home_settings = self._get_home_settings()
+
+        save_settings.update(home_settings)
+
+        settings = json.dumps(save_settings, indent = 4)
+
+        with open(save_name, 'w') as f:
+            f.write(settings)
+
+    def _load_settings(self, filename):
+        with open(filename, 'r') as f:
+            data = f.readlines()
+
+        data_str = ''
+        for each_line in data:
+            data_str += each_line
+
+        settings = dict(json.loads(data_str))
+
+        self._set_home_settings(settings)
+        self._pv_choice.SetStringSelection(settings['pv'])
+
+        self._change_pv()
+
+    @EpicsFunction
+    def _on_save_settings(self, evt):
+        desc = self._motor_panel.epics_motor.get_pv('DESC').get()
+
+        fname = self._create_file_dialog(wx.FD_SAVE, desc)
+
+        if fname is not None:
+            if os.path.splitext(fname)[1] != '.json':
+                fname = fname + '.json'
+
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
+
+            wx.CallAfter(self._save_settings, fname)
+
+    def _on_load_settings(self, evt):
+        fname = self._create_file_dialog(wx.FD_OPEN, '')
+
+        if fname is not None:
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
+
+            wx.CallAfter(self._load_settings, fname)
+
+    def _create_file_dialog(self, mode, desc, name='Motor homing files',
+        ext='*.json'):
+
+        f = None
+
+        if mode == wx.FD_OPEN:
+            filters = name + ' (' + ext + ')|' + ext + '|All files (*.*)|*.*'
+            dialog = wx.FileDialog( None, style = mode, wildcard = filters,
+                defaultDir = self._last_path)
+
+        elif mode == wx.FD_SAVE:
+            desc = desc.replace('/', '_')
+            filters = name + ' ('+ext+')|'+ext
+            dialog = wx.FileDialog(None, style=mode|wx.FD_OVERWRITE_PROMPT,
+                wildcard=filters, defaultDir=self._last_path,
+                defaultFile=desc+'.json')
+
+        # Show the dialog and get user input
+        if dialog.ShowModal() == wx.ID_OK:
+            f = dialog.GetPath()
+
+        # Destroy the dialog
+        dialog.Destroy()
+
+        return f
+
+    def _on_start_home(self, evt):
+        self._start_home()
+
+    def _on_stop_home(self, evt):
+        self._stop_home()
+
+    def _start_home(self):
+        self._start_home_btn.Disable()
+        self._stop_home_btn.Enable()
+
+        home_settings = self._get_home_settings()
+        motor = self._motor_panel.epics_motor
+
+        self._home_controller.start_home(motor, **home_settings)
+
+    def _stop_home(self):
+        self._home_controller.abort_home()
+
+    def _on_status_update(self, status):
+        wx.CallAfter(self._home_status.SetLabel, status)
+
+        if status.lower() == 'done':
+            self._on_home_done()
+
+    def _on_home_done(self):
+        self._start_home_btn.Enable()
+        self._stop_home_btn.Disable()
+
     def on_close(self):
         """Device specific stuff goes here"""
 
         for pv, cbid in self._callbacks:
             pv.remove_callback(cbid)
+
+        self._home_controller.remove_status_callback(self._on_status_update)
 
     def on_exit(self):
         self.close()
