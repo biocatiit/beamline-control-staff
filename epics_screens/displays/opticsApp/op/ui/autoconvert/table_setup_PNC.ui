@@ -2340,9 +2340,9 @@ border-radius: 2px;
      </property>
      <property name="foreground">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="background">
@@ -2376,9 +2376,9 @@ border-radius: 2px;
      </property>
      <property name="foreground">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="background">
@@ -2403,9 +2403,9 @@ border-radius: 2px;
      </property>
      <property name="foreground">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="fillstyle" stdset="0">
@@ -2413,9 +2413,9 @@ border-radius: 2px;
      </property>
      <property name="lineColor">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="form">
@@ -2433,9 +2433,9 @@ border-radius: 2px;
      </property>
      <property name="foreground">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="fillstyle" stdset="0">
@@ -2443,9 +2443,9 @@ border-radius: 2px;
      </property>
      <property name="lineColor">
       <color>
-       <red>255</red>
-       <green>255</green>
-       <blue>255</blue>
+       <red>224</red>
+       <green>27</green>
+       <blue>36</blue>
       </color>
      </property>
      <property name="form">
