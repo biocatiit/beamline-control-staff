@@ -3508,7 +3508,7 @@ border-radius: 2px;
    <widget class="caGraphics" name="cagraphics_30">
     <property name="geometry">
      <rect>
-      <x>235</x>
+      <x>380</x>
       <y>256</y>
       <width>20</width>
       <height>20</height>
@@ -3610,7 +3610,7 @@ border-radius: 2px;
    <widget class="caGraphics" name="cagraphics_33">
     <property name="geometry">
      <rect>
-      <x>240</x>
+      <x>391</x>
       <y>240</y>
       <width>31</width>
       <height>51</height>
@@ -3773,12 +3773,12 @@ border-radius: 2px;
    <zorder>cagraphics_20</zorder>
    <zorder>caLabel_23</zorder>
    <zorder>caframe_origin</zorder>
-   <zorder>caframe_origin_2</zorder>
    <zorder>caframe_origin_3</zorder>
    <zorder>cagraphics_30</zorder>
    <zorder>cagraphics_31</zorder>
    <zorder>cagraphics_32</zorder>
    <zorder>cagraphics_33</zorder>
+   <zorder>caframe_origin_2</zorder>
   </widget>
  </widget>
  <customwidgets>
