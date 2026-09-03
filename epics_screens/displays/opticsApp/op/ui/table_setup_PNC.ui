@@ -3159,6 +3159,9 @@ border-radius: 2px;
     <property name="form">
      <enum>caGraphics::Arrow</enum>
     </property>
+    <property name="arrowMode">
+     <enum>caGraphics::Single</enum>
+    </property>
     <property name="tiltAngle">
      <number>90</number>
     </property>

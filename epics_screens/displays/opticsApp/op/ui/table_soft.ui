@@ -314,7 +314,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EZ</string>
+     <string>$(P)$(Q):z.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -411,7 +411,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EX</string>
+     <string>$(P)$(Q):x.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -588,7 +588,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).X</string>
+     <string>$(P)$(Q):x.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -718,159 +718,6 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_1">
-    <property name="geometry">
-     <rect>
-      <x>8</x>
-      <y>140</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)X,NAME=$(Q)X,DESC=$(Q)X,EGU=$(T).LEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_0">
-    <property name="geometry">
-     <rect>
-      <x>45</x>
-      <y>140</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)X:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_1">
-    <property name="geometry">
-     <rect>
-      <x>68</x>
-      <y>140</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_3">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>138</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
-    </property>
-   </widget>
    <widget class="caLineEdit" name="caLineEdit_4">
     <property name="geometry">
      <rect>
@@ -968,7 +815,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).AX</string>
+     <string>$(P)$(Q):ax.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -1019,7 +866,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EAX</string>
+     <string>$(P)$(Q):ax.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -1057,7 +904,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_4">
+   <widget class="caGraphics" name="caRectangle_3">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -1103,7 +950,7 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_5">
+   <widget class="caGraphics" name="caRectangle_4">
     <property name="geometry">
      <rect>
       <x>138</x>
@@ -1147,159 +994,6 @@ border-radius: 2px;
       <green>0</green>
       <blue>0</blue>
      </color>
-    </property>
-   </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_2">
-    <property name="geometry">
-     <rect>
-      <x>123</x>
-      <y>140</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)AX,NAME=$(Q)AX,DESC=$(Q)AX,EGU=$(T).AEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_2">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>140</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)AX:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_3">
-    <property name="geometry">
-     <rect>
-      <x>183</x>
-      <y>140</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_6">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>138</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
     </property>
    </widget>
    <widget class="caLabel" name="caLabel_4">
@@ -1348,7 +1042,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).Y</string>
+     <string>$(P)$(Q):y.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -1399,7 +1093,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EY</string>
+     <string>$(P)$(Q):y.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -1437,7 +1131,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_7">
+   <widget class="caGraphics" name="caRectangle_5">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -1483,7 +1177,7 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_8">
+   <widget class="caGraphics" name="caRectangle_6">
     <property name="geometry">
      <rect>
       <x>23</x>
@@ -1575,7 +1269,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).AY</string>
+     <string>$(P)$(Q):ay.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -1626,7 +1320,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EAY</string>
+     <string>$(P)$(Q):ay.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -1664,7 +1358,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_9">
+   <widget class="caGraphics" name="caRectangle_7">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -1710,7 +1404,7 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_10">
+   <widget class="caGraphics" name="caRectangle_8">
     <property name="geometry">
      <rect>
       <x>138</x>
@@ -1756,312 +1450,6 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_3">
-    <property name="geometry">
-     <rect>
-      <x>8</x>
-      <y>230</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)Y,NAME=$(Q)Y,DESC=$(Q)Y,EGU=$(T).LEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_4">
-    <property name="geometry">
-     <rect>
-      <x>45</x>
-      <y>230</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)Y:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_5">
-    <property name="geometry">
-     <rect>
-      <x>68</x>
-      <y>230</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_11">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>228</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
-    </property>
-   </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_4">
-    <property name="geometry">
-     <rect>
-      <x>123</x>
-      <y>230</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)AY,NAME=$(Q)AY,DESC=$(Q)AY,EGU=$(T).AEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_6">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>230</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)AY:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_7">
-    <property name="geometry">
-     <rect>
-      <x>183</x>
-      <y>230</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_12">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>228</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
-    </property>
-   </widget>
    <widget class="caChoice" name="caChoice_0">
     <property name="geometry">
      <rect>
@@ -2095,7 +1483,7 @@ border-radius: 2px;
      <enum>caChoice::Column</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_8">
+   <widget class="caMessageButton" name="caMessageButton_0">
     <property name="geometry">
      <rect>
       <x>0</x>
@@ -2108,7 +1496,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).SYNC</string>
+     <string>$(P)$(Q):sync</string>
     </property>
     <property name="label">
      <string>Sync</string>
@@ -2134,7 +1522,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_9">
+   <widget class="caMessageButton" name="caMessageButton_1">
     <property name="geometry">
      <rect>
       <x>50</x>
@@ -2147,7 +1535,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).INIT</string>
+     <string>$(P)$(Q):init</string>
     </property>
     <property name="label">
      <string>Init</string>
@@ -2173,7 +1561,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_10">
+   <widget class="caMessageButton" name="caMessageButton_2">
     <property name="geometry">
      <rect>
       <x>80</x>
@@ -2186,7 +1574,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).ZERO</string>
+     <string>$(P)$(Q):zero</string>
     </property>
     <property name="label">
      <string>Zero</string>
@@ -2212,7 +1600,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_11">
+   <widget class="caMessageButton" name="caMessageButton_3">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -2225,7 +1613,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):stop.VAL</string>
+     <string notr="true">$(P)$(Q):stopHelper.PROC</string>
     </property>
     <property name="label">
      <string>Stop</string>
@@ -2251,91 +1639,101 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caLabel" name="caLabel_6">
+   <widget class="caFrame" name="caFrame_0">
     <property name="geometry">
      <rect>
       <x>120</x>
       <y>345</y>
-      <width>60</width>
-      <height>20</height>
+      <width>62</width>
+      <height>22</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Done</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
-    </property>
-    <property name="fontScaleMode">
-     <enum>ESimpleLabel::WidthAndHeight</enum>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>235</red>
-      <green>241</green>
-      <blue>181</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color alpha="0">
-      <red>235</red>
-      <green>241</green>
-      <blue>181</blue>
-     </color>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="visibility">
-     <enum>caLabel::IfNotZero</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q):done.VAL</string>
-    </property>
+    <widget class="caLabel" name="caLabel_6">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>60</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Done</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
+     </property>
+     <property name="fontScaleMode">
+      <enum>ESimpleLabel::WidthAndHeight</enum>
+     </property>
+     <property name="foreground">
+      <color>
+       <red>235</red>
+       <green>241</green>
+       <blue>181</blue>
+      </color>
+     </property>
+     <property name="background">
+      <color alpha="0">
+       <red>235</red>
+       <green>241</green>
+       <blue>181</blue>
+      </color>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="visibility">
+      <enum>caLabel::IfNotZero</enum>
+     </property>
+     <property name="channel" stdset="0">
+      <string>$(P)$(Q):done.VAL</string>
+     </property>
+    </widget>
+    <widget class="caLabel" name="caLabel_7">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>60</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Moving</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
+     </property>
+     <property name="fontScaleMode">
+      <enum>ESimpleLabel::WidthAndHeight</enum>
+     </property>
+     <property name="foreground">
+      <color>
+       <red>235</red>
+       <green>241</green>
+       <blue>181</blue>
+      </color>
+     </property>
+     <property name="background">
+      <color alpha="0">
+       <red>235</red>
+       <green>241</green>
+       <blue>181</blue>
+      </color>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="visibility">
+      <enum>caLabel::IfZero</enum>
+     </property>
+     <property name="channel" stdset="0">
+      <string>$(P)$(Q):done.VAL</string>
+     </property>
+    </widget>
    </widget>
-   <widget class="caLabel" name="caLabel_7">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>345</y>
-      <width>60</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Moving</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
-    </property>
-    <property name="fontScaleMode">
-     <enum>ESimpleLabel::WidthAndHeight</enum>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>235</red>
-      <green>241</green>
-      <blue>181</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color alpha="0">
-      <red>235</red>
-      <green>241</green>
-      <blue>181</blue>
-     </color>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="visibility">
-     <enum>caLabel::IfZero</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q):done.VAL</string>
-    </property>
-   </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_5">
+   <widget class="caRelatedDisplay" name="caRelatedDisplay_1">
     <property name="geometry">
      <rect>
       <x>185</x>
@@ -2365,7 +1763,7 @@ border-radius: 2px;
      <string>More;Setup (SRI geometry);Setup (GEOCARS geometry);Setup (NEWPORT geometry);Setup (PNC geometry);Fixed points</string>
     </property>
     <property name="files">
-     <string>table_full.adl;table_setup_SRI.adl;table_setup_GEOCARS.adl;table_setup_NEWPORT.adl;table_setup_PNC.adl;table_fixedPoints.adl</string>
+     <string>table_full_soft.adl;table_setup_SRI.adl;table_setup_GEOCARS.adl;table_setup_NEWPORT.adl;table_setup_PNC.adl;table_fixedPoints.adl</string>
     </property>
     <property name="args">
      <string>P=$(P),Q=$(Q),T=$(T),M0X=$(M0X),M0Y=$(M0Y),M1Y=$(M1Y),M2X=$(M2X),M2Y=$(M2Y),M2Z=$(M2Z);P=$(P),Q=$(Q),T=$(T);P=$(P),Q=$(Q),T=$(T);P=$(P),Q=$(Q),T=$(T);P=$(P),Q=$(Q),T=$(T);P=$(P),Q=$(Q),T=$(T),M0X=$(M0X),M0Y=$(M0Y),M1Y=$(M1Y),M2X=$(M2X),M2Y=$(M2Y),M2Z=$(M2Z)</string>
@@ -2377,7 +1775,7 @@ border-radius: 2px;
      <string>true;false;false;false;false;false</string>
     </property>
    </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_6">
+   <widget class="caRelatedDisplay" name="caRelatedDisplay_2">
     <property name="geometry">
      <rect>
       <x>185</x>
@@ -2407,7 +1805,7 @@ border-radius: 2px;
      <string>Less</string>
     </property>
     <property name="files">
-     <string>table_tiny.adl</string>
+     <string>table_tiny_soft.adl</string>
     </property>
     <property name="args">
      <string>P=$(P),Q=$(Q),T=$(T),M0X=$(M0X),M0Y=$(M0Y),M1Y=$(M1Y),M2X=$(M2X),M2Y=$(M2Y),M2Z=$(M2Z)</string>
@@ -2465,7 +1863,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).Z</string>
+     <string>$(P)$(Q):z.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -2503,7 +1901,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_13">
+   <widget class="caGraphics" name="caRectangle_9">
     <property name="geometry">
      <rect>
       <x>23</x>
@@ -2547,159 +1945,6 @@ border-radius: 2px;
       <green>0</green>
       <blue>0</blue>
      </color>
-    </property>
-   </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_7">
-    <property name="geometry">
-     <rect>
-      <x>8</x>
-      <y>320</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)Z,NAME=$(Q)Z,DESC=$(Q)Z,EGU=$(T).LEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_12">
-    <property name="geometry">
-     <rect>
-      <x>45</x>
-      <y>320</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)Z:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_13">
-    <property name="geometry">
-     <rect>
-      <x>68</x>
-      <y>320</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_14">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>318</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
     </property>
    </widget>
    <widget class="caLabel" name="caLabel_9">
@@ -2748,7 +1993,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).AZ</string>
+     <string>$(P)$(Q):az.VAL</string>
     </property>
     <property name="foreground">
      <color>
@@ -2799,7 +2044,7 @@ border-radius: 2px;
      <set>Qt::AlignAbsolute|Qt::AlignCenter|Qt::AlignHCenter|Qt::AlignVCenter</set>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(T).EAZ</string>
+     <string>$(P)$(Q):az.RBV</string>
     </property>
     <property name="foreground">
      <color>
@@ -2837,7 +2082,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_15">
+   <widget class="caGraphics" name="caRectangle_10">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -2883,7 +2128,7 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caGraphics" name="caRectangle_16">
+   <widget class="caGraphics" name="caRectangle_11">
     <property name="geometry">
      <rect>
       <x>138</x>
@@ -2929,159 +2174,6 @@ border-radius: 2px;
      </color>
     </property>
    </widget>
-   <widget class="caRelatedDisplay" name="caRelatedDisplay_8">
-    <property name="geometry">
-     <rect>
-      <x>123</x>
-      <y>320</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="label">
-     <string>-Scan</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>255</red>
-      <green>255</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>51</red>
-      <green>153</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="labels">
-     <string>Setup scan parameters</string>
-    </property>
-    <property name="files">
-     <string>scanParmsCustom.adl</string>
-    </property>
-    <property name="args">
-     <string>P=$(P),Q=$(Q)AZ,NAME=$(Q)AZ,DESC=$(Q)AZ,EGU=$(T).AEGU</string>
-    </property>
-    <property name="stackingMode" stdset="0">
-     <enum>caRowColMenu::Menu</enum>
-    </property>
-    <property name="removeParent" stdset="0">
-     <string>false</string>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_14">
-    <property name="geometry">
-     <rect>
-      <x>160</x>
-      <y>320</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)$(Q)AZ:scanParms.GO</string>
-    </property>
-    <property name="label">
-     <string>Go</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>115</red>
-      <green>223</green>
-      <blue>255</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caMessageButton" name="caMessageButton_15">
-    <property name="geometry">
-     <rect>
-      <x>183</x>
-      <y>320</y>
-      <width>35</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="fontScaleMode">
-     <enum>EPushButton::WidthAndHeight</enum>
-    </property>
-    <property name="channel" stdset="0">
-     <string>$(P)allstop.VAL</string>
-    </property>
-    <property name="label">
-     <string>Kill</string>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>251</red>
-      <green>243</green>
-      <blue>74</blue>
-     </color>
-    </property>
-    <property name="background">
-     <color>
-      <red>253</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="pressMessage">
-     <string>1</string>
-    </property>
-    <property name="colorMode">
-     <enum>caMessageButton::Static</enum>
-    </property>
-   </widget>
-   <widget class="caGraphics" name="caRectangle_17">
-    <property name="geometry">
-     <rect>
-      <x>120</x>
-      <y>318</y>
-      <width>100</width>
-      <height>24</height>
-     </rect>
-    </property>
-    <property name="foreground">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="linestyle" stdset="0">
-     <enum>caGraphics::Solid</enum>
-    </property>
-    <property name="fillstyle" stdset="0">
-     <enum>caGraphics::Filled</enum>
-    </property>
-    <property name="lineColor">
-     <color>
-      <red>0</red>
-      <green>0</green>
-      <blue>0</blue>
-     </color>
-    </property>
-    <property name="form">
-     <enum>caGraphics::Rectangle</enum>
-    </property>
-   </widget>
    <widget class="caTextEntry" name="caTextEntry_6">
     <property name="geometry">
      <rect>
@@ -3092,7 +2184,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):x_tweakVal.VAL</string>
+     <string>$(P)$(Q):x.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3130,7 +2222,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_16">
+   <widget class="caMessageButton" name="caMessageButton_4">
     <property name="geometry">
      <rect>
       <x>89</x>
@@ -3143,7 +2235,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):x_tweak.A</string>
+     <string>$(P)$(Q):x.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3169,7 +2261,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_17">
+   <widget class="caMessageButton" name="caMessageButton_5">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -3182,7 +2274,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):x_tweak.B</string>
+     <string>$(P)$(Q):x.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3218,7 +2310,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ax_tweakVal.VAL</string>
+     <string>$(P)$(Q):ax.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3256,7 +2348,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_18">
+   <widget class="caMessageButton" name="caMessageButton_6">
     <property name="geometry">
      <rect>
       <x>204</x>
@@ -3269,7 +2361,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ax_tweak.A</string>
+     <string>$(P)$(Q):ax.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3295,7 +2387,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_19">
+   <widget class="caMessageButton" name="caMessageButton_7">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -3308,7 +2400,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ax_tweak.B</string>
+     <string>$(P)$(Q):ax.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3344,7 +2436,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):y_tweakVal.VAL</string>
+     <string>$(P)$(Q):y.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3382,7 +2474,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_20">
+   <widget class="caMessageButton" name="caMessageButton_8">
     <property name="geometry">
      <rect>
       <x>89</x>
@@ -3395,7 +2487,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):y_tweak.A</string>
+     <string>$(P)$(Q):y.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3421,7 +2513,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_21">
+   <widget class="caMessageButton" name="caMessageButton_9">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -3434,7 +2526,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):y_tweak.B</string>
+     <string>$(P)$(Q):y.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3470,7 +2562,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ay_tweakVal.VAL</string>
+     <string>$(P)$(Q):ay.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3508,7 +2600,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_22">
+   <widget class="caMessageButton" name="caMessageButton_10">
     <property name="geometry">
      <rect>
       <x>204</x>
@@ -3521,7 +2613,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ay_tweak.A</string>
+     <string>$(P)$(Q):ay.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3547,7 +2639,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_23">
+   <widget class="caMessageButton" name="caMessageButton_11">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -3560,7 +2652,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):ay_tweak.B</string>
+     <string>$(P)$(Q):ay.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3596,7 +2688,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):z_tweakVal.VAL</string>
+     <string>$(P)$(Q):z.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3634,7 +2726,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_24">
+   <widget class="caMessageButton" name="caMessageButton_12">
     <property name="geometry">
      <rect>
       <x>89</x>
@@ -3647,7 +2739,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):z_tweak.A</string>
+     <string>$(P)$(Q):z.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3673,7 +2765,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_25">
+   <widget class="caMessageButton" name="caMessageButton_13">
     <property name="geometry">
      <rect>
       <x>25</x>
@@ -3686,7 +2778,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):z_tweak.B</string>
+     <string>$(P)$(Q):z.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3722,7 +2814,7 @@ border-radius: 2px;
      </rect>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):az_tweakVal.VAL</string>
+     <string>$(P)$(Q):az.TWV</string>
     </property>
     <property name="foreground">
      <color>
@@ -3760,7 +2852,7 @@ border-radius: 2px;
      <enum>caLineEdit::decimal</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_26">
+   <widget class="caMessageButton" name="caMessageButton_14">
     <property name="geometry">
      <rect>
       <x>204</x>
@@ -3773,7 +2865,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):az_tweak.A</string>
+     <string>$(P)$(Q):az.TWF</string>
     </property>
     <property name="label">
      <string>&gt;</string>
@@ -3799,7 +2891,7 @@ border-radius: 2px;
      <enum>caMessageButton::Static</enum>
     </property>
    </widget>
-   <widget class="caMessageButton" name="caMessageButton_27">
+   <widget class="caMessageButton" name="caMessageButton_15">
     <property name="geometry">
      <rect>
       <x>140</x>
@@ -3812,7 +2904,7 @@ border-radius: 2px;
      <enum>EPushButton::WidthAndHeight</enum>
     </property>
     <property name="channel" stdset="0">
-     <string>$(P)$(Q):az_tweak.B</string>
+     <string>$(P)$(Q):az.TWR</string>
     </property>
     <property name="label">
      <string>&lt;</string>
@@ -3874,6 +2966,282 @@ border-radius: 2px;
      <enum>caPolyLine::Filled</enum>
     </property>
    </widget>
+   <widget class="caGraphics" name="caRectangle_12">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>76</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):x.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_13">
+    <property name="geometry">
+     <rect>
+      <x>136</x>
+      <y>76</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):ax.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_14">
+    <property name="geometry">
+     <rect>
+      <x>21</x>
+      <y>166</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):y.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_15">
+    <property name="geometry">
+     <rect>
+      <x>136</x>
+      <y>166</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):ay.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_16">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>256</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):z.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
+   <widget class="caGraphics" name="caRectangle_17">
+    <property name="geometry">
+     <rect>
+      <x>135</x>
+      <y>257</y>
+      <width>90</width>
+      <height>64</height>
+     </rect>
+    </property>
+    <property name="foreground">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="linestyle" stdset="0">
+     <enum>caGraphics::Solid</enum>
+    </property>
+    <property name="lineSize">
+     <number>2</number>
+    </property>
+    <property name="lineColor">
+     <color>
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+    <property name="visibility">
+     <enum>caGraphics::IfZero</enum>
+    </property>
+    <property name="channel" stdset="0">
+     <string>$(P)$(Q):az.DMOV</string>
+    </property>
+    <property name="form">
+     <enum>caGraphics::Rectangle</enum>
+    </property>
+    <property name="background" stdset="0">
+     <color alpha="0">
+      <red>115</red>
+      <green>255</green>
+      <blue>107</blue>
+     </color>
+    </property>
+   </widget>
    <zorder>caPolyLine_0</zorder>
    <zorder>caLabel_0</zorder>
    <zorder>caRectangle_0</zorder>
@@ -3881,29 +3249,28 @@ border-radius: 2px;
    <zorder>caLabel_2</zorder>
    <zorder>caRectangle_1</zorder>
    <zorder>caRectangle_2</zorder>
-   <zorder>caRectangle_3</zorder>
    <zorder>caLabel_3</zorder>
+   <zorder>caRectangle_3</zorder>
    <zorder>caRectangle_4</zorder>
+   <zorder>caLabel_4</zorder>
    <zorder>caRectangle_5</zorder>
    <zorder>caRectangle_6</zorder>
-   <zorder>caLabel_4</zorder>
+   <zorder>caLabel_5</zorder>
    <zorder>caRectangle_7</zorder>
    <zorder>caRectangle_8</zorder>
-   <zorder>caLabel_5</zorder>
+   <zorder>caFrame_0</zorder>
+   <zorder>caLabel_8</zorder>
    <zorder>caRectangle_9</zorder>
+   <zorder>caLabel_9</zorder>
    <zorder>caRectangle_10</zorder>
    <zorder>caRectangle_11</zorder>
+   <zorder>caPolyLine_1</zorder>
    <zorder>caRectangle_12</zorder>
-   <zorder>caLabel_6</zorder>
-   <zorder>caLabel_7</zorder>
-   <zorder>caLabel_8</zorder>
    <zorder>caRectangle_13</zorder>
    <zorder>caRectangle_14</zorder>
-   <zorder>caLabel_9</zorder>
    <zorder>caRectangle_15</zorder>
    <zorder>caRectangle_16</zorder>
    <zorder>caRectangle_17</zorder>
-   <zorder>caPolyLine_1</zorder>
    <zorder>caLineEdit_0</zorder>
    <zorder>caRelatedDisplay_0</zorder>
    <zorder>caMenu_0</zorder>
@@ -3911,59 +3278,41 @@ border-radius: 2px;
    <zorder>caLineEdit_2</zorder>
    <zorder>caLineEdit_3</zorder>
    <zorder>caTextEntry_0</zorder>
-   <zorder>caRelatedDisplay_1</zorder>
-   <zorder>caMessageButton_0</zorder>
-   <zorder>caMessageButton_1</zorder>
    <zorder>caLineEdit_4</zorder>
    <zorder>caTextEntry_1</zorder>
    <zorder>caLineEdit_5</zorder>
-   <zorder>caRelatedDisplay_2</zorder>
-   <zorder>caMessageButton_2</zorder>
-   <zorder>caMessageButton_3</zorder>
    <zorder>caTextEntry_2</zorder>
    <zorder>caLineEdit_6</zorder>
    <zorder>caTextEntry_3</zorder>
    <zorder>caLineEdit_7</zorder>
-   <zorder>caRelatedDisplay_3</zorder>
-   <zorder>caMessageButton_4</zorder>
-   <zorder>caMessageButton_5</zorder>
-   <zorder>caRelatedDisplay_4</zorder>
-   <zorder>caMessageButton_6</zorder>
-   <zorder>caMessageButton_7</zorder>
    <zorder>caChoice_0</zorder>
-   <zorder>caMessageButton_8</zorder>
-   <zorder>caMessageButton_9</zorder>
-   <zorder>caMessageButton_10</zorder>
-   <zorder>caMessageButton_11</zorder>
-   <zorder>caRelatedDisplay_5</zorder>
-   <zorder>caRelatedDisplay_6</zorder>
+   <zorder>caMessageButton_0</zorder>
+   <zorder>caMessageButton_1</zorder>
+   <zorder>caMessageButton_2</zorder>
+   <zorder>caMessageButton_3</zorder>
+   <zorder>caRelatedDisplay_1</zorder>
+   <zorder>caRelatedDisplay_2</zorder>
    <zorder>caTextEntry_4</zorder>
-   <zorder>caRelatedDisplay_7</zorder>
-   <zorder>caMessageButton_12</zorder>
-   <zorder>caMessageButton_13</zorder>
    <zorder>caTextEntry_5</zorder>
    <zorder>caLineEdit_8</zorder>
-   <zorder>caRelatedDisplay_8</zorder>
+   <zorder>caTextEntry_6</zorder>
+   <zorder>caMessageButton_4</zorder>
+   <zorder>caMessageButton_5</zorder>
+   <zorder>caTextEntry_7</zorder>
+   <zorder>caMessageButton_6</zorder>
+   <zorder>caMessageButton_7</zorder>
+   <zorder>caTextEntry_8</zorder>
+   <zorder>caMessageButton_8</zorder>
+   <zorder>caMessageButton_9</zorder>
+   <zorder>caTextEntry_9</zorder>
+   <zorder>caMessageButton_10</zorder>
+   <zorder>caMessageButton_11</zorder>
+   <zorder>caTextEntry_10</zorder>
+   <zorder>caMessageButton_12</zorder>
+   <zorder>caMessageButton_13</zorder>
+   <zorder>caTextEntry_11</zorder>
    <zorder>caMessageButton_14</zorder>
    <zorder>caMessageButton_15</zorder>
-   <zorder>caTextEntry_6</zorder>
-   <zorder>caMessageButton_16</zorder>
-   <zorder>caMessageButton_17</zorder>
-   <zorder>caTextEntry_7</zorder>
-   <zorder>caMessageButton_18</zorder>
-   <zorder>caMessageButton_19</zorder>
-   <zorder>caTextEntry_8</zorder>
-   <zorder>caMessageButton_20</zorder>
-   <zorder>caMessageButton_21</zorder>
-   <zorder>caTextEntry_9</zorder>
-   <zorder>caMessageButton_22</zorder>
-   <zorder>caMessageButton_23</zorder>
-   <zorder>caTextEntry_10</zorder>
-   <zorder>caMessageButton_24</zorder>
-   <zorder>caMessageButton_25</zorder>
-   <zorder>caTextEntry_11</zorder>
-   <zorder>caMessageButton_26</zorder>
-   <zorder>caMessageButton_27</zorder>
   </widget>
  </widget>
  <customwidgets>
@@ -3991,6 +3340,12 @@ border-radius: 2px;
    <class>caMessageButton</class>
    <extends>QPushButton</extends>
    <header>caMessageButton</header>
+  </customwidget>
+  <customwidget>
+   <class>caFrame</class>
+   <extends>QFrame</extends>
+   <header>caFrame</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>caLabel</class>
