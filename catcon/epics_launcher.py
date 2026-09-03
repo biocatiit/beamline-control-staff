@@ -64,6 +64,8 @@ class EPICSLauncherPanel(wx.Panel):
 
         self._initialize()
 
+        self.Layout()
+        self.Fit()
         self.SendSizeEvent()
 
     def _FromDIP(self, size):
@@ -178,6 +180,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e04_button = wx.Button(motor_box, label='DMC E04')
         dmc_e05_button = wx.Button(motor_box, label='DMC E05')
         dmc_a01_button = wx.Button(motor_box, label='DMC A01')
+        adc_table_button = wx.Button(motor_box, label='ADC Table')
 
         motor_channel_button.Bind(wx.EVT_BUTTON, self._on_motor_channel_button)
         dmc_e01_button.Bind(wx.EVT_BUTTON, self._on_dmc_e01_button)
@@ -186,6 +189,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e04_button.Bind(wx.EVT_BUTTON, self._on_dmc_e04_button)
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
         dmc_a01_button.Bind(wx.EVT_BUTTON, self._on_dmc_a01_button)
+        adc_table_button.Bind(wx.EVT_BUTTON, self._on_adc_table_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
         motor_sizer.Add(motor_channel_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
@@ -200,7 +204,9 @@ class EPICSLauncherPanel(wx.Panel):
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_e05_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
-        motor_sizer.Add(dmc_a01_button, flag=wx.ALL,
+        motor_sizer.Add(dmc_a01_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(adc_table_button, flag=wx.ALL,
             border=self._FromDIP(5))
 
 
@@ -303,7 +309,7 @@ class EPICSLauncherPanel(wx.Panel):
         col1_sizer = wx.BoxSizer(wx.VERTICAL)
         col1_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.TOP|wx.BOTTOM,
             border=self._FromDIP(5))
-        col1_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.BOTTOM,
+        col1_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
         col1_sizer.Add(scaler_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
@@ -313,16 +319,21 @@ class EPICSLauncherPanel(wx.Panel):
         col2_sizer = wx.BoxSizer(wx.VERTICAL)
         col2_sizer.Add(io_sizer, flag=wx.EXPAND|wx.TOP|wx.BOTTOM,
             border=self._FromDIP(5))
+        col2_sizer.Add(ad_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
         col2_sizer.Add(aps_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
-        col2_sizer.Add(bpm_sizer, flag=wx.EXPAND|wx.BOTTOM,
-            border=self._FromDIP(5))
         col2_sizer.Add(amp_sizer, flag=wx.EXPAND|wx.BOTTOM,
+            border=self._FromDIP(5))
+
+        col3_sizer = wx.BoxSizer(wx.VERTICAL)
+        col3_sizer.Add(amp_sizer, flag=wx.EXPAND|wx.BOTTOM,
             border=self._FromDIP(5))
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(col1_sizer, flag=wx.LEFT|wx.RIGHT, border=self._FromDIP(5))
         top_sizer.Add(col2_sizer, flag=wx.RIGHT, border=self._FromDIP(5))
+        top_sizer.Add(col3_sizer, flag=wx.RIGHT, border=self._FromDIP(5))
 
 
         self.SetSizer(top_sizer)
@@ -462,6 +473,14 @@ class EPICSLauncherPanel(wx.Panel):
     def _start_dmc(self, num):
         script = self._epics_path / 'start_dmc_screen.sh'
         cmd = '{} 18ID_DMC_{}'.format(script, num)
+        self._start_epics(cmd)
+
+    def _on_adc_table_button(self, evt):
+        self._start_adc_table()
+
+    def _start_adc_table(self):
+        script = self._epics_path / 'start_adc_table_screen.sh'
+        cmd = '{}'.format(script)
         self._start_epics(cmd)
 
     def _on_cbpm_button(self, evt):
