@@ -180,6 +180,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e04_button = wx.Button(motor_box, label='DMC E04')
         dmc_e05_button = wx.Button(motor_box, label='DMC E05')
         dmc_a01_button = wx.Button(motor_box, label='DMC A01')
+        xps_d8_d_button = wx.Button(motor_box, label='XPS-D8 D hutch')
         adc_table_button = wx.Button(motor_box, label='ADC Table')
 
         motor_channel_button.Bind(wx.EVT_BUTTON, self._on_motor_channel_button)
@@ -189,6 +190,7 @@ class EPICSLauncherPanel(wx.Panel):
         dmc_e04_button.Bind(wx.EVT_BUTTON, self._on_dmc_e04_button)
         dmc_e05_button.Bind(wx.EVT_BUTTON, self._on_dmc_e05_button)
         dmc_a01_button.Bind(wx.EVT_BUTTON, self._on_dmc_a01_button)
+        xps_d8_d_button.Bind(wx.EVT_BUTTON, self._on_xps_d8_d_button)
         adc_table_button.Bind(wx.EVT_BUTTON, self._on_adc_table_button)
 
         motor_sizer = wx.StaticBoxSizer(motor_box, wx.VERTICAL)
@@ -205,6 +207,8 @@ class EPICSLauncherPanel(wx.Panel):
         motor_sizer.Add(dmc_e05_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(dmc_a01_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
+            border=self._FromDIP(5))
+        motor_sizer.Add(xps_d8_d_button, flag=wx.TOP|wx.LEFT|wx.RIGHT,
             border=self._FromDIP(5))
         motor_sizer.Add(adc_table_button, flag=wx.ALL,
             border=self._FromDIP(5))
@@ -475,6 +479,14 @@ class EPICSLauncherPanel(wx.Panel):
         cmd = '{} 18ID_DMC_{}'.format(script, num)
         self._start_epics(cmd)
 
+    def _on_xps_d8_d_button(self, evt):
+        self._start_xps('18ID_Newport_D:')
+
+    def _start_xps(self, prefix):
+        script = self._epics_path / 'start_newport_screen.sh'
+        cmd = '{} {}'.format(script, prefix)
+        self._start_epics(cmd)
+
     def _on_adc_table_button(self, evt):
         self._start_adc_table()
 
@@ -552,7 +564,7 @@ class EPICSLauncherPanel(wx.Panel):
 class MotorChannelPanel(wx.Panel):
     def __init__(self, name, mx_database, *args, **kwargs):
 
-        USE_C_MOTORS = True
+        USE_C_MOTORS = False
 
         panel_name = ' '.join(name.split(' ')[:-1])
 
@@ -577,6 +589,7 @@ class MotorChannelPanel(wx.Panel):
             ('18ID_DMC_E04:', 25, 32, ''),
             ('18ID_DMC_E05:', 33, 40, ''),
             ('18ID_DMC_A01:', 1, 8, 'A'),
+            ('18ID_Newport_D:', 1, 3, 'm'),
             ]
 
         if USE_C_MOTORS:
