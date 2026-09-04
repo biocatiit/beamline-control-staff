@@ -374,6 +374,8 @@ class ScanProcess(multiprocessing.Process):
                 self.ef_burst = self.dg645_1.ef_burst
                 self.gh_burst = self.dg645_1.gh_burst
 
+                self.dg645_1.set_trigger(1)
+
                 self.srs_trig = self.mx_database.get_record('do_10')
 
             elif self.detector == 'Pilatus3 X 1M':
@@ -389,6 +391,8 @@ class ScanProcess(multiprocessing.Process):
                 self.cd_burst = self.dg645_1.cd_burst
                 self.ef_burst = self.dg645_1.ef_burst
                 self.gh_burst = self.dg645_1.gh_burst
+
+                self.dg645_1.set_trigger(1)
 
                 self.srs_trig = self.mx_database.get_record('do_10')
 
