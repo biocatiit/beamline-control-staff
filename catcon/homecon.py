@@ -437,9 +437,11 @@ class HomeMotorPanel(wx.Panel):
 
         parent = self
 
-        self._pv_choice = wx.Choice(parent, choices=self._motor_list)
+        self._pv_choice = wx.ComboBox(parent, choices=self._motor_list,
+            style=wx.TE_PROCESS_ENTER)
         self._pv_choice.SetStringSelection(self._selected_pv)
-        self._pv_choice.Bind(wx.EVT_CHOICE, self._on_pv_change)
+        self._pv_choice.Bind(wx.EVT_COMBOBOX, self._on_pv_change)
+        self._pv_choice.Bind(wx.EVT_TEXT_ENTER, self._on_pv_change)
 
         pv_sel_sizer = wx.BoxSizer(wx.HORIZONTAL)
         pv_sel_sizer.Add(wx.StaticText(parent, label='Motor PV:'),

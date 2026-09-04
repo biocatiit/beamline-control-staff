@@ -61,6 +61,7 @@ import motor_config
 import cameracon
 import monotunecon
 import measure_dark
+import homecon
 
 
 class MainFrame(wx.Frame):
@@ -106,6 +107,7 @@ class MainFrame(wx.Frame):
             'Mono Piezo Tune'           : monotunecon.MonoTunePanel,
             'SRS Amplifiers'            : ac.MultiSRSAmpPanel,
             'Measure Dark'              : measure_dark.MeasureDarkPanel,
+            'Home Motors'               : homecon.HomeMotorPanel,
             }
 
         self.ctrl_panels = {}
