@@ -363,19 +363,33 @@ class ScanProcess(multiprocessing.Process):
                     use_tiff_writer=False, use_file_writer=True,
                     photon_energy=12.0, images_per_file=1)
 
-                self.ab_burst = self.mx_database.get_record('ab_burst')
-                self.cd_burst = self.mx_database.get_record('cd_burst')
-                self.ef_burst = self.mx_database.get_record('ef_burst')
-                self.gh_burst = self.mx_database.get_record('gh_burst')
+                # self.ab_burst = self.mx_database.get_record('ab_burst')
+                # self.cd_burst = self.mx_database.get_record('cd_burst')
+                # self.ef_burst = self.mx_database.get_record('ef_burst')
+                # self.gh_burst = self.mx_database.get_record('gh_burst')
+
+                self.dg645_1 = devices.EPICSSRSDG645('18ID:DG645:1:')
+                self.ab_burst = self.dg645_1.ab_burst
+                self.cd_burst = self.dg645_1.cd_burst
+                self.ef_burst = self.dg645_1.ef_burst
+                self.gh_burst = self.dg645_1.gh_burst
+
                 self.srs_trig = self.mx_database.get_record('do_10')
 
             elif self.detector == 'Pilatus3 X 1M':
                 self.det = devices.EPICSPilatusDetector('18IDpil1M:')
 
-                self.ab_burst = self.mx_database.get_record('ab_burst')
-                self.cd_burst = self.mx_database.get_record('cd_burst')
-                self.ef_burst = self.mx_database.get_record('ef_burst')
-                self.gh_burst = self.mx_database.get_record('gh_burst')
+                # self.ab_burst = self.mx_database.get_record('ab_burst')
+                # self.cd_burst = self.mx_database.get_record('cd_burst')
+                # self.ef_burst = self.mx_database.get_record('ef_burst')
+                # self.gh_burst = self.mx_database.get_record('gh_burst')
+
+                self.dg645_1 = devices.EPICSSRSDG645('18ID:DG645:1:')
+                self.ab_burst = self.dg645_1.ab_burst
+                self.cd_burst = self.dg645_1.cd_burst
+                self.ef_burst = self.dg645_1.ef_burst
+                self.gh_burst = self.dg645_1.gh_burst
+
                 self.srs_trig = self.mx_database.get_record('do_10')
 
             else:
