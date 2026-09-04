@@ -896,21 +896,23 @@ class ScanPanel(wx.Panel):
     def _create_layout(self):
         """Creates the layout of both the controls and the plots."""
 
-        self.motor = wx.Choice(self, choices=self.motors)
+        info_box = wx.StaticBox(self, label='Info')
+
+        self.motor = wx.Choice(info_box, choices=self.motors)
         self.motor.Bind(wx.EVT_CHOICE, self._on_motorchoice)
 
-        self.pos = wx.StaticText(self, label='')
-        self.pos_label = wx.StaticText(self, label='Current position:')
+        self.pos = wx.StaticText(info_box, label='')
+        self.pos_label = wx.StaticText(info_box, label='Current position:')
 
-        self.motor2 = wx.Choice(self, choices=self.motors)
+        self.motor2 = wx.Choice(info_box, choices=self.motors)
         self.motor2.Bind(wx.EVT_CHOICE, self._on_motorchoice)
 
-        self.pos2 = wx.StaticText(self, label='')
-        self.pos_label2 = wx.StaticText(self, label='Current position:')
+        self.pos2 = wx.StaticText(info_box, label='')
+        self.pos_label2 = wx.StaticText(info_box, label='Current position:')
 
         info_grid = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
-        info_grid.Add(wx.StaticText(self, label='Device 1:'),
+        info_grid.Add(wx.StaticText(info_box, label='Device 1:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(self.motor, flag=wx.ALIGN_CENTER_VERTICAL)
         info_grid.Add(self.pos_label, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -918,34 +920,36 @@ class ScanPanel(wx.Panel):
 
         self.info_grid2 = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
-        self.info_grid2.Add(wx.StaticText(self, label='Device 2:'))
+        self.info_grid2.Add(wx.StaticText(info_box, label='Device 2:'))
         self.info_grid2.Add(self.motor2)
         self.info_grid2.Add(self.pos_label2)
         self.info_grid2.Add(self.pos2)
 
-        self.info_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Info'),
-            wx.VERTICAL)
+        self.info_sizer = wx.StaticBoxSizer(info_box,wx.VERTICAL)
         self.info_sizer.Add(info_grid, flag=wx.EXPAND|wx.ALL,
             border=self._FromDIP(5))
-        self.info_sizer.Add(self.info_grid2, flag=wx.EXPAND|wx.ALL,
+        self.info_sizer.Add(self.info_grid2, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
         self.info_sizer.Hide(self.info_grid2, recursive=True)
 
-        self.scan_type = wx.Choice(self, choices=['Absolute', 'Relative'])
+
+        ctrl_box = wx.StaticBox(self, label='Scan Controls')
+
+        self.scan_type = wx.Choice(ctrl_box, choices=['Absolute', 'Relative'])
         self.scan_type.SetSelection(1)
-        self.scan_dim = wx.Choice(self, choices=['1D', '2D'])
+        self.scan_dim = wx.Choice(ctrl_box, choices=['1D', '2D'])
         self.scan_dim.SetSelection(0)
         self.scan_dim.Bind(wx.EVT_CHOICE, self._on_dimension)
-        self.start = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.stop = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.step = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.start2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.stop2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.step2 = wx.TextCtrl(self, value='', size=self._FromDIP((80, -1)))
-        self.count_time = wx.TextCtrl(self, value='0.1')
-        self.scaler = wx.Choice(self, choices=self.scalers)
-        self.timer = wx.Choice(self, choices=self.timers)
-        self.detector = wx.Choice(self, choices=self.detectors)
+        self.start = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.stop = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.step = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.start2 = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.stop2 = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.step2 = wx.TextCtrl(ctrl_box, value='', size=self._FromDIP((80, -1)))
+        self.count_time = wx.TextCtrl(ctrl_box, value='0.1')
+        self.scaler = wx.Choice(ctrl_box, choices=self.scalers)
+        self.timer = wx.Choice(ctrl_box, choices=self.timers)
+        self.detector = wx.Choice(ctrl_box, choices=self.detectors)
 
         if six.PY3:
             for i in range(len(self.scalers)):
@@ -961,7 +965,7 @@ class ScanPanel(wx.Panel):
         self.detector.SetStringSelection('None')
 
         type_sizer =wx.BoxSizer(wx.HORIZONTAL)
-        type_sizer.Add(wx.StaticText(self, label='Scan type:'),
+        type_sizer.Add(wx.StaticText(ctrl_box, label='Scan type:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         type_sizer.Add(self.scan_type, border=self._FromDIP(5),
             flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
@@ -971,13 +975,13 @@ class ScanPanel(wx.Panel):
         mv_grid = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
         mv_grid.AddSpacer(1)
-        mv_grid.Add(wx.StaticText(self, label='Start'),
+        mv_grid.Add(wx.StaticText(ctrl_box, label='Start'),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        mv_grid.Add(wx.StaticText(self, label='Stop'),
+        mv_grid.Add(wx.StaticText(ctrl_box, label='Stop'),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        mv_grid.Add(wx.StaticText(self, label='Step'),
+        mv_grid.Add(wx.StaticText(ctrl_box, label='Step'),
             flag=wx.ALIGN_CENTER_VERTICAL)
-        mv_grid.Add(wx.StaticText(self, label='1:'),
+        mv_grid.Add(wx.StaticText(ctrl_box, label='1:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         mv_grid.Add(self.start, flag=wx.ALIGN_CENTER_VERTICAL)
         mv_grid.Add(self.stop, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -985,7 +989,7 @@ class ScanPanel(wx.Panel):
 
         self.mv_grid2 = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
-        self.mv_grid2.Add(wx.StaticText(self, label='2:'),
+        self.mv_grid2.Add(wx.StaticText(ctrl_box, label='2:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         self.mv_grid2.Add(self.start2, flag=wx.ALIGN_CENTER_VERTICAL)
         self.mv_grid2.Add(self.stop2, flag=wx.ALIGN_CENTER_VERTICAL)
@@ -994,28 +998,28 @@ class ScanPanel(wx.Panel):
 
         count_grid = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
-        count_grid.Add(wx.StaticText(self, label='Count time (s):'),
+        count_grid.Add(wx.StaticText(ctrl_box, label='Count time (s):'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.Add(self.count_time, flag=wx.ALIGN_CENTER_VERTICAL)
-        count_grid.Add(wx.StaticText(self, label='Timer:'),
+        count_grid.Add(wx.StaticText(ctrl_box, label='Timer:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.Add(self.timer, flag=wx.ALIGN_CENTER_VERTICAL)
-        count_grid.Add(wx.StaticText(self, label='Scaler:'),
+        count_grid.Add(wx.StaticText(ctrl_box, label='Scaler:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.Add(self.scaler, flag=wx.ALIGN_CENTER_VERTICAL)
-        count_grid.Add(wx.StaticText(self, label='Detector:'),
+        count_grid.Add(wx.StaticText(ctrl_box, label='Detector:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.Add(self.detector, flag=wx.ALIGN_CENTER_VERTICAL)
         count_grid.AddGrowableCol(1)
 
 
-        self.shutter = wx.CheckBox(self, label='Scan actuates shutter')
+        self.shutter = wx.CheckBox(ctrl_box, label='Scan actuates shutter')
         self.shutter.SetValue(True)
 
-        self.start_btn = wx.Button(self, label='Start')
+        self.start_btn = wx.Button(ctrl_box, label='Start')
         self.start_btn.Bind(wx.EVT_BUTTON, self._on_start)
 
-        self.stop_btn = wx.Button(self, label='Stop')
+        self.stop_btn = wx.Button(ctrl_box, label='Stop')
         self.stop_btn.Bind(wx.EVT_BUTTON, self._on_stop)
         self.stop_btn.Disable()
 
@@ -1024,28 +1028,29 @@ class ScanPanel(wx.Panel):
         ctrl_btn_sizer.Add(self.stop_btn, border=self._FromDIP(5),
             flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
-        self.ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Controls'),
-            wx.VERTICAL)
+        self.ctrl_sizer = wx.StaticBoxSizer(ctrl_box, wx.VERTICAL)
         self.ctrl_sizer.Add(type_sizer)
         self.ctrl_sizer.Add(mv_grid, border=self._FromDIP(5),
-            flag=wx.EXPAND|wx.TOP)
+            flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT)
         self.ctrl_sizer.Add(self.mv_grid2, border=self._FromDIP(5),
-            flag=wx.EXPAND|wx.TOP)
+            flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT)
         self.ctrl_sizer.Add(count_grid, border=self._FromDIP(5),
-            flag=wx.EXPAND|wx.TOP)
+            flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT)
         self.ctrl_sizer.Add(self.shutter, border=self._FromDIP(5),
-            flag=wx.EXPAND|wx.TOP)
+            flag=wx.EXPAND|wx.TOP|wx.LEFT|wx.RIGHT)
         self.ctrl_sizer.Add(ctrl_btn_sizer, border=self._FromDIP(5),
-            flag=wx.ALIGN_CENTER_HORIZONTAL|wx.TOP)
+            flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL)
 
         self.ctrl_sizer.Hide(self.mv_grid2, recursive=True)
 
 
-        self.show_der = wx.CheckBox(self, label='Show derivative')
+        plt_box = wx.StaticBox(self, label='Plot Controls')
+
+        self.show_der = wx.CheckBox(plt_box, label='Show derivative')
         self.show_der.SetValue(False)
         self.show_der.Bind(wx.EVT_CHECKBOX, self._on_showder)
 
-        self.flip_der = wx.CheckBox(self, label='Flip derivative')
+        self.flip_der = wx.CheckBox(plt_box, label='Flip derivative')
         self.flip_der.SetValue(False)
         self.flip_der.Bind(wx.EVT_CHECKBOX, self._on_flipder)
 
@@ -1054,8 +1059,8 @@ class ScanPanel(wx.Panel):
         der_ctrl_sizer.Add(self.flip_der, border=self._FromDIP(5),
             flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
-        self.plt_fit = wx.Choice(self, choices=['None', 'Gaussian'])
-        self.der_fit = wx.Choice(self, choices=['None', 'Gaussian'])
+        self.plt_fit = wx.Choice(plt_box, choices=['None', 'Gaussian'])
+        self.der_fit = wx.Choice(plt_box, choices=['None', 'Gaussian'])
         self.plt_fit.SetSelection(0)
         self.der_fit.SetSelection(0)
         self.plt_fit.Bind(wx.EVT_CHOICE, self._on_fitchoice)
@@ -1063,26 +1068,26 @@ class ScanPanel(wx.Panel):
 
         self.fit_sizer = wx.FlexGridSizer(cols=2, vgap=self._FromDIP(5),
             hgap=self._FromDIP(5))
-        self.fit_sizer.Add(wx.StaticText(self, label='Counts Fit:'),
+        self.fit_sizer.Add(wx.StaticText(plt_box, label='Counts Fit:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         self.fit_sizer.Add(self.plt_fit, flag=wx.ALIGN_CENTER_VERTICAL)
-        self.fit_sizer.Add(wx.StaticText(self, label='Derivative Fit:'),
+        self.fit_sizer.Add(wx.StaticText(plt_box, label='Derivative Fit:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         self.fit_sizer.Add(self.der_fit, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        self.show_fwhm = wx.CheckBox(self, label='Show FWHM')
+        self.show_fwhm = wx.CheckBox(plt_box, label='Show FWHM')
         self.show_fwhm.SetValue(False)
         self.show_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
 
-        self.show_der_fwhm = wx.CheckBox(self, label='Show derivative FWHM')
+        self.show_der_fwhm = wx.CheckBox(plt_box, label='Show derivative FWHM')
         self.show_der_fwhm.SetValue(False)
         self.show_der_fwhm.Bind(wx.EVT_CHECKBOX, self._on_showfwhm)
 
-        self.show_com = wx.CheckBox(self, label='Show COM')
+        self.show_com = wx.CheckBox(plt_box, label='Show COM')
         self.show_com.SetValue(False)
         self.show_com.Bind(wx.EVT_CHECKBOX, self._on_showcom)
 
-        self.show_der_com = wx.CheckBox(self, label='Show derivative COM')
+        self.show_der_com = wx.CheckBox(plt_box, label='Show derivative COM')
         self.show_der_com.SetValue(False)
         self.show_der_com.Bind(wx.EVT_CHECKBOX, self._on_showcom)
 
@@ -1093,33 +1098,35 @@ class ScanPanel(wx.Panel):
         calc_sizer.Add(self.show_com, flag=wx.ALIGN_CENTER_VERTICAL)
         calc_sizer.Add(self.show_der_com, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        plt_ctrl_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Plot Controls'),
-            wx.VERTICAL)
+        plt_ctrl_sizer = wx.StaticBoxSizer(plt_box, wx.VERTICAL)
         plt_ctrl_sizer.Add(der_ctrl_sizer)
-        plt_ctrl_sizer.Add(self.fit_sizer, border=self._FromDIP(5), flag=wx.TOP)
-        plt_ctrl_sizer.Add(calc_sizer, border=self._FromDIP(5), flag=wx.TOP)
+        plt_ctrl_sizer.Add(self.fit_sizer, border=self._FromDIP(5),
+            flag=wx.TOP|wx.LEFT|wx.RIGHT)
+        plt_ctrl_sizer.Add(calc_sizer, border=self._FromDIP(5), flag=wx.ALL)
 
 
-        self.disp_fwhm = wx.StaticText(self, label='',
+        result_box = wx.StaticBox(self, label='Scan Results')
+
+        self.disp_fwhm = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
-        self.disp_fwhm_pos = wx.StaticText(self, label='',
+        self.disp_fwhm_pos = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
-        self.disp_com = wx.StaticText(self, label='',
+        self.disp_com = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
 
-        self.disp_fit_label1 = wx.StaticText(self, label='Fit param. 1:')
-        self.disp_fit_label2 = wx.StaticText(self, label='Fit param. 2:')
-        self.disp_fit_p1 = wx.StaticText(self, label='')
-        self.disp_fit_p2 = wx.StaticText(self, label='')
+        self.disp_fit_label1 = wx.StaticText(result_box, label='Fit param. 1:')
+        self.disp_fit_label2 = wx.StaticText(result_box, label='Fit param. 2:')
+        self.disp_fit_p1 = wx.StaticText(result_box, label='')
+        self.disp_fit_p2 = wx.StaticText(result_box, label='')
 
         scan_results = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5), hgap=2)
-        scan_results.Add(wx.StaticText(self, label='FWHM:'),
+        scan_results.Add(wx.StaticText(result_box, label='FWHM:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add(self.disp_fwhm, flag=wx.ALIGN_CENTER_VERTICAL)
-        scan_results.Add(wx.StaticText(self, label='FWHM cen.:'),
+        scan_results.Add(wx.StaticText(result_box, label='FWHM cen.:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add(self.disp_fwhm_pos, flag=wx.ALIGN_CENTER_VERTICAL)
-        scan_results.Add(wx.StaticText(self, label='COM pos.:'),
+        scan_results.Add(wx.StaticText(result_box, label='COM pos.:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add(self.disp_com, flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add((1,1))
@@ -1129,27 +1136,27 @@ class ScanPanel(wx.Panel):
         scan_results.Add(self.disp_fit_label2, flag=wx.ALIGN_CENTER_VERTICAL)
         scan_results.Add(self.disp_fit_p2, flag=wx.ALIGN_CENTER_VERTICAL)
 
-        self.disp_der_fwhm = wx.StaticText(self, label='',
+        self.disp_der_fwhm = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
-        self.disp_der_fwhm_pos = wx.StaticText(self, label='',
+        self.disp_der_fwhm_pos = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
-        self.disp_der_com = wx.StaticText(self, label='',
+        self.disp_der_com = wx.StaticText(result_box, label='',
             size=self._FromDIP((60, -1)))
-        self.disp_der_fit_label1 = wx.StaticText(self, label='Fit param.:')
-        self.disp_der_fit_label2 = wx.StaticText(self, label='Fit param.:')
-        self.disp_der_fit_p1 = wx.StaticText(self, label='')
-        self.disp_der_fit_p2 = wx.StaticText(self, label='')
+        self.disp_der_fit_label1 = wx.StaticText(result_box, label='Fit param.:')
+        self.disp_der_fit_label2 = wx.StaticText(result_box, label='Fit param.:')
+        self.disp_der_fit_p1 = wx.StaticText(result_box, label='')
+        self.disp_der_fit_p2 = wx.StaticText(result_box, label='')
 
         der_results = wx.FlexGridSizer(cols=4, vgap=self._FromDIP(5), hgap=2)
-        der_results.Add(wx.StaticText(self, label='FWHM:'),
+        der_results.Add(wx.StaticText(result_box, label='FWHM:'),
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
         der_results.Add(self.disp_der_fwhm,
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
-        der_results.Add(wx.StaticText(self, label='FWHM cen.:'),
+        der_results.Add(wx.StaticText(result_box, label='FWHM cen.:'),
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
         der_results.Add(self.disp_der_fwhm_pos,
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
-        der_results.Add(wx.StaticText(self, label='COM pos.:'),
+        der_results.Add(wx.StaticText(result_box, label='COM pos.:'),
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
         der_results.Add(self.disp_der_com,
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
@@ -1167,42 +1174,42 @@ class ScanPanel(wx.Panel):
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN|wx.ALIGN_CENTER_VERTICAL)
 
         self.der_results_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.der_results_sizer.Add(wx.StaticText(self, label='Derivative:'),
+        self.der_results_sizer.Add(wx.StaticText(result_box, label='Derivative:'),
             flag=wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
         self.der_results_sizer.Add(der_results, border=self._FromDIP(5),
             flag=wx.TOP|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
 
-        self.move_to = wx.Choice(self, choices=['FWHM center', 'COM position'])
+        self.move_to = wx.Choice(result_box, choices=['FWHM center', 'COM position'])
         self.move_to.SetSelection(0)
-        self.move = wx.Button(self, label='Move')
+        self.move = wx.Button(result_box, label='Move')
         self.move.Bind(wx.EVT_BUTTON, self._on_moveto)
 
         move_to_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        move_to_sizer.Add(wx.StaticText(self, label='Move to:'),
+        move_to_sizer.Add(wx.StaticText(result_box, label='Move to:'),
             flag=wx.ALIGN_CENTER_VERTICAL)
         move_to_sizer.Add(self.move_to, border=self._FromDIP(5),
             flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
         move_to_sizer.Add(self.move, border=self._FromDIP(5),
             flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL)
 
-        save_btn = wx.Button(self, label='Save Scan Results')
+        save_btn = wx.Button(result_box, label='Save Scan Results')
         save_btn.Bind(wx.EVT_BUTTON, self._on_saveresults)
 
 
-        self.scan_results_sizer = wx.StaticBoxSizer(wx.StaticBox(self, label='Scan Results'),
-            wx.VERTICAL)
-        self.scan_results_sizer.Add(wx.StaticText(self, label='Scan:'))
+        self.scan_results_sizer = wx.StaticBoxSizer(result_box, wx.VERTICAL)
+        self.scan_results_sizer.Add(wx.StaticText(result_box, label='Scan:'))
         self.scan_results_sizer.Add(scan_results, border=self._FromDIP(5),
-            flag=wx.TOP|wx.BOTTOM)
-        self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
-            border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+            flag=wx.ALL)
+        self.scan_results_sizer.Add(wx.StaticLine(result_box, style=wx.LI_HORIZONTAL),
+            border=15, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
         self.scan_results_sizer.Add(self.der_results_sizer, border=self._FromDIP(5),
-            flag=wx.TOP|wx.BOTTOM|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
-        self.scan_results_sizer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
-            border=10, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
-        self.scan_results_sizer.Add(move_to_sizer, border=self._FromDIP(5), flag=wx.TOP)
+            flag=wx.ALL|wx.RESERVE_SPACE_EVEN_IF_HIDDEN)
+        self.scan_results_sizer.Add(wx.StaticLine(result_box, style=wx.LI_HORIZONTAL),
+            border=15, flag=wx.LEFT|wx.RIGHT|wx.EXPAND)
+        self.scan_results_sizer.Add(move_to_sizer, border=self._FromDIP(5),
+            flag=wx.TOP|wx.LEFT|wx.RIGHT)
         self.scan_results_sizer.Add(save_btn, border=self._FromDIP(5),
-            flag=wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL)
+            flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL)
 
         self.scan_results_sizer.Hide(self.der_results_sizer, recursive=True)
 
@@ -1249,7 +1256,8 @@ class ScanPanel(wx.Panel):
 
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_sizer.Add(scan_sizer)
-        top_sizer.Add(plot_sizer, 1, flag=wx.EXPAND)
+        top_sizer.Add(plot_sizer, 1, flag=wx.EXPAND|wx.LEFT,
+            border=self._FromDIP(5))
 
         self.SetSizer(top_sizer)
 
