@@ -575,12 +575,6 @@ class HomeMotorPanel(wx.Panel):
         self.Refresh()
         self.Update()
 
-        self.Layout()
-        self.Fit()
-        self.SendSizeEvent()
-        self.Refresh()
-        self.Update()
-
     def _get_home_settings(self):
         home_to = self._home_to.GetStringSelection()
         final_pos = float(self._final_pos.GetValue())
