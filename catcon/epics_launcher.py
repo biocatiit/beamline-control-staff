@@ -792,7 +792,7 @@ class MotorChannelFrame(wx.Frame):
 
 class EPICSLauncherFrame(wx.Frame):
     """
-    A lightweight amplifier frame designed to hold the EPICS launcher panel.
+    A lightweight frame designed to hold the EPICS launcher panel.
     """
     def __init__(self, *args, is_medm=True, **kwargs):
         """
@@ -816,14 +816,6 @@ class EPICSLauncherFrame(wx.Frame):
     def _create_layout(self, is_medm):
         """
         Creates the layout.
-
-        :param list dios: The amplifier names in the Mp database.
-
-        :param tuple shape: A tuple containing the shape of the amp grid.
-            It is given as: (rows, cols). Note that rows*cols should be equal
-            to or greater than the number of dios, but the AmpFrame doesn't
-            check this. If it isn't, it will just fail to propely display the last
-            few dios.
         """
         top_sizer = wx.BoxSizer(wx.VERTICAL)
 
