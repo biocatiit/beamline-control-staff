@@ -857,7 +857,7 @@ class CtrlsFrame(wx.Frame):
 
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, box)
 
-            box.SetOwnForegroundColour(wx.RED)
+            # box.SetOwnForegroundColour(wx.RED)
             box_sizer = wx.StaticBoxSizer(box)
             box_sizer.Add(ctrl_panel, 1, flag=wx.EXPAND)
 
