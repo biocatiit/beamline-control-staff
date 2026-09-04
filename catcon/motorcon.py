@@ -33,13 +33,13 @@ import epics, epics.wx
 from epics.wx.wxlib import EpicsFunction
 
 # import scancon
-# import custom_widgets
+import custom_widgets
 import custom_epics_widgets
 import utils
-# utils.set_mppath() #This must be done before importing any Mp Modules.
-# import Mp as mp
+utils.set_mppath() #This must be done before importing any Mp Modules.
+import Mp as mp
 # # import MpCa as mpca
-# import MpWx as mpwx
+import MpWx as mpwx
 
 
 class MotorPanel(wx.Panel):
