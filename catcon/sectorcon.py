@@ -853,7 +853,6 @@ class CtrlsFrame(wx.Frame):
 
         for ctrl_name, ctrl_type in ctrls:
             box = wx.StaticBox(self, label='{} Control'.format(ctrl_name))
-            box = wx.StaticBox(self, label='{} Control'.format(ctrl_name))
 
             ctrl_panel = main_window.ctrl_types[ctrl_type](ctrl_name, mx_db, box)
 
