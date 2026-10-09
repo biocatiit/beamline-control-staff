@@ -20,7 +20,7 @@ class MotorConfigPanel(wx.Panel):
         super(MotorConfigPanel, self).__init__(*args, name=name, **kwargs)
         logger.debug('Setting up the MotorConfigPanel')
 
-        SHOW_C_MOTORS = False
+        SHOW_C_MOTORS = True
 
         self.settings = {
             'motors'    : [
