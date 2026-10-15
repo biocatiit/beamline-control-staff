@@ -22,22 +22,23 @@ class MotorConfigPanel(wx.Panel):
 
         SHOW_C_MOTORS = True
 
+        # motors should be: [prefix, motor start num, motor end num, show CSMotors, CSMotors prefix]
         self.settings = {
             'motors'    : [
-                            ['18ID_DMC_E01:', 1, 8],
-                            ['18ID_DMC_E02:', 9, 16],
-                            ['18ID_DMC_E03:', 17, 24],
-                            ['18ID_DMC_E04:', 25, 32],
-                            ['18ID_DMC_E05:', 33, 40],
-                            ['18ID_DMC_A01:A', 1, 8],
+                            ['18ID_DMC_E01:', 1, 8, False, '18ID_DMC_E01:'],
+                            ['18ID_DMC_E02:', 9, 16, False, '18ID_DMC_E02:'],
+                            ['18ID_DMC_E03:', 17, 24, False, '18ID_DMC_E03:'],
+                            ['18ID_DMC_E04:', 25, 32, False, '18ID_DMC_E04:'],
+                            ['18ID_DMC_E05:', 33, 40, False, '18ID_DMC_E05:'],
+                            ['18ID_DMC_A01:A', 1, 8, False, '18ID_DMC_A01:'],
                             ],
             'load_pref' : '18ID' #string key all PVs in the config files are expected to start with
             }
 
         if SHOW_C_MOTORS:
-            self.settings['motors'].append(['18ID_DMC_E06:C', 1, 8])
-            self.settings['motors'].append(['18ID_DMC_E07:C', 9, 16])
-            self.settings['motors'].append(['18ID_DMC_E08:C', 17, 24])
+            self.settings['motors'].append(['18ID_DMC_E06:C', 1, 8, True, '18ID_DMC_E06:'])
+            self.settings['motors'].append(['18ID_DMC_E07:C', 9, 16, False, '18ID_DMC_E07:'])
+            self.settings['motors'].append(['18ID_DMC_E08:C', 17, 24, False, '18ID_DMC_E08:'])
 
         self._base_path = pathlib.Path(__file__).parent.resolve().parent / 'motor_save_restore'
         self._last_path = self._base_path / 'motor_configs'
@@ -112,7 +113,7 @@ class MotorConfigPanel(wx.Panel):
         self.pv_list.InsertColumn(1, "Description", width=200)
 
         for item in self.settings['motors']:
-            prefix, start, end = item
+            prefix, start, end, show_cs_motors, cs_prefix = item
 
             for mnum in range(start, end+1):
                 index = self.pv_list.GetItemCount()
@@ -125,22 +126,40 @@ class MotorConfigPanel(wx.Panel):
 
                 self.pv_list.SetItemWindow(index, 1, descrip, expand=True)
 
+                self.pv_list.SetItemPyData(index, False) #True if CSMotor
+
+            if show_cs_motors:
+                for mnum in ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P']:
+                    index = self.pv_list.GetItemCount()
+                    pv = '{}{}'.format(cs_prefix, mnum)
+                    self.pv_list.InsertStringItem(index, '')
+                    self.pv_list.SetStringItem(index, 0, pv)
+
+                    descrip = epics.wx.PVText(self.pv_list, '{}.DESC'.format(pv),
+                        minor_alarm=None, major_alarm=None, invalid_alarm=None)
+
+                    self.pv_list.SetItemWindow(index, 1, descrip, expand=True)
+
+                    self.pv_list.SetItemPyData(index, True) #True if CSMotor
+
         self.pv_list.SetColumnWidth(0, -1)
         c0_width = self.pv_list.GetColumnWidth(0)
         self.pv_list.SetColumnWidth(0, c0_width+20)
         self.pv_list.SetColumnWidth(1, -3)
 
     def _on_save_config(self, evt):
-        pv, desc = self._get_selected_pv()
-        fname = self._create_file_dialog(wx.FD_SAVE, desc)
+        pv, desc, cs_motor = self._get_selected_pv()
 
-        if fname is not None:
-            if os.path.splitext(fname)[1] != '.sav':
-                fname = fname + '.sav'
+        if pv is not None:
+            fname = self._create_file_dialog(wx.FD_SAVE, desc)
 
-            self._last_path = str(pathlib.Path(fname).parent.resolve())
+            if fname is not None:
+                if os.path.splitext(fname)[1] != '.sav':
+                    fname = fname + '.sav'
 
-            wx.CallAfter(self._save_settings, pv, fname)
+                self._last_path = str(pathlib.Path(fname).parent.resolve())
+
+                wx.CallAfter(self._save_settings, pv, fname, cs_motor)
 
     def _on_load_config(self, evt):
         pv, desc = self._get_selected_pv()
@@ -159,11 +178,13 @@ class MotorConfigPanel(wx.Panel):
             pv = pv_item.GetText()
             desc_item = self.pv_list.GetItem(index, 1).GetWindow()
             desc = desc_item.GetLabel()
+            cs_motor = self.pv_list.GetItemPyData(index)
         else:
             pv = None
             desc = None
+            cs_motor = None
 
-        return pv, desc
+        return pv, desc, cs_motor
 
     def _create_file_dialog(self, mode, desc, name='Motor Config files',
         ext='*.sav'):
@@ -191,8 +212,11 @@ class MotorConfigPanel(wx.Panel):
 
         return f
 
-    def _save_settings(self, pv, fname):
-        base_save = os.path.join(self._base_path, 'base_save.req')
+    def _save_settings(self, pv, fname, cs_motor):
+        if not cs_motor:
+            base_save = os.path.join(self._base_path, 'base_save.req')
+        else:
+            base_save = os.path.join(self._base_path, 'base_save_csmotor.req')
         current_save = os.path.join(self._base_path, 'current_save.req')
 
         with open(base_save, 'r') as f:

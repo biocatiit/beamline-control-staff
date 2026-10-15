@@ -1,0 +1,2 @@
+file "./autosave_reqs/motor_settings.req" P=$(P), M=$(M)
+file "./autosave_reqs/galil_motor_settings.req" P=$(P), M=$(M)
