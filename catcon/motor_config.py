@@ -76,13 +76,13 @@ class MotorConfigPanel(wx.Panel):
         motor_sizer.Add(self.pv_list, flag=wx.EXPAND|wx.ALL, proportion=1,
             border=self._FromDIP(2))
 
-        save_config = wx.Button(top_panel, label='Save Config.')
+        save_config = wx.Button(motor_box, label='Save Config.')
         save_config.Bind(wx.EVT_BUTTON, self._on_save_config)
 
-        load_config = wx.Button(top_panel, label='Load Config.')
+        load_config = wx.Button(motor_box, label='Load Config.')
         load_config.Bind(wx.EVT_BUTTON, self._on_load_config)
 
-        view_config = wx.Button(top_panel, label='View Config.')
+        view_config = wx.Button(motor_box, label='View Config.')
         view_config.Bind(wx.EVT_BUTTON, self._on_view_config)
 
         button_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -90,11 +90,42 @@ class MotorConfigPanel(wx.Panel):
         button_sizer.Add(load_config, flag=wx.RIGHT, border=self._FromDIP(5))
         button_sizer.Add(view_config)
 
+        motor_sizer.Add(button_sizer, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,
+            border=self._FromDIP(5))
+
+
+        cs_box = wx.StaticBox(top_panel, label='Coordinate Systems')
+
+        choices = [item[4] for item in self.settings['motors']]
+
+        self.cs_choice = wx.Choice(cs_box, choices=choices)
+
+        cs_choice_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        cs_choice_sizer.Add(wx.StaticText(cs_box, label='Controller:'),
+            flag=wx.ALIGN_CENTER_VERTICAL)
+        cs_choice_sizer.Add(self.cs_choice, flag=wx.LEFT|wx.ALIGN_CENTER_VERTICAL,
+            border=self._FromDIP(5))
+
+        save_cs = wx.Button(cs_box, label='Save CS Settings')
+        save_cs.Bind(wx.EVT_BUTTON, self._on_save_cs)
+
+        load_cs = wx.Button(cs_box, label='Load CS Settings')
+        load_cs.Bind(wx.EVT_BUTTON, self._on_load_cs)
+
+
+        cs_button_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        cs_button_sizer.Add(save_cs)
+        cs_button_sizer.Add(load_cs, flag=wx.LEFT, border=self._FromDIP(5))
+
+        cs_sizer = wx.StaticBoxSizer(cs_box, wx.VERTICAL)
+        cs_sizer.Add(cs_choice_sizer, flag=wx.ALL, border=self._FromDIP(5))
+        cs_sizer.Add(cs_button_sizer, flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL,
+            border=self._FromDIP(5))
+
 
         panel_sizer.Add(motor_sizer, flag=wx.EXPAND|wx.ALL, border=self._FromDIP(5),
             proportion=1)
-        panel_sizer.Add(button_sizer,
-            flag=wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL,
+        panel_sizer.Add(cs_sizer, flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.BOTTOM,
             border=self._FromDIP(5))
 
         top_panel.SetSizer(panel_sizer)
@@ -185,6 +216,33 @@ class MotorConfigPanel(wx.Panel):
             cs_motor = None
 
         return pv, desc, cs_motor
+
+    def _on_save_cs(self, evt):
+        pv = self.cs_choice.GetStringSelection()
+
+        desc = pv.rstrip(':') + '_CS'
+
+        fname = self._create_file_dialog(wx.FD_SAVE, desc, name='Coordinate System files')
+
+        if fname is not None:
+            if os.path.splitext(fname)[1] != '.sav':
+                fname = fname + '.sav'
+
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
+
+            wx.CallAfter(self._save_cs_settings, pv, fname)
+
+    def _on_load_cs(self, evt):
+        pv = self.cs_choice.GetStringSelection()
+
+        desc = pv.rstrip(':') + '_CS'
+
+        fname = self._create_file_dialog(wx.FD_OPEN, desc, name='Coordinate System files')
+
+        if fname is not None:
+            self._last_path = str(pathlib.Path(fname).parent.resolve())
+
+            wx.CallAfter(self._load_cs_settings, pv, fname)
 
     def _create_file_dialog(self, mode, desc, name='Motor Config files',
         ext='*.sav'):
@@ -279,6 +337,71 @@ class MotorConfigPanel(wx.Panel):
                 f.writelines(lines)
 
             epics.autosave.restore_pvs(current_load)
+
+        else:
+            wx.CallAfter(wx.MessageBox, 'Failed to load settings', 'Error')
+
+    def _save_cs_settings(self, pv, fname):
+        base_save = os.path.join(self._base_path, 'base_save_cs.req')
+        current_save = os.path.join(self._base_path, 'current_save.req')
+
+        with open(base_save, 'r') as f:
+            lines = f.readlines()
+
+        prefix = ':'.join(pv.split(':')[:-1])
+        if ':' in pv:
+            prefix += ':'
+
+        for i in range(len(lines)):
+            line = lines[i]
+            line = line.replace('$(P)', prefix)
+            lines[i] = line
+
+        with open(current_save, 'w') as f:
+            f.writelines(lines)
+
+        epics.autosave.save_pvs(current_save, fname)
+
+    def _load_cs_settings(self, pv, fname):
+        load_pref = self.settings['load_pref']
+
+        current_load = os.path.join(self._base_path, 'current_load.sav')
+
+        with open(fname, 'r') as f:
+            lines = f.readlines()
+
+        old_pv = None
+        for i, line in enumerate(lines):
+            if line.startswith(load_pref):
+                full_pv = line.split()[0]
+                old_pv = ':'.join(full_pv.split(':')[:-1]) +':'
+
+                if os.path.splitext(fname)[1] == '.usnap':
+                    start = i
+                break
+
+        if os.path.splitext(fname)[1] == '.usnap':
+            lines = lines[start:]
+
+        if old_pv != None:
+            for i in range(len(lines)):
+                line = lines[i]
+                if old_pv in line:
+                    line = line.replace(old_pv, pv)
+
+                if os.path.splitext(fname)[1] == '.usnap':
+                    temp_line = line.split(' ')
+                    pv_temp = temp_line[0]
+                    val_temp = ' '.join(temp_line[2:])
+                    val_temp = val_temp.replace('"', '')
+                    line = '{} {}'.format(pv_temp, val_temp)
+
+                lines[i] = line
+
+            with open(current_load, 'w') as f:
+                f.writelines(lines)
+
+            # epics.autosave.restore_pvs(current_load)
 
         else:
             wx.CallAfter(wx.MessageBox, 'Failed to load settings', 'Error')
