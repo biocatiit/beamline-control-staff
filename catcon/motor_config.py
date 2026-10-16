@@ -37,7 +37,7 @@ class MotorConfigPanel(wx.Panel):
 
         if SHOW_C_MOTORS:
             self.settings['motors'].append(['18ID_DMC_E06:C', 1, 8, True, '18ID_DMC_E06:'])
-            self.settings['motors'].append(['18ID_DMC_E07:C', 9, 16, False, '18ID_DMC_E07:'])
+            self.settings['motors'].append(['18ID_DMC_E07:C', 9, 16, True, '18ID_DMC_E07:'])
             self.settings['motors'].append(['18ID_DMC_E08:C', 17, 24, False, '18ID_DMC_E08:'])
 
         self._base_path = pathlib.Path(__file__).parent.resolve().parent / 'motor_save_restore'
