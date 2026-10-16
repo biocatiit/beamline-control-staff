@@ -193,7 +193,7 @@ class MotorConfigPanel(wx.Panel):
                 wx.CallAfter(self._save_settings, pv, fname, cs_motor)
 
     def _on_load_config(self, evt):
-        pv, desc = self._get_selected_pv()
+        pv, desc, cs_motor = self._get_selected_pv()
         fname = self._create_file_dialog(wx.FD_OPEN, desc)
 
         if fname is not None:
