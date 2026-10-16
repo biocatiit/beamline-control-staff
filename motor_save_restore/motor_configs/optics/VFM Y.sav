@@ -1,4 +1,4 @@
-# File saved by pyepics AutoSaver.save() on 2026-10-15 14:10:18.970222
+# File saved by pyepics AutoSaver.save() on 2026-10-16 11:57:47.856667
 # Edit with extreme care.
 18ID_DMC_E06:K.DIR 0
 18ID_DMC_E06:K.DHLM 42273300.0
@@ -15,7 +15,7 @@
 18ID_DMC_E06:K.BACC 5.0
 18ID_DMC_E06:K.RDBD 1.0
 18ID_DMC_E06:K.SPDB 0.0
-18ID_DMC_E06:K.DESC Mirror_Vert Vert
+18ID_DMC_E06:K.DESC VFM Y
 18ID_DMC_E06:K.EGU um
 18ID_DMC_E06:K.RTRY 0
 18ID_DMC_E06:K.UEIP 1
