@@ -14,6 +14,8 @@ fi
 
 if [[ "$PREFIX" == "ETC" ]]; then
     caQtDM -attach -noMsg -macro "P=18ID:ETC:,Ti=Ti,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo" ETC_module.ui &
+elif [[ "$PREFIX" == "ETC2" ]]; then
+    caQtDM -attach -noMsg -macro "P=18ID:ETC:2:,Ti=Ti,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo" ETC_module.ui &
 elif [[ "$PREFIX" == "E1608" ]]; then
     caQtDM -attach -noMsg -macro "P=18ID:E1608:,Ai=Ai,Ao=Ao,Ct=Counter,Bo=Bo,Bi=Bi,Bd=Bd,Li=Li,Lo=Lo,Tg=Trig,Wd=WaveDig" E1608_module.ui &
 elif [[ "$PREFIX" == "USB1608G_1" ]]; then
