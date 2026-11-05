@@ -1,3 +1,2 @@
-file "./autosave_reqs/motor_settings.req" P=18ID_DMC_E08:, M=C17
-file "./autosave_reqs/galil_motor_settings.req" P=18ID_DMC_E08:, M=C17
-file "./autosave_reqs/galil_motor_extras.req" P=18ID_DMC_E08:, M=C17
+file "./autosave_reqs/motor_settings.req" P=18ID_DMC_E07:, M=L
+file "./autosave_reqs/galil_motor_settings.req" P=18ID_DMC_E07:, M=L
