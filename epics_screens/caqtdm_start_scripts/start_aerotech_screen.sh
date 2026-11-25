@@ -13,4 +13,5 @@ else
 fi
 
 caQtDM -attach -noMsg -macro "P=${PREFIX}, M=m1," Automation1AxisStatus.ui &
+caQtDM -attach -noMsg -macro "P=${PREFIX}, M=m1" motorx_more.ui &
 #caQtDM -attach -noMsg -macro "P=${PREFIX}, M=m1, R=pm1:," Automation1PSO.ui &

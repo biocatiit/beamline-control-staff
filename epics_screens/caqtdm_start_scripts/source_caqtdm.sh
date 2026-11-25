@@ -43,6 +43,8 @@ asynpath=$base_display_path/asynApp/op/ui:$base_display_path/asynApp/op/ui/autoc
 autosavepath=$base_display_path/asApp/op/ui:$base_display_path/asApp/op/ui/autoconvert
 delaygenpath=$base_display_path/delaygenApp/op/ui:$base_display_path/delaygenApp/op/ui/autoconvert
 aerotechpath=$base_display_path/automation1App/op/ui:$base_display_path/automation1App/op/ui/autoconvert
+calcpath=$base_display_path/calcApp/op/ui:$base_display_path/calcApp/op/ui/autoconvert
+
 
 
 CAQTDM_DISPLAY_PATH=$motorpath:$galilpath:$sscanpath:$mcapath:$scalerpath
@@ -52,6 +54,7 @@ CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$meascomppath:$opticspath:$newportpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$quadempath:$genicampath:$ffmpegpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$spinnakerpath:$ippath:$asynpath
 CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$autosavepath:$delaygenpath:$aerotechpath
+CAQTDM_DISPLAY_PATH=$CAQTDM_DISPLAY_PATH:$calcpath
 
 export CAQTDM_DISPLAY_PATH
 # echo $CAQTDM_DISPLAY_PATH
